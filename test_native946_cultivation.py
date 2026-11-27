@@ -156,11 +156,11 @@ class CultivationTests(unittest.TestCase):
         from native946_fashion_shop import FashionShop
         from native946_mall_uses import MallUses
         from native946_premium_items import PILL_RUN_SPEED, SPEED_KEY
-        from native946_role_systems import RULES
+        from native946_role_systems import RULES, save
         from native946_storage import StorageBusy
 
         self.level(184)
-        cost = RULES['jing_upgrade_exp']
+        cost = RULES['jing_upgrade_exp'] * 2
         with self.progress.transaction() as db:
             db.execute('UPDATE cultivation_state SET rebirth=2,ascension=1,sanctification=1 '
                        'WHERE character_id=?', (self.cid,))
@@ -170,6 +170,11 @@ class CultivationTests(unittest.TestCase):
         self.assertTrue(failed.startswith(message_id(98)))
         self.assertEqual(self.progress.snapshot()['experience'], cost)
         self.level(185)
+        blocked = self.fixture.login.receive(message_id(2551))
+        self.assertIn('请先在幽冥地府找地藏王完成化境·五蕴'.encode('gb18030'),blocked)
+        self.assertEqual(self.progress.snapshot()['experience'], cost)
+        with self.progress.transaction() as db:
+            save(db,self.cid,'jing',dict(level=1,exp=0))
         self.game.sync_progression()
         row = self.fixture.characters.create('npc_owner', '化境观测', 702)
         viewer = NativeGameplay(row, self.fixture.characters, lambda: ())
@@ -182,7 +187,7 @@ class CultivationTests(unittest.TestCase):
         row['x'] = self.game.character['x'] - 120
         distant = NativeGameplay(row, self.fixture.characters, lambda: ())
         service.reconnect_packets(self.game)
-        self.assertEqual(find_actor(service.drain(distant), self.cid)['jing'], 0)
+        self.assertEqual(find_actor(service.drain(distant), self.cid)['jing'], 1)
         service.drain(viewer)
 
         frame_packets = FashionShop.frame_packets
@@ -196,14 +201,14 @@ class CultivationTests(unittest.TestCase):
         for values in (reply, shown_to_peer, service.drain(distant)):
             actor = find_actor(values, self.cid)
             self.assertEqual(values.count(packet(1604, ['number'], [self.cid])), 1)
-            self.assertEqual((actor['jing'], actor['halo'], actor['run_speed']), (1, 101, PILL_RUN_SPEED))
+            self.assertEqual((actor['jing'], actor['halo'], actor['run_speed']), (2, 101, PILL_RUN_SPEED))
         panel = next(value for value in shown_to_peer if value.startswith(message_id(3228)))
         reader = MessageReader(panel[3:])
         reader.integer()
         reader.string()
         team = {row['id']: row for row in (read_record(reader, 'team_player_info')
                                           for _ in range(reader.take(1)[0]))}
-        self.assertEqual(team[self.cid]['jing'], 1)
+        self.assertEqual(team[self.cid]['jing'], 2)
         self.assertEqual(self.progress.snapshot()['experience'], 0)
         failed = self.fixture.login.receive(message_id(2551))
         self.assertTrue(failed.startswith(message_id(98)))

@@ -201,6 +201,7 @@ def receive(game,db,mid,a):
 
             require(training_state(db,cid)['sanctification'] and character(db,cid)['level']>=SANCTIFICATION_LIMIT,
                     '化境需封圣185级。')
+            require(s['level'] > 0, '请先在幽冥地府找地藏王完成化境·五蕴。')
             require(s['level']<RULES['jing_max_level'],'化境已达最高重。')
             cost=RULES['jing_upgrade_exp']*(s['level']+1);pay(db,cid,exp=cost);s['level']+=1
             db.execute('UPDATE progression SET points=points+? WHERE character_id=?',(RULES['jing_point_per_level'],cid))

@@ -226,9 +226,18 @@ class TaskJournalTests(unittest.TestCase):
                      if isinstance(a,dict) and a.get('op')=='five_aggregates_check')
         checked = self.login.receive(packet(1032,['byte','number'],[index,target['npc']]))
         self.assertIn('已满足已知领取条件'.encode('gb18030'),checked)
-        self.assertIn('暂不能领取'.encode('gb18030'),checked)
-        for mid in (1492,1493):
-            self.assertIn('暂不能领取'.encode('gb18030'),self.send(mid,123823))
+        self.assertIn('暂不能完成化境'.encode('gb18030'),checked)
+        preview = self.login.receive(packet(1032,['byte','number'],[1,target['npc']]))
+        reader = MessageReader(next(value for value in preview if value.startswith(message_id(1253)))[3:])
+        token = reader.integer()
+        self.assertGreater(token,0)
+        self.assertEqual(reader.integer(),6)
+        reader.finish()
+        selected = self.login.receive(packet(1033,[('array','string'),'number'],[['702','0'],token]))
+        self.assertIn('暂不能完成化境'.encode('gb18030'),selected)
+        self.assertFalse(getattr(self.g,'npc_service_session',None))
+        self.assertTrue(self.send(1492,123823).startswith(message_id(1025)))
+        self.assertIn('暂不能完成化境'.encode('gb18030'),self.send(1493,123823))
         self.assertEqual(self.p.snapshot(),before)
 
     def test_native_query_event_returns_only_server_owned_story_state(self):

@@ -1,6 +1,7 @@
 """Original 946 catalog, reconstructed main campaign and native task journal."""
 from pathlib import Path
-from time import time
+from secrets import randbelow
+from time import monotonic, time
 import json
 
 from native946_codec import packet
@@ -28,7 +29,8 @@ STORY_PANEL = 'dlg_scnr_review_main'
 STORY_CHILD_PANEL = 'dlg_scnr_review_story'
 FIVE_AGGREGATES = 123823
 FIVE_AGGREGATES_NPC = (2009, STORIES[FIVE_AGGREGATES]['npc_id'])
-FIVE_AGGREGATES_GAP = '五蕴领取后的首个任务步骤和存档变更仍待核实，暂不能领取。'
+FIVE_AGGREGATES_GAP = '化境确认后的属性、法术熟练度与装备处理仍待核实，暂不能完成化境。'
+FIVE_AGGREGATES_PREVIEW = 'five_aggregates_preview'
 
 
 def story_panel_packets(show=True):
@@ -76,9 +78,11 @@ def eligibility(story, snapshot, completed=(), *, demon_wins=()):
     roles = story['fit_role'].split('@')
     if roles != ['0'] and str(snapshot.get('role', snapshot.get('role_id'))) not in roles:
         return False, '当前角色不符合原版角色限制。'
-    if story.get('id') == FIVE_AGGREGATES and (
-            not snapshot['sanctification'] or snapshot['level'] < story['min_grade']):
-        return False, '未达到原版领取等级：' + story['grade'] + '。'
+    if story.get('id') == FIVE_AGGREGATES:
+        if snapshot.get('jing_stage', 0):
+            return False, '当前角色已化境。'
+        if not snapshot['sanctification'] or snapshot['level'] < story['min_grade']:
+            return False, '未达到原版领取等级：' + story['grade'] + '。'
     actual = grade_number(snapshot['level'], snapshot['rebirth'], snapshot['ascension'], snapshot['sanctification'])
     low = grade_number(*(story['min_' + k] for k in ('grade', 'rei', 'fly', 'feng')))
     high = grade_number(*(story['max_' + k] for k in ('grade', 'rei', 'fly', 'feng')))
@@ -105,7 +109,9 @@ def location(story):
 def story_description(story, snapshot, *, demon_wins=()):
     from native946_campaign import QUESTS,TRIALS,completed_names
     _, reason = eligibility(story, snapshot,completed_names(snapshot),demon_wins=demon_wins)
-    status=FIVE_AGGREGATES_GAP if story['id'] == FIVE_AGGREGATES else GAP
+    status=GAP
+    if story['id'] == FIVE_AGGREGATES:
+        status = '已化境' if snapshot.get('jing_stage', 0) else FIVE_AGGREGATES_GAP
     if str(story['id']) in QUESTS:
         row=snapshot.get('campaign',{}).get('runs',{}).get(str(story['id']))
         status=({'active':'进行中','completed':'已完成','available':'等待领取'}.get(row['state']) if row else '可在剧情联系人处查看领取条件')
@@ -164,6 +170,9 @@ class TaskJournal:
         self.p = game.progression
 
     def receive(self, mid, reader):
+        session = getattr(self.g, 'npc_service_session', None)
+        if mid == 1033 and session and session['kind'] == FIVE_AGGREGATES_PREVIEW:
+            return self.five_aggregates_choice(reader, session)
         if mid in (1393, 1394):
             from native946_newbie_rewards import receive
             return True, receive(self.g, mid, reader)
@@ -217,9 +226,13 @@ class TaskJournal:
                 return True,campaign.refreshed('已领取'+chapter['name']+'，目标已记入任务日志。')
             story = STORIES[tid]
             if tid == FIVE_AGGREGATES:
+                if self.g.battle:
+                    raise ValueError('请先结束当前战斗。')
                 eligible, reason = self.five_aggregates_status()
-                if eligible and mid == 1492 and not Campaign(self.g).near(location(story)):
-                    return True, self.five_aggregates_navigation()
+                if eligible and mid == 1492:
+                    if not Campaign(self.g).near(location(story)):
+                        return True, self.five_aggregates_navigation()
+                    return True, self.five_aggregates_menu(FIVE_AGGREGATES_NPC[1])
                 raise ValueError(story['name'] + '：' + (FIVE_AGGREGATES_GAP if eligible else reason))
             _, reason = eligibility(story, self.p.snapshot())
             raise ValueError(story['name'] + '：' + reason + GAP)
@@ -360,6 +373,44 @@ class TaskJournal:
 
         return eligibility(STORIES[FIVE_AGGREGATES], self.p.snapshot(), demon_wins=demon_victories(self.p))
 
+    def five_aggregates_menu(self, nid):
+        eligible, reason = self.five_aggregates_status()
+        text = '化境·五蕴#r' + reason
+        choices = [('查看降魔首领指引', dict(op='demon_guide'))]
+        if eligible:
+            text += '#r' + FIVE_AGGREGATES_GAP
+            choices.insert(0, ('预览化境界面', dict(op=FIVE_AGGREGATES_PREVIEW)))
+        return self._menu(nid, text, choices)
+
+    def preview_five_aggregates(self, nid):
+        eligible, reason = self.five_aggregates_status()
+        if not eligible:
+            raise ValueError(reason)
+        session_id = randbelow(1 << 30) + 1
+        self.g.npc_service_session = dict(kind=FIVE_AGGREGATES_PREVIEW, token=session_id,
+                                          npc=nid, expires=monotonic() + 120)
+        # 946 c_open_choose_role_ui uses change reason 6 for 化境.
+        return self.g.close_npc_dialogue(), packet(1253, ['number','number'], [session_id,6])
+
+    def five_aggregates_choice(self, reader, session):
+        from native946_login import MessageReader
+        probe = MessageReader(reader.data[reader.offset:])
+        selected = [probe.string() for _ in range(probe.take(1)[0])]
+        token = probe.integer()
+        probe.finish()
+        if token != session['token']:
+            return False, None
+        self.g.npc_service_session = None
+        self.validate_source(session['npc'])
+        from native946_characters import ROLES
+
+        # All three 946 selection callbacks send the selected role and a zero.
+        if monotonic() >= session['expires'] or len(selected) != 2 or selected[1] != b'0' or (
+                selected[0].decode('ascii', errors='replace') not in ROLES):
+            raise ValueError('化境选角会话已失效，请重新与地藏王交谈。')
+        eligible, reason = self.five_aggregates_status()
+        return True, text_notice(FIVE_AGGREGATES_GAP if eligible else reason)
+
     def five_aggregates_navigation(self):
         from native946_navigation import npc_auto_trace
 
@@ -444,14 +495,11 @@ class TaskJournal:
             if str(story['id']) in QUESTS:choices.insert(0,('查看剧情与修行进度',dict(op='campaign')))
             choices.append(('返回剧情与任务目录', dict(op='catalog')))
             return self._menu(nid, story['name'] + '#r' + self.story_description(story, self.p.snapshot()), choices)
-        if op == 'five_aggregates_check':
+        if op in ('five_aggregates_check', FIVE_AGGREGATES_PREVIEW):
             if (self.g.character['map_id'], nid) != FIVE_AGGREGATES_NPC:
                 raise ValueError('请到幽冥地府找地藏王检查五蕴领取条件。')
-            eligible, reason = self.five_aggregates_status()
-            text = '化境·五蕴#r' + reason
-            if eligible:
-                text += '#r' + FIVE_AGGREGATES_GAP
-            return self._menu(nid, text, [('查看降魔首领指引', dict(op='demon_guide'))])
+            return (self.preview_five_aggregates(nid) if op == FIVE_AGGREGATES_PREVIEW
+                    else self.five_aggregates_menu(nid))
         if op == 'demon_guide':
             from native946_activities import demon_guide_text, demon_victories
 
