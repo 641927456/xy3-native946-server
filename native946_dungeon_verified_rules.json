@@ -1,0 +1,36 @@
+{
+  "client_revision": 946,
+  "branch": "classic regular",
+  "daily_entry_revision": {
+    "source": {
+      "requested_url": "https://xy3.163.com/2026/11/10/6355_1319236.html",
+      "url": "https://xy3.163.com/2026/11/10/6355_1319236.html",
+      "title": "2026年11月11日停机维护公告- 《新大话西游3经典版》官方网站-为爱西行十六年-唯美回合制网游",
+      "encoding": "gb18030",
+      "bytes": 33960,
+      "sha256": "8f0702627214641b55da69d1c2e50b7eec7c122d4e57cc88391654f812cc62e2",
+      "builds": [
+        "patch3.0.945"
+      ],
+      "content_type": "text/html"
+    },
+    "effective_revision": 945,
+    "names": [
+      "勇闯狮驼岭",
+      "无底洞",
+      "逃离万妖国",
+      "白龙剑冢",
+      "连环灭佛",
+      "智破通天",
+      "封印千鬼域",
+      "无界孤城"
+    ],
+    "max_entries_per_day": 1,
+    "shared_across_difficulties": true,
+    "completion_allows_reentry_same_day": false,
+    "abandon_allows_reentry_same_day": false,
+    "reset_hour_verified": false,
+    "display": "每天只可进入1次；普通与困难共享次数。选择难度进入后，完成或中途放弃，当天均不能再次进入。"
+  },
+  "scope": "Verified original eligibility rule; instance entry/AI/reward execution remains unavailable"
+}

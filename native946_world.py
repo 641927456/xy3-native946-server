@@ -1,0 +1,152 @@
+"""Original-client town metadata, nearby NPCs and validated transport routes."""
+from collections import defaultdict
+from functools import lru_cache
+from pathlib import Path
+import json
+import hashlib
+import re
+
+
+ROOT=Path(__file__).resolve().parent
+INSTANCE_SCENES={int(key):row for key,row in json.loads(
+    (ROOT/'native946_dungeon_scenes.json').read_text('utf8'))['scenes'].items()}
+
+# 946 can submit s_hero_tele while approaching a portal, before entering
+# the small 1593 terrain rectangle. Keep that visual rectangle unchanged.
+# The native movement/preload callback uses a 200-pixel (10-cell) window.
+PORTAL_APPROACH_CELLS=10
+# Native NPC auto-pilot finishes within 40 pixels of its configured from_pos.
+# One extra grid cell covers floor conversion of its pixel coordinates.
+NPC_ROUTE_APPROACH_CELLS=3
+
+
+class World:
+    def __init__(self,path=ROOT/'native946_world_data.json'):
+        data=json.loads(Path(path).read_text(encoding='utf8'))
+        if data['client_revision']!=946 or data['schema_version']!=1:raise ValueError('Unexpected native world version')
+        self.data=data
+        self.scenes={int(k):v for k,v in data['scenes'].items()}
+        self.scene_catalog={int(k):v for k,v in data.get('scene_catalog',data['scenes']).items()}
+        self.scene_catalog.update(INSTANCE_SCENES)
+        self.npcs={int(sid):{n['npc_id']:n for n in rows} for sid,rows in data['npcs'].items()}
+        self.portals=defaultdict(list);self.transports=defaultdict(list);self.buckets=defaultdict(list)
+        for row in data['portals']:self.portals[row['from']].append(row)
+        for row in data['npc_transports']:self.transports[(row['from'],row['npc_id'])].append(row)
+        for sid,rows in self.npcs.items():
+            for npc in rows.values():self.buckets[(sid,npc['x']//640,npc['y']//640)].append(npc)
+        self._npc_packets={};self._portal_packets={}
+        self._source_verified=False
+
+    def scene(self,sid):
+        if type(sid) is not int or sid not in self.scene_catalog:raise ValueError('这个场景暂时不能进入。')
+        return self.scene_catalog[sid]
+
+    def nearby(self,sid,x,y,radius=72):
+        rows={}
+        for bx in range((x-radius)//32,(x+radius)//32+1):
+            for by in range((y-radius)//32,(y+radius)//32+1):
+                for npc in self.buckets.get((sid,bx,by),()):
+                    if max(abs(npc['x']//20-x),abs(npc['y']//20-y))<=radius:rows[npc['npc_id']]=npc
+        return rows
+
+    def npc(self,sid,nid):return self.npcs.get(sid,{}).get(nid)
+
+    def npc_packet(self,sid,nid):
+        key=(sid,nid)
+        if key not in self._npc_packets:
+            from native946_codec import packet
+            row=self.npcs[sid][nid]
+            value={'id':nid,'name':row.get('name',''),'title':row.get('title',''),'type':row['shape'],
+                   'class_type':1,'x':row['x'],'y':row['y'],'dir':row.get('dir',4),'layer':1,
+                   'member_click':int(bool(row.get('name')) or bool(self.transports[(sid,nid)])),
+                   'fly':int(bool(row.get('is_aviate',0))),
+                   'weapon_idx':row.get('weapon_index',0),'weapon_color':row.get('weapon_color',0),
+                   'color1':row.get('color1',0),'color2':row.get('color2',0),'color3':row.get('color3',0)}
+            self._npc_packets[key]=packet(1589,['oci_npc'],[value])
+        return self._npc_packets[key]
+
+    def portal_packet(self,sid):
+        if sid not in self._portal_packets:
+            from native946_codec import packet
+            values=[{'x':r['source'][0],'y':r['source'][1],'aoi_x':r['half_extent'],'aoi_y':r['half_extent']}
+                    for r in self.portals[sid]]
+            self._portal_packets[sid]=packet(1593,[('array','tele_info')],[values])
+        return self._portal_packets[sid]
+
+    def physical_route(self,sid,x,y,actor_position):
+        def distance(point,row):
+            return max(abs(row['source'][k]-point[k]) for k in (0,1))
+        candidates=[row for row in self.portals.get(sid,())
+                    if distance((x,y),row)<=max(row['half_extent'],PORTAL_APPROACH_CELLS)]
+        if candidates:
+            if max(abs(actor_position[0]-x),abs(actor_position[1]-y))>10:
+                raise ValueError('请走到传送阵附近再传送。')
+            # Validate the authoritative actor against the entrance as well;
+            # request/actor drift must not add two approach windows together.
+            candidates=[row for row in candidates
+                        if distance(actor_position,row)<=max(row['half_extent'],PORTAL_APPROACH_CELLS)]
+            if not candidates:raise ValueError('请走到传送阵附近再传送。')
+            return min(candidates,key=lambda row:sum((row['source'][k]-(x,y)[k])**2 for k in (0,1)))
+        raise ValueError('当前位置没有可用的传送阵。')
+
+    @staticmethod
+    def eligible(route,character):
+        rules=route.get('eligibility',())
+        return not rules or (character is not None and any(
+            rule['race'] in (0,character['race']) and rule['sex']==character['sex'] for rule in rules))
+
+    def available_transports(self,sid,nid,character):
+        return sorted((row for row in self.transports.get((sid,nid),()) if self.eligible(row,character)),
+                      key=lambda row:row['trans_index'])
+
+    def transport_label(self,route):
+        """Use native destination aliases (e.g. 西市 inside 长安), not coordinates."""
+        npc=self.npc(route['from'],route['npc_id']) or {}
+        labels=[re.sub(r'#c[0-9a-fA-F]{6}|#[A-Za-z]','',s).strip()
+                for s in npc.get('desc','').split('#r')[1:]]
+        rows=self.transports.get((route['from'],route['npc_id']),())
+        if labels and max((r['trans_index'] for r in rows),default=0)==len(labels):
+            index=route['trans_index']-1
+            if 0<=index<len(labels) and labels[index]:return labels[index]
+        return self.scene(route['to'])['scene_name']
+
+    def npc_route(self,sid,nid,index,actor_position,character=None):
+        npc=self.npc(sid,nid)
+        if npc is None:raise ValueError('当前场景没有这个传送人。')
+        row=next((r for r in self.transports[(sid,nid)] if r['trans_index']==index),None)
+        if row is None:raise ValueError('这条传送线路不可用。')
+        near_npc=max(abs(npc['x']//20-actor_position[0]),abs(npc['y']//20-actor_position[1]))<=12
+        near_route=max(abs(row['source'][k]-actor_position[k]) for k in (0,1))<=NPC_ROUTE_APPROACH_CELLS
+        if not near_npc and not near_route:raise ValueError('请走近传送人再交谈。')
+        if not self.eligible(row,character):raise ValueError('你的种族或性别不能使用这条师门传送线路。')
+        return row
+
+    def warm(self):
+        from native946_map import load_map
+        if not self._source_verified:
+            from native946_archive_versions import CLASSIFIED_MALL_CONFIG_PATCHES, ORIGINAL_SHA256, VERIFIED_SCRIPT_PATCHES
+            # The pinned alternate archives retain every town source entry.
+            verified_patches = {
+                ('client-946/bin_script.wdf', ORIGINAL_SHA256): VERIFIED_SCRIPT_PATCHES,
+                ('client-946/resource/configs.wdf', 'eb5fc4235e8c27cefdf18e084c2ae211b2f9251471b9af9491cc77e3e5342fcb'): {
+                    '87e53edfc3d22187478a1452ac0bcca1f572a51ef552a9d2a51e354680c0c715',
+                    'ef171d84c9647140667be05759e0d21cb6e2b20ea711e96b383887c46e551fa6',  # Guild founding help text.
+                    *CLASSIFIED_MALL_CONFIG_PATCHES.values(),
+                },
+            }
+            for name,expected in self.data['source_sha256'].items():
+                source=name.replace('\\','/')
+                path=ROOT/Path(source)
+                with path.open('rb') as stream:
+                    digest=hashlib.file_digest(stream,'sha256').hexdigest()
+                if digest!=expected and digest not in verified_patches.get((source,expected),()):
+                    raise ValueError(f'客户端文件 {source} 已改变，需要重新生成城镇数据。')
+            self._source_verified=True
+        for sid in self.scenes:
+            load_map(sid);self.portal_packet(sid)
+        for sid,rows in self.npcs.items():
+            for nid in rows:self.npc_packet(sid,nid)
+
+
+@lru_cache(maxsize=1)
+def world():return World()

@@ -1,0 +1,6931 @@
+{
+  "version": 1,
+  "official": false,
+  "authorization": "User chose all channels usable with explicitly labeled local replacement rules, without trainer.",
+  "random_policy": "Uniform among native-listed, currently open candidates the character can carry; historical pools use the supplied classic-946 pool; cards directly redeem guardians.",
+  "npc": {
+    "scene": 2002,
+    "id": 1201,
+    "name": "袁天罡",
+    "scene_name": "皇城",
+    "x": 27,
+    "y": 82
+  },
+  "categories": {
+    "1": "旧世守护",
+    "2": "高级守护",
+    "3": "超级守护",
+    "4": "合成守护",
+    "5": "练功区守护",
+    "7": "木甲守护",
+    "8": "新手守护",
+    "9": "初级护驾",
+    "10": "中级护驾",
+    "11": "高级护驾",
+    "13": "珍稀守护",
+    "14": "稀有护驾"
+  },
+  "guardian_prices": {
+    "1": 5000,
+    "2": 320000,
+    "3": 4000000,
+    "4": 20000,
+    "5": 3000,
+    "7": 100000,
+    "8": 1000,
+    "9": 30000,
+    "10": 100000,
+    "11": 300000,
+    "13": 6000000,
+    "14": 4000000
+  },
+  "guardians": {
+    "2003": {
+      "type": 2003,
+      "name": "蝴蝶(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2004": {
+      "type": 2004,
+      "name": "鹦鹉(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2007": {
+      "type": 2007,
+      "name": "稻草人(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2009": {
+      "type": 2009,
+      "name": "刘洪（官）",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2010": {
+      "type": 2010,
+      "name": "刘洪（盗）",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2011": {
+      "type": 2011,
+      "name": "武僧",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2012": {
+      "type": 2012,
+      "name": "霸王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2015": {
+      "type": 2015,
+      "name": "尾生",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2021": {
+      "type": 2021,
+      "name": "绛仙儿",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2025": {
+      "type": 2025,
+      "name": "摩昂太子",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2028": {
+      "type": 2028,
+      "name": "老大",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2029": {
+      "type": 2029,
+      "name": "古小玉",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2030": {
+      "type": 2030,
+      "name": "蛟龙",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2031": {
+      "type": 2031,
+      "name": "盘丝娘娘",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2036": {
+      "type": 2036,
+      "name": "黄风怪",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2037": {
+      "type": 2037,
+      "name": "虎先锋",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "乌鸡国野外",
+          "scene": 2005,
+          "bounds": [
+            920,
+            660,
+            3160,
+            1920
+          ],
+          "authority": "native_location_local_encounter_policy"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2044": {
+      "type": 2044,
+      "name": "人参娃娃",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2046": {
+      "type": 2046,
+      "name": "剑魂",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47609,
+          "count": 1,
+          "name": "限定超级守护金卡三",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47749,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47775,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47829,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47923,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48036,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48265,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2052": {
+      "type": 2052,
+      "name": "仙鹤",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2054": {
+      "type": 2054,
+      "name": "梅仙",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2055": {
+      "type": 2055,
+      "name": "菊仙",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2056": {
+      "type": 2056,
+      "name": "兰仙",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2058": {
+      "type": 2058,
+      "name": "马元帅",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2059": {
+      "type": 2059,
+      "name": "崩将军",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2062": {
+      "type": 2062,
+      "name": "善财龙女",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2066": {
+      "type": 2066,
+      "name": "巨灵神",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47608,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2067": {
+      "type": 2067,
+      "name": "天兵",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2068": {
+      "type": 2068,
+      "name": "天将",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2070": {
+      "type": 2070,
+      "name": "玉兔",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2071": {
+      "type": 2071,
+      "name": "吴刚",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2072": {
+      "type": 2072,
+      "name": "仙女",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2078": {
+      "type": 2078,
+      "name": "禁卫军",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2079": {
+      "type": 2079,
+      "name": "镖师",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2082": {
+      "type": 2082,
+      "name": "士兵",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2083": {
+      "type": 2083,
+      "name": "高丽侍卫",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2088": {
+      "type": 2088,
+      "name": "谛听",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2090": {
+      "type": 2090,
+      "name": "白虎",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2094": {
+      "type": 2094,
+      "name": "衙役",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2100": {
+      "type": 2100,
+      "name": "五叶",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2101": {
+      "type": 2101,
+      "name": "颜如玉",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2102": {
+      "type": 2102,
+      "name": "垂云叟",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2103": {
+      "type": 2103,
+      "name": "浪淘沙",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2104": {
+      "type": 2104,
+      "name": "范式之魂",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2107": {
+      "type": 2107,
+      "name": "小鬼乙",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2108": {
+      "type": 2108,
+      "name": "小鬼甲",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2125": {
+      "type": 2125,
+      "name": "虞姬",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47609,
+          "count": 1,
+          "name": "限定超级守护金卡三",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2126": {
+      "type": 2126,
+      "name": "马面",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47607,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47698,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47749,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47774,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47828,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47922,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48035,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48264,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2127": {
+      "type": 2127,
+      "name": "无常",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2129": {
+      "type": 2129,
+      "name": "玄武",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2130": {
+      "type": 2130,
+      "name": "吉祥五叶(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2139": {
+      "type": 2139,
+      "name": "牛头",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47699,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47750,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47775,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47829,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47923,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48036,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48265,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2140": {
+      "type": 2140,
+      "name": "龙鬼",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2141": {
+      "type": 2141,
+      "name": "黄金瑞兽",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2302": {
+      "type": 2302,
+      "name": "卫兵",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2314": {
+      "type": 2314,
+      "name": "侠女",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2614": {
+      "type": 2614,
+      "name": "仙童",
+      "kind": 5,
+      "take_grade_num": 90,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "万寿山",
+          "scene": 2025,
+          "bounds": [
+            3304,
+            63,
+            8312,
+            2124
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2618": {
+      "type": 2618,
+      "name": "苇花",
+      "kind": 5,
+      "take_grade_num": 20,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "五指山",
+          "scene": 2010,
+          "bounds": [
+            2122,
+            2016,
+            4438,
+            5160
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2622": {
+      "type": 2622,
+      "name": "赌魂",
+      "kind": 5,
+      "take_grade_num": 50,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "地府",
+          "scene": 2009,
+          "bounds": [
+            113,
+            1249,
+            5038,
+            5895
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2623": {
+      "type": 2623,
+      "name": "紫翼鹦鹉",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2624": {
+      "type": 2624,
+      "name": "义贼",
+      "kind": 5,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "傲来国",
+          "scene": 2008,
+          "bounds": [
+            41,
+            50,
+            3282,
+            1611
+          ],
+          "authority": "native_location_local_encounter_policy"
+        },
+        {
+          "op": "capture",
+          "name": "五指山",
+          "scene": 2010,
+          "bounds": [
+            1680,
+            20,
+            4438,
+            2016
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2625": {
+      "type": 2625,
+      "name": "虾将",
+      "kind": 5,
+      "take_grade_num": 30,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "东海",
+          "scene": 2016,
+          "bounds": [
+            2037,
+            2992,
+            6300,
+            4800
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2626": {
+      "type": 2626,
+      "name": "螺妖",
+      "kind": 5,
+      "take_grade_num": 30,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "东海",
+          "scene": 2016,
+          "bounds": [
+            50,
+            50,
+            2130,
+            3861
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2627": {
+      "type": 2627,
+      "name": "龟学士",
+      "kind": 5,
+      "take_grade_num": 30,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "东海",
+          "scene": 2016,
+          "bounds": [
+            14,
+            3861,
+            2037,
+            4800
+          ],
+          "authority": "native_location_local_encounter_policy"
+        },
+        {
+          "op": "capture",
+          "name": "东海",
+          "scene": 2016,
+          "bounds": [
+            50,
+            50,
+            2130,
+            3861
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "2629": {
+      "type": 2629,
+      "name": "蚌妖",
+      "kind": 5,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "傲来国",
+          "scene": 2008,
+          "bounds": [
+            18,
+            1611,
+            2693,
+            3122
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3121": {
+      "type": 3121,
+      "name": "雪人(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3126": {
+      "type": 3126,
+      "name": "猴枪将",
+      "kind": 5,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "花果山",
+          "scene": 2011,
+          "bounds": [
+            0,
+            0,
+            4600,
+            3840
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3127": {
+      "type": 3127,
+      "name": "猴刀将",
+      "kind": 5,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "花果山",
+          "scene": 2011,
+          "bounds": [
+            0,
+            0,
+            4600,
+            3840
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3128": {
+      "type": 3128,
+      "name": "突厥弩将",
+      "kind": 5,
+      "take_grade_num": 10,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "阳关",
+          "scene": 2006,
+          "bounds": [
+            31,
+            146,
+            1054,
+            3076
+          ],
+          "authority": "native_location_local_encounter_policy"
+        },
+        {
+          "op": "capture",
+          "name": "阳关",
+          "scene": 2006,
+          "bounds": [
+            1054,
+            146,
+            4600,
+            1600
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3129": {
+      "type": 3129,
+      "name": "突厥刀将",
+      "kind": 5,
+      "take_grade_num": 20,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "五指山",
+          "scene": 2010,
+          "bounds": [
+            37,
+            2056,
+            2066,
+            4536
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3130": {
+      "type": 3130,
+      "name": "波斯女贼",
+      "kind": 5,
+      "take_grade_num": 10,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "阳关",
+          "scene": 2006,
+          "bounds": [
+            31,
+            146,
+            1054,
+            3076
+          ],
+          "authority": "native_location_local_encounter_policy"
+        },
+        {
+          "op": "capture",
+          "name": "阳关",
+          "scene": 2006,
+          "bounds": [
+            1054,
+            146,
+            4600,
+            1600
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3131": {
+      "type": 3131,
+      "name": "金甲夜叉",
+      "kind": 5,
+      "take_grade_num": 30,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "东海",
+          "scene": 2016,
+          "bounds": [
+            2037,
+            2992,
+            6300,
+            4800
+          ],
+          "authority": "native_location_local_encounter_policy"
+        },
+        {
+          "op": "capture",
+          "name": "东海",
+          "scene": 2016,
+          "bounds": [
+            14,
+            3861,
+            2037,
+            4800
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3132": {
+      "type": 3132,
+      "name": "雷鸟",
+      "kind": 5,
+      "take_grade_num": 60,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "乌斯藏",
+          "scene": 2024,
+          "bounds": [
+            123,
+            375,
+            2435,
+            6160
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3133": {
+      "type": 3133,
+      "name": "护山熊将",
+      "kind": 5,
+      "take_grade_num": 60,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "乌斯藏",
+          "scene": 2024,
+          "bounds": [
+            123,
+            375,
+            2435,
+            6160
+          ],
+          "authority": "native_location_local_encounter_policy"
+        },
+        {
+          "op": "capture",
+          "name": "乌斯藏",
+          "scene": 2024,
+          "bounds": [
+            2564,
+            65,
+            5600,
+            3100
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3134": {
+      "type": 3134,
+      "name": "酒魂",
+      "kind": 5,
+      "take_grade_num": 50,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "地府",
+          "scene": 2009,
+          "bounds": [
+            113,
+            1249,
+            5038,
+            5895
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3135": {
+      "type": 3135,
+      "name": "蓝骷",
+      "kind": 5,
+      "take_grade_num": 90,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "万寿山",
+          "scene": 2025,
+          "bounds": [
+            88,
+            175,
+            3024,
+            4321
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3136": {
+      "type": 3136,
+      "name": "灵娲",
+      "kind": 5,
+      "take_grade_num": 1110,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "昆仑",
+          "scene": 2013,
+          "bounds": [
+            0,
+            6888,
+            4233,
+            8888
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3137": {
+      "type": 3137,
+      "name": "冰雪之灵",
+      "kind": 5,
+      "take_grade_num": 2090,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "北冥",
+          "scene": 2019,
+          "bounds": [
+            2348,
+            24,
+            5080,
+            2800
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3138": {
+      "type": 3138,
+      "name": "避水麒麟",
+      "kind": 5,
+      "take_grade_num": 1110,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "昆仑",
+          "scene": 2013,
+          "bounds": [
+            0,
+            3483,
+            4233,
+            6888
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3139": {
+      "type": 3139,
+      "name": "金凤",
+      "kind": 5,
+      "take_grade_num": 1110,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "昆仑",
+          "scene": 2013,
+          "bounds": [
+            0,
+            0,
+            4233,
+            3483
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3140": {
+      "type": 3140,
+      "name": "小五叶(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3141": {
+      "type": 3141,
+      "name": "海盗(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3142": {
+      "type": 3142,
+      "name": "蚌精(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3143": {
+      "type": 3143,
+      "name": "猴枪兵(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3144": {
+      "type": 3144,
+      "name": "猴刀兵(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3145": {
+      "type": 3145,
+      "name": "突厥弩手(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3146": {
+      "type": 3146,
+      "name": "波斯女刀客(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3147": {
+      "type": 3147,
+      "name": "芦花(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3148": {
+      "type": 3148,
+      "name": "突厥刀客(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3149": {
+      "type": 3149,
+      "name": "龙虾(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3150": {
+      "type": 3150,
+      "name": "巡海夜叉(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3151": {
+      "type": 3151,
+      "name": "龟丞相(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3152": {
+      "type": 3152,
+      "name": "螺精(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3153": {
+      "type": 3153,
+      "name": "酒鬼(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3154": {
+      "type": 3154,
+      "name": "赌鬼(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3155": {
+      "type": 3155,
+      "name": "熊罴(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3156": {
+      "type": 3156,
+      "name": "鸟精(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3157": {
+      "type": 3157,
+      "name": "道童(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3158": {
+      "type": 3158,
+      "name": "骷髅怪(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3159": {
+      "type": 3159,
+      "name": "女娲后裔(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3160": {
+      "type": 3160,
+      "name": "麒麟(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3161": {
+      "type": 3161,
+      "name": "凤凰(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3162": {
+      "type": 3162,
+      "name": "冰雪之魂(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3163": {
+      "type": 3163,
+      "name": "天使泡泡(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3164": {
+      "type": 3164,
+      "name": "恶魔泡泡(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3166": {
+      "type": 3166,
+      "name": "小宝",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3173": {
+      "type": 3173,
+      "name": "宝象士兵(旧世）",
+      "kind": 1,
+      "take_grade_num": 100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3175": {
+      "type": 3175,
+      "name": "魁木郎",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3177": {
+      "type": 3177,
+      "name": "青冥妖",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3180": {
+      "type": 3180,
+      "name": "赤琉金",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3182": {
+      "type": 3182,
+      "name": "空似水",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3184": {
+      "type": 3184,
+      "name": "苍穹月",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3185": {
+      "type": 3185,
+      "name": "小小宝(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3186": {
+      "type": 3186,
+      "name": "宝象侍卫",
+      "kind": 5,
+      "take_grade_num": 1100,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "宝象国野外",
+          "scene": 2116,
+          "bounds": [
+            0,
+            0,
+            3199,
+            1439
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3187": {
+      "type": 3187,
+      "name": "吉祥雪宝(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3188": {
+      "type": 3188,
+      "name": "毒毒蛛",
+      "kind": 4,
+      "take_grade_num": 50,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3189": {
+      "type": 3189,
+      "name": "飞羽",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3190": {
+      "type": 3190,
+      "name": "异灵虎",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3196": {
+      "type": 3196,
+      "name": "天狼",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3197": {
+      "type": 3197,
+      "name": "猴儿精",
+      "kind": 8,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 1000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3198": {
+      "type": 3198,
+      "name": "猪不戒",
+      "kind": 8,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 1000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3199": {
+      "type": 3199,
+      "name": "牛魔仔",
+      "kind": 8,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 1000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3200": {
+      "type": 3200,
+      "name": "小龙人",
+      "kind": 8,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 1000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3201": {
+      "type": 3201,
+      "name": "巡山妖(旧世）",
+      "kind": 1,
+      "take_grade_num": 100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3202": {
+      "type": 3202,
+      "name": "开山怪",
+      "kind": 5,
+      "take_grade_num": 2090,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "平顶山",
+          "scene": 2220,
+          "bounds": [
+            600,
+            0,
+            3980,
+            3820
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3203": {
+      "type": 3203,
+      "name": "妖娆",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3204": {
+      "type": 3204,
+      "name": "清凌雪",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3205": {
+      "type": 3205,
+      "name": "千岁婆婆",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3206": {
+      "type": 3206,
+      "name": "伶俐虫",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3207": {
+      "type": 3207,
+      "name": "西梁灵兔(旧世）",
+      "kind": 1,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3208": {
+      "type": 3208,
+      "name": "木齿犬",
+      "kind": 7,
+      "take_grade_num": 100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3209": {
+      "type": 3209,
+      "name": "木甲牛",
+      "kind": 7,
+      "take_grade_num": 2090,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3210": {
+      "type": 3210,
+      "name": "镜泉灵",
+      "kind": 4,
+      "take_grade_num": 2140,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3211": {
+      "type": 3211,
+      "name": "梦泉灵",
+      "kind": 4,
+      "take_grade_num": 2140,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3212": {
+      "type": 3212,
+      "name": "昴日星官",
+      "kind": 4,
+      "take_grade_num": 2140,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3213": {
+      "type": 3213,
+      "name": "西梁侍卫(旧世）",
+      "kind": 1,
+      "take_grade_num": 100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 5000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3214": {
+      "type": 3214,
+      "name": "西梁禁卫",
+      "kind": 5,
+      "take_grade_num": 2090,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "西梁女国野外",
+          "scene": 2235,
+          "bounds": [
+            0,
+            3700,
+            4100,
+            4780
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3215": {
+      "type": 3215,
+      "name": "凰炎金翼",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3216": {
+      "type": 3216,
+      "name": "五蕴琴姬",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3217": {
+      "type": 3217,
+      "name": "侍香玉女",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3218": {
+      "type": 3218,
+      "name": "金鳌卫",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3219": {
+      "type": 3219,
+      "name": "碧云暮童",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3220": {
+      "type": 3220,
+      "name": "彩云幽魂",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3221": {
+      "type": 3221,
+      "name": "含烟司马",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3222": {
+      "type": 3222,
+      "name": "富曲将军",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3223": {
+      "type": 3223,
+      "name": "混世魔王",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3224": {
+      "type": 3224,
+      "name": "直月将军",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3225": {
+      "type": 3225,
+      "name": "损福神",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3226": {
+      "type": 3226,
+      "name": "增福神",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3227": {
+      "type": 3227,
+      "name": "落伽山神",
+      "kind": 10,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3228": {
+      "type": 3228,
+      "name": "卷帘大将",
+      "kind": 10,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3229": {
+      "type": 3229,
+      "name": "月游石矶",
+      "kind": 10,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3230": {
+      "type": 3230,
+      "name": "御鬼圣君",
+      "kind": 10,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3231": {
+      "type": 3231,
+      "name": "天蓬元帅",
+      "kind": 10,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3232": {
+      "type": 3232,
+      "name": "五谷星君",
+      "kind": 10,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3233": {
+      "type": 3233,
+      "name": "真武妖将",
+      "kind": 11,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 300000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3234": {
+      "type": 3234,
+      "name": "羲和战将",
+      "kind": 11,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 300000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3235": {
+      "type": 3235,
+      "name": "幽冥鬼将",
+      "kind": 11,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 300000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3236": {
+      "type": 3236,
+      "name": "齐天大圣",
+      "kind": 11,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 300000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3237": {
+      "type": 3237,
+      "name": "百足将军",
+      "kind": 11,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 300000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3238": {
+      "type": 3238,
+      "name": "值年太岁",
+      "kind": 11,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 300000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3239": {
+      "type": 3239,
+      "name": "泉娃",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3240": {
+      "type": 3240,
+      "name": "广泽龙王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3241": {
+      "type": 3241,
+      "name": "三尾蝎",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3242": {
+      "type": 3242,
+      "name": "紫玉蝎",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3243": {
+      "type": 3243,
+      "name": "白泽",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3244": {
+      "type": 3244,
+      "name": "腾蛇",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3245": {
+      "type": 3245,
+      "name": "苍麒",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3246": {
+      "type": 3246,
+      "name": "白矖",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3247": {
+      "type": 3247,
+      "name": "表妹",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3248": {
+      "type": 3248,
+      "name": "护法尊者",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3249": {
+      "type": 3249,
+      "name": "惠岸行者",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3250": {
+      "type": 3250,
+      "name": "冥寒灵鹿",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3251": {
+      "type": 3251,
+      "name": "三清道人",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3252": {
+      "type": 3252,
+      "name": "太阴星君",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3253": {
+      "type": 3253,
+      "name": "彩霓仙子",
+      "kind": 9,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 30000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3254": {
+      "type": 3254,
+      "name": "八臂哪吒",
+      "kind": 10,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3255": {
+      "type": 3255,
+      "name": "离火之精",
+      "kind": 10,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3256": {
+      "type": 3256,
+      "name": "情花仙子",
+      "kind": 10,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3257": {
+      "type": 3257,
+      "name": "托塔天王",
+      "kind": 11,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 300000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3258": {
+      "type": 3258,
+      "name": "乾坤道者",
+      "kind": 11,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 300000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3259": {
+      "type": 3259,
+      "name": "佛母明王",
+      "kind": 11,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 300000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3260": {
+      "type": 3260,
+      "name": "三昧火灵",
+      "kind": 5,
+      "take_grade_num": 2090,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "火焰山",
+          "scene": 2256,
+          "bounds": [
+            50,
+            50,
+            3250,
+            2080
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3261": {
+      "type": 3261,
+      "name": "焰冥猿",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3262": {
+      "type": 3262,
+      "name": "牛魔王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3263": {
+      "type": 3263,
+      "name": "最强禁卫军",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3264": {
+      "type": 3264,
+      "name": "烈穹飞羽",
+      "kind": 4,
+      "take_grade_num": 2140,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3265": {
+      "type": 3265,
+      "name": "女娲元灵",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47699,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47775,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47829,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47918,
+          "count": 1,
+          "name": "限定超级守护金卡",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47923,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48036,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48265,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3266": {
+      "type": 3266,
+      "name": "枯摩罗",
+      "kind": 4,
+      "take_grade_num": 2140,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3267": {
+      "type": 3267,
+      "name": "小杏仙儿",
+      "kind": 5,
+      "take_grade_num": 2140,
+      "routes": [],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3268": {
+      "type": 3268,
+      "name": "蛟魔王",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47854,
+          "name": "高级守护元神（蛟魔王）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47624,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47830,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47919,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48037,
+          "count": 1,
+          "name": "限定高级守护",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3269": {
+      "type": 3269,
+      "name": "疾风",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3270": {
+      "type": 3270,
+      "name": "鬼蜥",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3271": {
+      "type": 3271,
+      "name": "玉面狐狸",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3272": {
+      "type": 3272,
+      "name": "英招",
+      "kind": 4,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3273": {
+      "type": 3273,
+      "name": "萧晚音",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3274": {
+      "type": 3274,
+      "name": "铁扇公主",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3275": {
+      "type": 3275,
+      "name": "寒钨巨螳",
+      "kind": 7,
+      "take_grade_num": 2120,
+      "routes": [],
+      "local_exchange": {
+        "gold": 100000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3276": {
+      "type": 3276,
+      "name": "初莲仙子",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3278": {
+      "type": 3278,
+      "name": "灵宝幻神",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47609,
+          "count": 1,
+          "name": "限定超级守护金卡三",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47775,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47829,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47923,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48036,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48265,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3279": {
+      "type": 3279,
+      "name": "小钻风",
+      "kind": 5,
+      "take_grade_num": 2140,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "狮驼岭",
+          "scene": 2384,
+          "bounds": [
+            200,
+            2200,
+            2800,
+            3800
+          ],
+          "authority": "native_location_local_encounter_policy"
+        }
+      ],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3280": {
+      "type": 3280,
+      "name": "某日星官",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3281": {
+      "type": 3281,
+      "name": "元始幻神",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47608,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3282": {
+      "type": 3282,
+      "name": "境·五叶",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47698,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3283": {
+      "type": 3283,
+      "name": "境·颜如玉",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47607,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3284": {
+      "type": 3284,
+      "name": "境·垂云叟",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47608,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47698,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47750,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47774,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47828,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47922,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48035,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48264,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3285": {
+      "type": 3285,
+      "name": "境·浪淘沙",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47608,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47749,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3286": {
+      "type": 3286,
+      "name": "境·范式之魂",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3287": {
+      "type": 3287,
+      "name": "弓箭手",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3288": {
+      "type": 3288,
+      "name": "熊战士",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3289": {
+      "type": 3289,
+      "name": "冰雪天马",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [
+        {
+          "op": "capture",
+          "name": "英雄海",
+          "scene": 2409,
+          "bounds": [
+            0,
+            0,
+            4795,
+            3598
+          ],
+          "authority": "native_location_local_encounter_policy"
+        },
+        {
+          "op": "fixed_item",
+          "item_type": 47851,
+          "name": "高级守护元神（冰雪天马）",
+          "authority": "native"
+        }
+      ],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3290": {
+      "type": 3290,
+      "name": "金熊武士",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3291": {
+      "type": 3291,
+      "name": "极光天马",
+      "kind": 4,
+      "take_grade_num": 1100,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3292": {
+      "type": 3292,
+      "name": "美猴王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47856,
+          "name": "超级守护蛋（美猴王）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47607,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47749,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47774,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47828,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47922,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48035,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48264,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3293": {
+      "type": 3293,
+      "name": "瀚威熊将",
+      "kind": 2,
+      "take_grade_num": 1100,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47850,
+          "name": "高级守护元神（瀚威熊将）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3294": {
+      "type": 3294,
+      "name": "圣羽天马",
+      "kind": 2,
+      "take_grade_num": 1100,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3295": {
+      "type": 3295,
+      "name": "玉芽树妖",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3296": {
+      "type": 3296,
+      "name": "幻叶树妖",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3297": {
+      "type": 3297,
+      "name": "灵蕊树妖",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3298": {
+      "type": 3298,
+      "name": "紫影灵狐",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3299": {
+      "type": 3299,
+      "name": "虹月灵狐",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3300": {
+      "type": 3300,
+      "name": "魔晶灵狐",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47853,
+          "name": "高级守护元神（魔晶灵狐）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47624,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47919,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3301": {
+      "type": 3301,
+      "name": "天竺战士",
+      "kind": 4,
+      "take_grade_num": 2140,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3302": {
+      "type": 3302,
+      "name": "血魔",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3303": {
+      "type": 3303,
+      "name": "玉兔仙子",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3304": {
+      "type": 3304,
+      "name": "白龙帝",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47624,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47830,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47919,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48037,
+          "count": 1,
+          "name": "限定高级守护",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3305": {
+      "type": 3305,
+      "name": "四天烈",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3306": {
+      "type": 3306,
+      "name": "无界光",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3307": {
+      "type": 3307,
+      "name": "苍雪凝",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3308": {
+      "type": 3308,
+      "name": "雷行使",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47624,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47830,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47919,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3309": {
+      "type": 3309,
+      "name": "风行使",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47624,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47830,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47919,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3310": {
+      "type": 3310,
+      "name": "火行使",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47624,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47830,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47919,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3311": {
+      "type": 3311,
+      "name": "水行使",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3312": {
+      "type": 3312,
+      "name": "破晓",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3313": {
+      "type": 3313,
+      "name": "十七公主",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47607,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47699,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47750,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47918,
+          "count": 1,
+          "name": "限定超级守护金卡",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3314": {
+      "type": 3314,
+      "name": "大阿罗汉",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3315": {
+      "type": 3315,
+      "name": "飞天",
+      "kind": 4,
+      "take_grade_num": 2140,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3316": {
+      "type": 3316,
+      "name": "般若",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47857,
+          "name": "超级守护蛋（般若）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47698,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3324": {
+      "type": 3324,
+      "name": "招财天狗",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3325": {
+      "type": 3325,
+      "name": "纳福天狗",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3326": {
+      "type": 3326,
+      "name": "祥瑞天狗",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3327": {
+      "type": 3327,
+      "name": "金身天犬",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3328": {
+      "type": 3328,
+      "name": "玉魂天犬",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3329": {
+      "type": 3329,
+      "name": "哮天犬",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3330": {
+      "type": 3330,
+      "name": "奢比尸",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3331": {
+      "type": 3331,
+      "name": "玄冥",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47698,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3332": {
+      "type": 3332,
+      "name": "九照",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48034,
+          "name": "超级守护蛋（九照）",
+          "authority": "native"
+        },
+        {
+          "op": "essence",
+          "item_type": 47031,
+          "count": 35,
+          "name": "元神蕴华·九照",
+          "authority": "native_material_recipe"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48038,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48118,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3333": {
+      "type": 3333,
+      "name": "团子",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3334": {
+      "type": 3334,
+      "name": "常桑",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47849,
+          "name": "高级守护元神（常桑）",
+          "authority": "native"
+        }
+      ],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3335": {
+      "type": 3335,
+      "name": "猫妖",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3336": {
+      "type": 3336,
+      "name": "混沌",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3337": {
+      "type": 3337,
+      "name": "嫦娥",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "essence",
+          "item_type": 47175,
+          "count": 35,
+          "name": "元神蕴华·嫦娥",
+          "authority": "native_material_recipe"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3338": {
+      "type": 3338,
+      "name": "司宁",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3339": {
+      "type": 3339,
+      "name": "虚日鼠",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3340": {
+      "type": 3340,
+      "name": "雪绒",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3341": {
+      "type": 3341,
+      "name": "荒野",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3342": {
+      "type": 3342,
+      "name": "小牛仔",
+      "kind": 5,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 3000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3343": {
+      "type": 3343,
+      "name": "烈火牛",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3344": {
+      "type": 3344,
+      "name": "境·牛魔王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47607,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47699,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47749,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47774,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47828,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47918,
+          "count": 1,
+          "name": "限定超级守护金卡",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47922,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48035,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48264,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3345": {
+      "type": 3345,
+      "name": "蓝奴儿",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3346": {
+      "type": 3346,
+      "name": "哪吒",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "essence",
+          "item_type": 47419,
+          "count": 15,
+          "name": "元神蕴华·哪吒",
+          "authority": "native_material_recipe"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3347": {
+      "type": 3347,
+      "name": "娑罗七叶",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3348": {
+      "type": 3348,
+      "name": "白虎神秋昊",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47609,
+          "count": 1,
+          "name": "限定超级守护金卡三",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47750,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3349": {
+      "type": 3349,
+      "name": "贺岁寅虎",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3350": {
+      "type": 3350,
+      "name": "少年飞羽",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3351": {
+      "type": 3351,
+      "name": "境·女娲元灵",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47608,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3352": {
+      "type": 3352,
+      "name": "境·广泽龙王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47855,
+          "name": "超级守护蛋（境·广泽龙王）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47609,
+          "count": 1,
+          "name": "限定超级守护金卡三",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47750,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47775,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47829,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47918,
+          "count": 1,
+          "name": "限定超级守护金卡",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47923,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48036,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48265,
+          "count": 1,
+          "name": "限定超守金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3353": {
+      "type": 3353,
+      "name": "癸卯玉兔",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3354": {
+      "type": 3354,
+      "name": "金乌神女",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47852,
+          "name": "高级守护元神（金乌神女）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47624,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47830,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47919,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48037,
+          "count": 1,
+          "name": "限定高级守护",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3355": {
+      "type": 3355,
+      "name": "境·霸王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47637,
+          "name": "超级守护蛋（境·霸王）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 47925,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48038,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48266,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3356": {
+      "type": 3356,
+      "name": "境·虞姬",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47638,
+          "name": "超级守护蛋（境·虞姬）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 47925,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48038,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3357": {
+      "type": 3357,
+      "name": "汲",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47699,
+          "count": 1,
+          "name": "限定超级守护金卡二",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3358": {
+      "type": 3358,
+      "name": "红火火",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3359": {
+      "type": 3359,
+      "name": "敖绡",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47830,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48037,
+          "count": 1,
+          "name": "限定高级守护",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3360": {
+      "type": 3360,
+      "name": "银华",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47728,
+          "name": "超级守护蛋（银华）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 47925,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48038,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48118,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48266,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3361": {
+      "type": 3361,
+      "name": "云霄",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3362": {
+      "type": 3362,
+      "name": "皈·奔波儿灞",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47798,
+          "name": "超级守护蛋（皈·奔波儿灞）",
+          "authority": "native"
+        },
+        {
+          "op": "fixed_item",
+          "item_type": 48298,
+          "name": "超级守护蛋（皈·奔波儿灞）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 47925,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3363": {
+      "type": 3363,
+      "name": "万圣灞波儿奔",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47799,
+          "name": "超级守护蛋（万圣灞波儿奔）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 47925,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48266,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3364": {
+      "type": 3364,
+      "name": "禄存星君",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47919,
+          "count": 1,
+          "name": "限定高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48037,
+          "count": 1,
+          "name": "限定高级守护",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3365": {
+      "type": 3365,
+      "name": "神珍铁",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47894,
+          "name": "超级守护蛋（神珍铁）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47918,
+          "count": 1,
+          "name": "限定超级守护金卡",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3366": {
+      "type": 3366,
+      "name": "逆·金角银角",
+      "kind": 13,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47873,
+          "name": "超级守护蛋（逆·金角银角）",
+          "authority": "native"
+        }
+      ],
+      "local_exchange": {
+        "gold": 6000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3367": {
+      "type": 3367,
+      "name": "独孤凌",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48037,
+          "count": 1,
+          "name": "限定高级守护",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3368": {
+      "type": 3368,
+      "name": "时轮",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3369": {
+      "type": 3369,
+      "name": "逍遥闪电",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3370": {
+      "type": 3370,
+      "name": "南翎",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48037,
+          "count": 1,
+          "name": "限定高级守护",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3371": {
+      "type": 3371,
+      "name": "辛夷",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 47960,
+          "name": "超级守护蛋（辛夷）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3372": {
+      "type": 3372,
+      "name": "境·善财龙女",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48026,
+          "name": "超级守护蛋（境·善财龙女）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48038,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3373": {
+      "type": 3373,
+      "name": "境·红孩儿",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48027,
+          "name": "超级守护蛋（境·红孩儿）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48038,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3374": {
+      "type": 3374,
+      "name": "境·金光太岁",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48057,
+          "name": "超级守护蛋（境·金光太岁）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48118,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48266,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3375": {
+      "type": 3375,
+      "name": "境·鬼目观音",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48058,
+          "name": "超级守护蛋（境·鬼目观音）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48118,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48266,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3382": {
+      "type": 3382,
+      "name": "绒绒桃",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3385": {
+      "type": 3385,
+      "name": "夭夭桃灵",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3389": {
+      "type": 3389,
+      "name": "灼华桃仙",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3390": {
+      "type": 3390,
+      "name": "魔影魈",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3391": {
+      "type": 3391,
+      "name": "甘露兔",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3392": {
+      "type": 3392,
+      "name": "五方狮伶",
+      "kind": 14,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3393": {
+      "type": 3393,
+      "name": "青面木饕",
+      "kind": 14,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3394": {
+      "type": 3394,
+      "name": "朱衣判官",
+      "kind": 14,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3395": {
+      "type": 3395,
+      "name": "巡水都尉",
+      "kind": 14,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3396": {
+      "type": 3396,
+      "name": "毒尾元帅",
+      "kind": 14,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3397": {
+      "type": 3397,
+      "name": "天罗毒母",
+      "kind": 14,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3399": {
+      "type": 3399,
+      "name": "五花马",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3400": {
+      "type": 3400,
+      "name": "南山大王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48106,
+          "name": "超级守护蛋（南山大王）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47774,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47828,
+          "count": 1,
+          "name": "限定超级守护金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 47922,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48035,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        },
+        {
+          "op": "random_item",
+          "item_type": 48264,
+          "count": 1,
+          "name": "限定超守金卡一",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3401": {
+      "type": 3401,
+      "name": "境·哪吒",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48107,
+          "name": "超级守护蛋（境·哪吒）",
+          "authority": "native"
+        },
+        {
+          "op": "choice_item",
+          "item_type": 48266,
+          "name": "限定闪卡任选",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3402": {
+      "type": 3402,
+      "name": "境·多闻天王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48141,
+          "name": "超级守护蛋（境·多闻天王）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3403": {
+      "type": 3403,
+      "name": "境·广目天王",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48142,
+          "name": "超级守护蛋（境·广目天王）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3405": {
+      "type": 3405,
+      "name": "蛋融融",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3408": {
+      "type": 3408,
+      "name": "小辣鸡",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3412": {
+      "type": 3412,
+      "name": "辣椒鸡",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3413": {
+      "type": 3413,
+      "name": "境·般若",
+      "kind": 3,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "fixed_item",
+          "item_type": 48282,
+          "name": "超级守护蛋（境·般若）",
+          "authority": "native"
+        },
+        {
+          "op": "random_item",
+          "item_type": 46525,
+          "count": 1,
+          "name": "超级守护蛋",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 4000000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "3414": {
+      "type": 3414,
+      "name": "鬼婴王",
+      "kind": 2,
+      "take_grade_num": 0,
+      "routes": [
+        {
+          "op": "random_item",
+          "item_type": 46882,
+          "count": 8,
+          "name": "高级守护元神",
+          "authority": "native_candidates_local_distribution"
+        }
+      ],
+      "local_exchange": {
+        "gold": 320000,
+        "authority": "user_authorized_local_fallback"
+      }
+    },
+    "4035": {
+      "type": 4035,
+      "name": "胖雪人",
+      "kind": 4,
+      "take_grade_num": 0,
+      "routes": [],
+      "local_exchange": {
+        "gold": 20000,
+        "authority": "user_authorized_local_fallback"
+      }
+    }
+  },
+  "shop": [
+    {
+      "type": 46525,
+      "name": "超级守护蛋",
+      "gold": 4000000
+    },
+    {
+      "type": 46882,
+      "name": "高级守护元神",
+      "gold": 40000
+    },
+    {
+      "type": 47031,
+      "name": "元神蕴华·九照",
+      "gold": 114286
+    },
+    {
+      "type": 47175,
+      "name": "元神蕴华·嫦娥",
+      "gold": 114286
+    },
+    {
+      "type": 47419,
+      "name": "元神蕴华·哪吒",
+      "gold": 266667
+    },
+    {
+      "type": 47561,
+      "name": "元神蕴华·自选包",
+      "gold": 266667
+    },
+    {
+      "type": 47575,
+      "name": "超级守护蛋碎片",
+      "gold": 400000
+    },
+    {
+      "type": 47607,
+      "name": "限定超级守护金卡一",
+      "gold": 4000000
+    },
+    {
+      "type": 47608,
+      "name": "限定超级守护金卡二",
+      "gold": 4000000
+    },
+    {
+      "type": 47609,
+      "name": "限定超级守护金卡三",
+      "gold": 4000000
+    },
+    {
+      "type": 47624,
+      "name": "限定高级守护元神",
+      "gold": 320000
+    },
+    {
+      "type": 47637,
+      "name": "超级守护蛋（境·霸王）",
+      "gold": 4000000
+    },
+    {
+      "type": 47638,
+      "name": "超级守护蛋（境·虞姬）",
+      "gold": 4000000
+    },
+    {
+      "type": 47698,
+      "name": "限定超级守护金卡一",
+      "gold": 4000000
+    },
+    {
+      "type": 47699,
+      "name": "限定超级守护金卡二",
+      "gold": 4000000
+    },
+    {
+      "type": 47728,
+      "name": "超级守护蛋（银华）",
+      "gold": 4000000
+    },
+    {
+      "type": 47749,
+      "name": "限定超级守护金卡一",
+      "gold": 4000000
+    },
+    {
+      "type": 47750,
+      "name": "限定超级守护金卡二",
+      "gold": 4000000
+    },
+    {
+      "type": 47774,
+      "name": "限定超级守护金卡一",
+      "gold": 4000000
+    },
+    {
+      "type": 47775,
+      "name": "限定超级守护金卡二",
+      "gold": 4000000
+    },
+    {
+      "type": 47798,
+      "name": "超级守护蛋（皈·奔波儿灞）",
+      "gold": 4000000
+    },
+    {
+      "type": 47799,
+      "name": "超级守护蛋（万圣灞波儿奔）",
+      "gold": 4000000
+    },
+    {
+      "type": 47828,
+      "name": "限定超级守护金卡一",
+      "gold": 4000000
+    },
+    {
+      "type": 47829,
+      "name": "限定超级守护金卡二",
+      "gold": 4000000
+    },
+    {
+      "type": 47830,
+      "name": "限定高级守护元神",
+      "gold": 320000
+    },
+    {
+      "type": 47849,
+      "name": "高级守护元神（常桑）",
+      "gold": 20000
+    },
+    {
+      "type": 47850,
+      "name": "高级守护元神（瀚威熊将）",
+      "gold": 320000
+    },
+    {
+      "type": 47851,
+      "name": "高级守护元神（冰雪天马）",
+      "gold": 20000
+    },
+    {
+      "type": 47852,
+      "name": "高级守护元神（金乌神女）",
+      "gold": 320000
+    },
+    {
+      "type": 47853,
+      "name": "高级守护元神（魔晶灵狐）",
+      "gold": 320000
+    },
+    {
+      "type": 47854,
+      "name": "高级守护元神（蛟魔王）",
+      "gold": 320000
+    },
+    {
+      "type": 47855,
+      "name": "超级守护蛋（境·广泽龙王）",
+      "gold": 4000000
+    },
+    {
+      "type": 47856,
+      "name": "超级守护蛋（美猴王）",
+      "gold": 4000000
+    },
+    {
+      "type": 47857,
+      "name": "超级守护蛋（般若）",
+      "gold": 4000000
+    },
+    {
+      "type": 47873,
+      "name": "超级守护蛋（逆·金角银角）",
+      "gold": 6000000
+    },
+    {
+      "type": 47894,
+      "name": "超级守护蛋（神珍铁）",
+      "gold": 4000000
+    },
+    {
+      "type": 47918,
+      "name": "限定超级守护金卡",
+      "gold": 4000000
+    },
+    {
+      "type": 47919,
+      "name": "限定高级守护元神",
+      "gold": 320000
+    },
+    {
+      "type": 47922,
+      "name": "限定超守金卡一",
+      "gold": 4000000
+    },
+    {
+      "type": 47923,
+      "name": "限定超守金卡二",
+      "gold": 4000000
+    },
+    {
+      "type": 47925,
+      "name": "限定闪卡任选",
+      "gold": 4000000
+    },
+    {
+      "type": 47960,
+      "name": "超级守护蛋（辛夷）",
+      "gold": 4000000
+    },
+    {
+      "type": 47970,
+      "name": "限定超级守护蛋",
+      "gold": 4000000
+    },
+    {
+      "type": 48026,
+      "name": "超级守护蛋（境·善财龙女）",
+      "gold": 4000000
+    },
+    {
+      "type": 48027,
+      "name": "超级守护蛋（境·红孩儿）",
+      "gold": 4000000
+    },
+    {
+      "type": 48033,
+      "name": "限定超级守护蛋",
+      "gold": 4000000
+    },
+    {
+      "type": 48034,
+      "name": "超级守护蛋（九照）",
+      "gold": 4000000
+    },
+    {
+      "type": 48035,
+      "name": "限定超守金卡一",
+      "gold": 4000000
+    },
+    {
+      "type": 48036,
+      "name": "限定超守金卡二",
+      "gold": 4000000
+    },
+    {
+      "type": 48037,
+      "name": "限定高级守护",
+      "gold": 320000
+    },
+    {
+      "type": 48038,
+      "name": "限定闪卡任选",
+      "gold": 4000000
+    },
+    {
+      "type": 48057,
+      "name": "超级守护蛋（境·金光太岁）",
+      "gold": 4000000
+    },
+    {
+      "type": 48058,
+      "name": "超级守护蛋（境·鬼目观音）",
+      "gold": 4000000
+    },
+    {
+      "type": 48106,
+      "name": "超级守护蛋（南山大王）",
+      "gold": 4000000
+    },
+    {
+      "type": 48107,
+      "name": "超级守护蛋（境·哪吒）",
+      "gold": 4000000
+    },
+    {
+      "type": 48118,
+      "name": "限定闪卡任选",
+      "gold": 4000000
+    },
+    {
+      "type": 48141,
+      "name": "超级守护蛋（境·多闻天王）",
+      "gold": 4000000
+    },
+    {
+      "type": 48142,
+      "name": "超级守护蛋（境·广目天王）",
+      "gold": 4000000
+    },
+    {
+      "type": 48264,
+      "name": "限定超守金卡一",
+      "gold": 4000000
+    },
+    {
+      "type": 48265,
+      "name": "限定超守金卡二",
+      "gold": 4000000
+    },
+    {
+      "type": 48266,
+      "name": "限定闪卡任选",
+      "gold": 4000000
+    },
+    {
+      "type": 48282,
+      "name": "超级守护蛋（境·般若）",
+      "gold": 4000000
+    },
+    {
+      "type": 48298,
+      "name": "超级守护蛋（皈·奔波儿灞）",
+      "gold": 4000000
+    }
+  ],
+  "event_exchange": {
+    "official": false,
+    "price_policy": "fixed_native_table_base_price",
+    "allocation": "first_come_first_served_no_lottery",
+    "refresh": "Monday 12:30 Asia/Hong_Kong",
+    "points_gold_rate": 1000,
+    "points_types": [
+      1,
+      2,
+      3
+    ],
+    "rows": [
+      {
+        "item_score": 17,
+        "all_servers": 0,
+        "item_name": "通宝匣",
+        "weekly_num": 9999,
+        "score_type": 1,
+        "item_type": 47030
+      },
+      {
+        "item_score": 10,
+        "all_servers": 0,
+        "item_name": "道境无边",
+        "weekly_num": 60,
+        "score_type": 1,
+        "item_type": 46222
+      },
+      {
+        "item_score": 3,
+        "all_servers": 0,
+        "item_name": "殇玉之灵",
+        "weekly_num": 9999,
+        "score_type": 1,
+        "item_type": 45476
+      },
+      {
+        "item_score": 3,
+        "all_servers": 0,
+        "item_name": "金凤玄羽",
+        "weekly_num": 100,
+        "score_type": 1,
+        "item_type": 46210
+      },
+      {
+        "item_score": 15,
+        "all_servers": 0,
+        "item_name": "触邪之角",
+        "weekly_num": 60,
+        "score_type": 1,
+        "item_type": 46211
+      },
+      {
+        "item_score": 62,
+        "all_servers": 0,
+        "item_name": "梵天孔雀圣羽",
+        "weekly_num": 30,
+        "score_type": 1,
+        "item_type": 46212
+      },
+      {
+        "item_score": 12,
+        "all_servers": 0,
+        "item_name": "高级金柳露",
+        "weekly_num": 20,
+        "score_type": 1,
+        "item_type": 6036
+      },
+      {
+        "item_score": 32,
+        "all_servers": 0,
+        "item_name": "忠义之魂",
+        "weekly_num": 30,
+        "score_type": 1,
+        "item_type": 45383
+      },
+      {
+        "item_score": 2,
+        "all_servers": 0,
+        "item_name": "主城旗帜",
+        "weekly_num": 9999,
+        "score_type": 1,
+        "item_type": 47041
+      },
+      {
+        "item_score": 72,
+        "all_servers": 0,
+        "item_name": "幽月星尘",
+        "weekly_num": 50,
+        "score_type": 1,
+        "item_type": 45753
+      },
+      {
+        "item_score": 62,
+        "all_servers": 0,
+        "item_name": "仙器精魂",
+        "weekly_num": 30,
+        "score_type": 1,
+        "item_type": 46544
+      },
+      {
+        "item_score": 160,
+        "all_servers": 0,
+        "item_name": "超级金柳露",
+        "weekly_num": 4,
+        "score_type": 1,
+        "item_type": 6037
+      },
+      {
+        "item_score": 42,
+        "all_servers": 0,
+        "item_name": "两仪宝鼎",
+        "weekly_num": 30,
+        "score_type": 1,
+        "item_type": 46782
+      },
+      {
+        "item_score": 46,
+        "all_servers": 0,
+        "item_name": "四象灵魄",
+        "weekly_num": 30,
+        "score_type": 1,
+        "item_type": 46767
+      },
+      {
+        "item_score": 210,
+        "all_servers": 0,
+        "item_name": "境悟重生",
+        "weekly_num": 30,
+        "score_type": 1,
+        "item_type": 46574
+      },
+      {
+        "item_score": 320,
+        "all_servers": 0,
+        "item_name": "双倍经验符",
+        "weekly_num": 20,
+        "score_type": 1,
+        "item_type": 46134
+      },
+      {
+        "item_score": 188,
+        "all_servers": 0,
+        "item_name": "破天石",
+        "weekly_num": 5,
+        "score_type": 1,
+        "item_type": 46871
+      },
+      {
+        "item_score": 36,
+        "all_servers": 0,
+        "item_name": "石胚灵宝",
+        "weekly_num": 10,
+        "score_type": 1,
+        "item_type": 46838
+      },
+      {
+        "item_score": 100,
+        "all_servers": 0,
+        "item_name": "地载灵宝",
+        "weekly_num": 10,
+        "score_type": 1,
+        "item_type": 46839
+      },
+      {
+        "item_score": 240,
+        "all_servers": 0,
+        "item_name": "天运灵宝",
+        "weekly_num": 5,
+        "score_type": 1,
+        "item_type": 46840
+      },
+      {
+        "item_score": 600,
+        "all_servers": 0,
+        "item_name": "日月灵宝",
+        "weekly_num": 5,
+        "score_type": 1,
+        "item_type": 46841
+      },
+      {
+        "item_score": 60,
+        "all_servers": 0,
+        "item_name": "破天石",
+        "weekly_num": 10,
+        "score_type": 2,
+        "item_type": 46871
+      },
+      {
+        "item_score": 4,
+        "all_servers": 0,
+        "item_name": "通宝匣",
+        "weekly_num": 9999,
+        "score_type": 2,
+        "item_type": 47030
+      },
+      {
+        "item_score": 10,
+        "all_servers": 0,
+        "item_name": "墨家玉",
+        "weekly_num": 9999,
+        "score_type": 2,
+        "item_type": 47223
+      },
+      {
+        "item_score": 100,
+        "all_servers": 0,
+        "item_name": "四象之灵",
+        "weekly_num": 5,
+        "score_type": 2,
+        "item_type": 46980
+      },
+      {
+        "item_score": 12,
+        "all_servers": 0,
+        "item_name": "石胚灵宝",
+        "weekly_num": 20,
+        "score_type": 2,
+        "item_type": 46838
+      },
+      {
+        "item_score": 30,
+        "all_servers": 0,
+        "item_name": "地载灵宝",
+        "weekly_num": 20,
+        "score_type": 2,
+        "item_type": 46839
+      },
+      {
+        "item_score": 48,
+        "all_servers": 0,
+        "item_name": "天运灵宝",
+        "weekly_num": 10,
+        "score_type": 2,
+        "item_type": 46840
+      },
+      {
+        "item_score": 120,
+        "all_servers": 0,
+        "item_name": "日月灵宝",
+        "weekly_num": 5,
+        "score_type": 2,
+        "item_type": 46841
+      },
+      {
+        "item_score": 1,
+        "all_servers": 0,
+        "item_name": "万妖丹",
+        "weekly_num": 9999,
+        "score_type": 2,
+        "item_type": 46820
+      },
+      {
+        "item_score": 1,
+        "all_servers": 0,
+        "item_name": "玉芽树妖进阶丹",
+        "weekly_num": 10,
+        "score_type": 2,
+        "item_type": 46809
+      },
+      {
+        "item_score": 50,
+        "all_servers": 0,
+        "item_name": "幻叶树妖进阶丹",
+        "weekly_num": 10,
+        "score_type": 2,
+        "item_type": 46810
+      },
+      {
+        "item_score": 650,
+        "all_servers": 0,
+        "item_name": "高级守护元神",
+        "weekly_num": 5,
+        "score_type": 2,
+        "item_type": 46882
+      },
+      {
+        "item_score": 45,
+        "all_servers": 0,
+        "item_name": "超级金柳露",
+        "weekly_num": 4,
+        "score_type": 2,
+        "item_type": 6037
+      },
+      {
+        "item_score": 12,
+        "all_servers": 0,
+        "item_name": "两仪宝鼎",
+        "weekly_num": 30,
+        "score_type": 2,
+        "item_type": 46782
+      },
+      {
+        "item_score": 15,
+        "all_servers": 0,
+        "item_name": "四象灵魄",
+        "weekly_num": 20,
+        "score_type": 2,
+        "item_type": 46767
+      },
+      {
+        "item_score": 62,
+        "all_servers": 0,
+        "item_name": "境悟重生",
+        "weekly_num": 20,
+        "score_type": 2,
+        "item_type": 46574
+      },
+      {
+        "item_score": 100,
+        "all_servers": 0,
+        "item_name": "双倍经验符",
+        "weekly_num": 20,
+        "score_type": 2,
+        "item_type": 46134
+      },
+      {
+        "item_score": 8,
+        "all_servers": 0,
+        "item_name": "繁花锦",
+        "weekly_num": 30,
+        "score_type": 2,
+        "item_type": 46207
+      },
+      {
+        "item_score": 38,
+        "all_servers": 0,
+        "item_name": "玲珑珠花",
+        "weekly_num": 30,
+        "score_type": 2,
+        "item_type": 46208
+      },
+      {
+        "item_score": 45,
+        "all_servers": 0,
+        "item_name": "悔梦石",
+        "weekly_num": 50,
+        "score_type": 3,
+        "item_type": 6183
+      },
+      {
+        "item_score": 210,
+        "all_servers": 0,
+        "item_name": "超级悔梦石",
+        "weekly_num": 1,
+        "score_type": 3,
+        "item_type": 45857
+      },
+      {
+        "item_score": 150,
+        "all_servers": 0,
+        "item_name": "神魔石",
+        "weekly_num": 1,
+        "score_type": 3,
+        "item_type": 47222
+      },
+      {
+        "item_score": 12,
+        "all_servers": 0,
+        "item_name": "境悟重生",
+        "weekly_num": 50,
+        "score_type": 3,
+        "item_type": 46574
+      },
+      {
+        "item_score": 20,
+        "all_servers": 0,
+        "item_name": "补天丹",
+        "weekly_num": 200,
+        "score_type": 3,
+        "item_type": 47042
+      },
+      {
+        "item_score": 3,
+        "all_servers": 0,
+        "item_name": "破天石",
+        "weekly_num": 15,
+        "score_type": 3,
+        "item_type": 46871
+      },
+      {
+        "item_score": 2,
+        "all_servers": 0,
+        "item_name": "石胚灵宝",
+        "weekly_num": 30,
+        "score_type": 3,
+        "item_type": 46838
+      },
+      {
+        "item_score": 2,
+        "all_servers": 0,
+        "item_name": "地载灵宝",
+        "weekly_num": 20,
+        "score_type": 3,
+        "item_type": 46839
+      },
+      {
+        "item_score": 5,
+        "all_servers": 0,
+        "item_name": "天运灵宝",
+        "weekly_num": 25,
+        "score_type": 3,
+        "item_type": 46840
+      },
+      {
+        "item_score": 10,
+        "all_servers": 0,
+        "item_name": "日月灵宝",
+        "weekly_num": 10,
+        "score_type": 3,
+        "item_type": 46841
+      },
+      {
+        "item_score": 50,
+        "all_servers": 0,
+        "item_name": "高级守护元神",
+        "weekly_num": 1,
+        "score_type": 3,
+        "item_type": 46882
+      },
+      {
+        "item_score": 45,
+        "all_servers": 0,
+        "item_name": "九州神铁",
+        "weekly_num": 2,
+        "score_type": 3,
+        "item_type": 46878
+      },
+      {
+        "item_score": 45,
+        "all_servers": 0,
+        "item_name": "天雷罡气",
+        "weekly_num": 2,
+        "score_type": 3,
+        "item_type": 47088
+      },
+      {
+        "item_score": 200,
+        "all_servers": 0,
+        "item_name": "金乌神羽",
+        "weekly_num": 2,
+        "score_type": 3,
+        "item_type": 47218
+      },
+      {
+        "item_score": 4000,
+        "all_servers": 1,
+        "item_name": "超级守护蛋",
+        "weekly_num": 70,
+        "score_type": 3,
+        "item_type": 46525
+      },
+      {
+        "item_score": 3,
+        "all_servers": 0,
+        "item_name": "拓版碎片（金）",
+        "weekly_num": 9999,
+        "score_type": 3,
+        "item_type": 47158
+      },
+      {
+        "item_score": 3,
+        "all_servers": 0,
+        "item_name": "拓版碎片（木）",
+        "weekly_num": 9999,
+        "score_type": 3,
+        "item_type": 47159
+      },
+      {
+        "item_score": 3,
+        "all_servers": 0,
+        "item_name": "拓版碎片（水）",
+        "weekly_num": 9999,
+        "score_type": 3,
+        "item_type": 47160
+      },
+      {
+        "item_score": 3,
+        "all_servers": 0,
+        "item_name": "拓版碎片（火）",
+        "weekly_num": 9999,
+        "score_type": 3,
+        "item_type": 47161
+      },
+      {
+        "item_score": 3,
+        "all_servers": 0,
+        "item_name": "拓版碎片（土）",
+        "weekly_num": 9999,
+        "score_type": 3,
+        "item_type": 47162
+      }
+    ],
+    "limit_policy": "weekly_num is a local per-character weekly limit; all_servers=1 additionally shares that limit across all local characters"
+  }
+}

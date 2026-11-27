@@ -1,0 +1,56 @@
+# 本机客户端、补丁工具和测试资源
+/client/
+/client-*/
+/test-town/
+/build_test_town.py
+/start-client-946.ps1
+/start-native946-desktop.py
+/native946_battle_ui.py
+/native946_classified_mall_ui.py
+/native946_client_stage.py
+/native946_render_motion.py
+/test_native946_client_ui.py
+*.lua
+*.luac
+*.wdf
+*.map
+*.bin
+*.exe
+
+# 本机分析、打包产物和依赖缓存
+/analysis/
+/.candidates/
+/dist/
+/.deps/
+/.test-deps/
+/.venv/
+/venv/
+__pycache__/
+*.py[cod]
+.hypothesis/
+.pytest_cache/
+
+# 账号、存档、日志和凭据
+*.sqlite*
+*.db
+*.db-*
+*.jsonl
+*.log
+/logs/
+/native-*-validation.json
+.env
+.env.*
+.native-test-token
+*.pem
+*.key
+*.pfx
+*.zip
+*.7z
+*.bak
+
+# 固定版本的 SQLite 是服务端运行依赖
+*.dll
+/vendor/*
+!/vendor/sqlite-3.51.3-win-x64/
+/vendor/sqlite-3.51.3-win-x64/*
+!/vendor/sqlite-3.51.3-win-x64/sqlite3.dll

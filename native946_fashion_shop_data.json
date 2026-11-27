@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "policy": "user_selected_existing_mall_direct_purchase",
+  "quest_required": false,
+  "fashion_score_required": false,
+  "male_set": 66761,
+  "female_set": 66765,
+  "tiers": [
+    66761,
+    66772,
+    48278,
+    66768,
+    66771,
+    66773
+  ],
+  "frames": {
+    "48278": 1160
+  },
+  "portrait_panel": {
+    "prices": {
+      "1011": 400,
+      "1012": 400,
+      "1013": 400,
+      "1014": 400,
+      "1015": 400,
+      "1016": 400,
+      "1017": 400,
+      "1018": 400,
+      "1019": 400,
+      "1020": 400,
+      "1021": 400,
+      "1022": 400,
+      "1023": 400,
+      "1024": 400,
+      "1025": 400,
+      "1039": 400,
+      "1044": 400,
+      "1047": 400,
+      "1048": 400,
+      "1055": 400,
+      "1057": 400,
+      "1058": 400,
+      "1158": 400
+    },
+    "jing_levels": {
+      "1001": 1,
+      "1002": 2,
+      "1003": 3,
+      "1004": 4,
+      "1005": 5,
+      "1006": 6,
+      "1007": 7,
+      "1008": 8,
+      "1009": 9,
+      "1010": 10
+    }
+  },
+  "items": {
+    "48278": {
+      "name": "头像框·网罗日月",
+      "icon": 8986,
+      "desc": "罗天之网，弄月之丝。经纬日月，以织幻梦。",
+      "days": 0,
+      "valid_days": 0,
+      "max_stack": 1
+    }
+  },
+  "goods": {
+    "48278": {
+      "type": 48278,
+      "name": "头像框·网罗日月",
+      "yubo": 100,
+      "liuguang": 0,
+      "level": 1,
+      "beauty": 0,
+      "page_type": 20001,
+      "price_source": "user_default_100"
+    }
+  },
+  "sources": {
+    "archive": "client-946/resource/configs.wdf",
+    "info_avatar_frame_list_sha256": "66948d306a93146099457987f1ab8077c940c39e715a73b0e6e7f64944349b96",
+    "frame_info_sha256": "570736479700ea8587cb1cae45dc409344e639fa5d041494fca37010270f748b"
+  },
+  "pricing": "Existing mall prices; the previously omitted frame follows the established 100-yubo default."
+}

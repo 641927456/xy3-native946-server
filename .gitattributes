@@ -1,0 +1,7 @@
+*.py text
+*.md text
+*.txt text
+
+# Preserve the original bytes of generated tables used in hash checks.
+*.json -text whitespace=cr-at-eol
+*.dll binary

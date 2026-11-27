@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "branch": "classic regular revision 946",
+  "dungeons": {
+    "天蓬问情": [
+      {
+        "script": 20065,
+        "title": "天蓬、八戒与弱水",
+        "source": "info/scnr/20065.lua",
+        "key": "a2d02a95",
+        "sha256": "d1a193597d8da71849627ebda20bc47b07de02dc58200cb4e05e9d343a505ab3",
+        "npc_names": [
+          "“过去的天蓬”",
+          "猪八戒",
+          "弱水仙子"
+        ],
+        "original_position": [
+          46,
+          38,
+          2381
+        ],
+        "dialogue_count": 12
+      },
+      {
+        "script": 20066,
+        "title": "蟠桃宴的酒",
+        "source": "info/scnr/20066.lua",
+        "key": "5cb82ade",
+        "sha256": "ed771948aa311b4ec1407c20052a16f5d42c64c9b9cd02138f2ee71aeda6b026",
+        "npc_names": [
+          "猪八戒",
+          "弱水仙子"
+        ],
+        "original_position": [
+          65,
+          39,
+          2092
+        ],
+        "dialogue_count": 16
+      },
+      {
+        "script": 20067,
+        "title": "天蓬与弱水",
+        "source": "info/scnr/20067.lua",
+        "key": "fb8dc5e4",
+        "sha256": "9bd9d240be55a3515be5bd3df25f93d78193421c8be2eff36d85a93de80ab69c",
+        "npc_names": [
+          "“过去的天蓬”",
+          "弱水仙子"
+        ],
+        "original_position": [
+          69,
+          51,
+          2017
+        ],
+        "dialogue_count": 8
+      },
+      {
+        "script": 20068,
+        "title": "弱水的坦白",
+        "source": "info/scnr/20068.lua",
+        "key": "c282e50d",
+        "sha256": "6398c4f9c20d5b054a02d022e448567042e77a536f08fa1dcc4d78579a880b0d",
+        "npc_names": [
+          "弱水仙子"
+        ],
+        "original_position": [
+          390,
+          237,
+          2408
+        ],
+        "dialogue_count": 6
+      },
+      {
+        "script": 20069,
+        "title": "高翠兰与神魂",
+        "source": "info/scnr/20069.lua",
+        "key": "467537dd",
+        "sha256": "643cec99e48c7448bbaceefc7033f2f0fe692836e1cf69c261f43cac67b6297f",
+        "npc_names": [
+          "高翠兰的尸体",
+          "弱水仙子",
+          "神秘老人",
+          "弱水神魂"
+        ],
+        "original_position": [
+          30,
+          20,
+          2065
+        ],
+        "dialogue_count": 16
+      }
+    ],
+    "朱紫秘辛": [
+      {
+        "script": 20074,
+        "title": "金光太岁与机关",
+        "source": "info/scnr/20074.lua",
+        "key": "5f4597e0",
+        "sha256": "f4e00ee17435975df928c87e292ff7e6cf990f218504d80239a449054fcf6430",
+        "npc_names": [
+          "离魂残躯",
+          "金光太岁",
+          "怪异机关"
+        ],
+        "original_position": [
+          151,
+          67,
+          2457
+        ],
+        "dialogue_count": 4
+      },
+      {
+        "script": 20075,
+        "title": "金圣宫与鬼目观音",
+        "source": "info/scnr/20075.lua",
+        "key": "91feb0ec",
+        "sha256": "976ea5e1746d092d08376beba66bd0207f806cb374aa0c732a74afeff84a405d",
+        "npc_names": [
+          "金圣宫",
+          ".",
+          "鬼目观音"
+        ],
+        "original_position": [
+          30,
+          75,
+          2457
+        ],
+        "dialogue_count": 2
+      }
+    ]
+  },
+  "scope": "Thematic original cinematic assets; exact instance-event and battle placement remain unverified",
+  "progresses_tasks": false,
+  "grants_rewards": false,
+  "enters_instances": false
+}

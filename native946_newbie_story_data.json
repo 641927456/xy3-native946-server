@@ -1,0 +1,592 @@
+{
+  "version": 2,
+  "evidence": {
+    "route": "947 实录及 946 原生 NPC、场景、过场；相邻采样之间按已知节点接续",
+    "experience": "947 实收按两个 30% 加成折算。阶段关联不足时采用折算样本中的本机数值，金币暂为 0",
+    "capture": "947 观察到战斗内捕捉并出战；首战必定捕捉成功为本机教学规则",
+    "wood": "946 道具 46155 原文确认向邱石交付。老猴精节点入任务包为本机接续",
+    "handoff": "947 实录确认交木材后在长安有车夫指引与美猴王并行。具体车夫未采到，选用 946 东市车夫祥子，车夫指引不单独发奖。"
+  },
+  "carter": {
+    "scene": 2001,
+    "npc": 1140,
+    "name": "东市车夫祥子",
+    "x": 583,
+    "y": 309
+  },
+  "chapter": {
+    "id": "newbie",
+    "name": "初入三界",
+    "qid": 9460001,
+    "giver": {
+      "scene": 2008,
+      "npc": 5672,
+      "name": "迎新使者水月仙",
+      "x": 191,
+      "y": 136,
+      "shape": 3184,
+      "arrival": [
+        191,
+        136
+      ]
+    },
+    "previous": null,
+    "next": "111600",
+    "nodes": [
+      {
+        "title": "拜访迎新使者",
+        "text": "与迎新使者水月仙见面。",
+        "action": "talk",
+        "target": {
+          "scene": 2008,
+          "npc": 5672,
+          "name": "迎新使者水月仙",
+          "x": 191,
+          "y": 136,
+          "shape": 3184,
+          "arrival": [
+            191,
+            136
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 200,
+          "gold": 0
+        },
+        "order": 1
+      },
+      {
+        "title": "再次拜访水月仙",
+        "text": "向水月仙了解接下来的行程。",
+        "action": "cinematic",
+        "target": {
+          "scene": 2008,
+          "npc": 5672,
+          "name": "迎新使者水月仙",
+          "x": 191,
+          "y": 136,
+          "shape": 3184,
+          "arrival": [
+            191,
+            136
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 1430,
+        "reward": {
+          "experience": 300,
+          "gold": 0
+        },
+        "order": 2
+      },
+      {
+        "title": "拜访冼夫人",
+        "text": "去见冼夫人。",
+        "action": "talk",
+        "target": {
+          "scene": 2008,
+          "npc": 2006,
+          "name": "冼夫人",
+          "x": 301,
+          "y": 113,
+          "shape": 2306,
+          "arrival": [
+            301,
+            113
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 1200,
+          "gold": 0
+        },
+        "order": 3
+      },
+      {
+        "title": "继续与冼夫人交谈",
+        "text": "与冼夫人继续交谈，了解小馋猴的情况。",
+        "action": "talk",
+        "target": {
+          "scene": 2008,
+          "npc": 2006,
+          "name": "冼夫人",
+          "x": 301,
+          "y": 113,
+          "shape": 2306,
+          "arrival": [
+            301,
+            113
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 300,
+          "gold": 0
+        },
+        "order": 4
+      },
+      {
+        "title": "小馋猴与小龙人",
+        "text": "尝试使用法术，并在战斗中捕捉小龙人为守护。",
+        "action": "battle",
+        "target": {
+          "scene": 2008,
+          "npc": 6643,
+          "name": "捣乱的小馋猴",
+          "x": 182,
+          "y": 151,
+          "shape": 2364,
+          "arrival": [
+            182,
+            151
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 2100,
+          "gold": 0
+        },
+        "order": 5,
+        "roster": [
+          {
+            "name": "牛魔仔",
+            "shape": 3199
+          },
+          {
+            "name": "小龙人",
+            "shape": 3200,
+            "capture_training": true
+          },
+          {
+            "name": "捣乱的小馋猴",
+            "shape": 2364
+          },
+          {
+            "name": "猴儿精",
+            "shape": 3197
+          },
+          {
+            "name": "猪不戒",
+            "shape": 3198
+          }
+        ],
+        "guardian_experience": 2100
+      },
+      {
+        "title": "打听神秘术法",
+        "text": "向沉香打听神秘术法。",
+        "action": "talk",
+        "target": {
+          "scene": 2008,
+          "npc": 2008,
+          "name": "沉香",
+          "x": 215,
+          "y": 17,
+          "shape": 2304,
+          "arrival": [
+            218,
+            20
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 1200,
+          "gold": 0
+        },
+        "order": 6
+      },
+      {
+        "title": "调查神秘术法",
+        "text": "在傲来调查神秘术法。",
+        "action": "cinematic",
+        "target": {
+          "scene": 2008,
+          "npc": 7761,
+          "name": "神秘法术·壹",
+          "x": 88,
+          "y": 105,
+          "shape": 4322,
+          "arrival": [
+            88,
+            105
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 1440,
+        "reward": {
+          "experience": 2100,
+          "gold": 0
+        },
+        "order": 7
+      },
+      {
+        "title": "回报水月仙",
+        "text": "将调查结果告诉水月仙。",
+        "action": "talk",
+        "target": {
+          "scene": 2008,
+          "npc": 5672,
+          "name": "迎新使者水月仙",
+          "x": 191,
+          "y": 136,
+          "shape": 3184,
+          "arrival": [
+            191,
+            136
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 1200,
+          "gold": 0
+        },
+        "order": 8
+      },
+      {
+        "title": "寻找狗蛋",
+        "text": "到傲来海边寻找狗蛋。",
+        "action": "talk",
+        "target": {
+          "scene": 2008,
+          "npc": 7757,
+          "name": "狗蛋",
+          "x": 49,
+          "y": 140,
+          "shape": 2302,
+          "arrival": [
+            49,
+            140
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 1200,
+          "gold": 0
+        },
+        "order": 9
+      },
+      {
+        "title": "巡海夜叉",
+        "text": "完成海边的挑战。",
+        "action": "battle",
+        "target": {
+          "scene": 2008,
+          "npc": 7756,
+          "name": "巡海夜叉",
+          "x": 22,
+          "y": 128,
+          "shape": 2023,
+          "arrival": [
+            22,
+            128
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 3000,
+          "gold": 0
+        },
+        "order": 10,
+        "roster": [
+          {
+            "name": "巡海夜叉",
+            "shape": 2023
+          },
+          {
+            "name": "螺精守卫",
+            "shape": 2024
+          },
+          {
+            "name": "螺精守卫",
+            "shape": 2024
+          }
+        ],
+        "guardian_experience": 3000
+      },
+      {
+        "title": "海边的回忆",
+        "text": "去见水月仙，观看海边的回忆。",
+        "action": "cinematic",
+        "target": {
+          "scene": 2008,
+          "npc": 7759,
+          "name": "水月仙",
+          "x": 39,
+          "y": 109,
+          "shape": 3184,
+          "arrival": [
+            39,
+            109
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 1431,
+        "reward": {
+          "experience": 3000,
+          "gold": 0
+        },
+        "order": 11
+      },
+      {
+        "title": "启动法阵机关",
+        "text": "与傲来法阵机关交互。",
+        "action": "talk",
+        "target": {
+          "scene": 2008,
+          "npc": 7758,
+          "name": "法阵机关",
+          "x": 131,
+          "y": 147,
+          "shape": 4589,
+          "arrival": [
+            131,
+            147
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 3000,
+          "gold": 0
+        },
+        "order": 12
+      },
+      {
+        "title": "与水月仙交谈",
+        "text": "启动法阵机关后再次与水月仙交谈。",
+        "action": "cinematic",
+        "target": {
+          "scene": 2008,
+          "npc": 7759,
+          "name": "水月仙",
+          "x": 39,
+          "y": 109,
+          "shape": 3184,
+          "arrival": [
+            39,
+            109
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 1437,
+        "reward": {
+          "experience": 3000,
+          "gold": 0
+        },
+        "order": 13,
+        "travel_after": true
+      },
+      {
+        "title": "灵山挑战",
+        "text": "前往灵山继续回忆，完成第一场战斗。",
+        "action": "battle",
+        "target": {
+          "scene": 2428,
+          "npc": 7767,
+          "name": "“孙悟空”",
+          "x": 173,
+          "y": 39,
+          "shape": 2073,
+          "arrival": [
+            173,
+            39
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 5000,
+          "gold": 0
+        },
+        "order": 14,
+        "roster": [
+          {
+            "name": "“孙悟空”",
+            "shape": 2073
+          }
+        ],
+        "guardian_experience": 5000,
+        "hero_appearance": 2073
+      },
+      {
+        "title": "如来佛祖",
+        "text": "与如来佛祖交谈，完成灵山的第二场战斗。",
+        "action": "battle",
+        "target": {
+          "scene": 2428,
+          "npc": 7447,
+          "name": "如来佛祖",
+          "x": 188,
+          "y": 15,
+          "shape": 4495,
+          "arrival": [
+            179,
+            26
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 7000,
+          "gold": 0
+        },
+        "order": 15,
+        "roster": [
+          {
+            "name": "如来佛祖",
+            "shape": 4495
+          },
+          {
+            "name": "长眉罗汉",
+            "shape": 4685
+          },
+          {
+            "name": "大威德金刚",
+            "shape": 2066
+          }
+        ],
+        "guardian_experience": 7000,
+        "travel_after": true,
+        "hero_appearance": 2073
+      },
+      {
+        "title": "返回傲来",
+        "text": "到傲来向迎新使者水月仙回报。",
+        "action": "talk",
+        "target": {
+          "scene": 2008,
+          "npc": 5672,
+          "name": "迎新使者水月仙",
+          "x": 191,
+          "y": 136,
+          "shape": 3184,
+          "arrival": [
+            191,
+            136
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 5000,
+          "gold": 0
+        },
+        "order": 16
+      },
+      {
+        "title": "拜访老猴精",
+        "text": "前往海滩拜访老猴精。",
+        "action": "talk",
+        "target": {
+          "scene": 2008,
+          "npc": 2002,
+          "name": "老猴精",
+          "x": 40,
+          "y": 127,
+          "shape": 2301,
+          "arrival": [
+            40,
+            127
+          ]
+        },
+        "give": {
+          "46155": 1
+        },
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 3000,
+          "gold": 0
+        },
+        "order": 17
+      },
+      {
+        "title": "送交木材",
+        "text": "在大唐东把木材交给邱石。",
+        "action": "give",
+        "handoff_to_carter": true,
+        "target": {
+          "scene": 2027,
+          "npc": 4044,
+          "name": "邱石",
+          "x": 58,
+          "y": 37,
+          "shape": 2422,
+          "arrival": [
+            58,
+            37
+          ]
+        },
+        "give": {},
+        "take": {
+          "46155": 1
+        },
+        "movie": 0,
+        "reward": {
+          "experience": 3000,
+          "gold": 0
+        },
+        "order": 18
+      },
+      {
+        "title": "前往师门",
+        "text": "向长安的师门传送仙询问拜师路线。",
+        "action": "talk",
+        "target": {
+          "scene": 2001,
+          "npc": 1139,
+          "name": "师门传送仙",
+          "x": 592,
+          "y": 320,
+          "shape": 2055,
+          "arrival": [
+            592,
+            320
+          ]
+        },
+        "give": {},
+        "take": {},
+        "movie": 0,
+        "reward": {
+          "experience": 3000,
+          "gold": 0
+        },
+        "order": 19
+      }
+    ],
+    "completion_items": {},
+    "display_name": "初入江湖[主线]"
+  },
+  "items": {
+    "46155": {
+      "name": "木材",
+      "icon": 5727,
+      "desc": "在新手剧情中给予邱石。"
+    }
+  }
+}

@@ -1,0 +1,922 @@
+{
+  "common/protocol/tbl/team_player_info.tbl": {
+    "fields": [
+      [
+        "server_id",
+        "number"
+      ],
+      [
+        "rei",
+        "number"
+      ],
+      [
+        "is_weapon2",
+        "byte"
+      ],
+      [
+        "return_state",
+        "number"
+      ],
+      [
+        "fly",
+        "number"
+      ],
+      [
+        "show_icon",
+        "number"
+      ],
+      [
+        "icon",
+        "number"
+      ],
+      [
+        "cloak_id",
+        "number"
+      ],
+      [
+        "feng",
+        "number"
+      ],
+      [
+        "jing",
+        "number"
+      ],
+      [
+        "color2",
+        "number"
+      ],
+      [
+        "autotask_validity",
+        "number"
+      ],
+      [
+        "name",
+        "string"
+      ],
+      [
+        "position",
+        "number"
+      ],
+      [
+        "server_name",
+        "string"
+      ],
+      [
+        "weapon_color",
+        "number"
+      ],
+      [
+        "autoheal_validity",
+        "number"
+      ],
+      [
+        "race",
+        "number"
+      ],
+      [
+        "suit_id",
+        "number"
+      ],
+      [
+        "weapon_idx",
+        "number"
+      ],
+      [
+        "type",
+        "number"
+      ],
+      [
+        "speed_validity",
+        "number"
+      ],
+      [
+        "id",
+        "number"
+      ],
+      [
+        "autocure_validity",
+        "number"
+      ],
+      [
+        "team_frame",
+        "number"
+      ],
+      [
+        "color1",
+        "number"
+      ],
+      [
+        "charm_shoulder",
+        "number"
+      ],
+      [
+        "charm_nimbus",
+        "number"
+      ],
+      [
+        "color3",
+        "number"
+      ],
+      [
+        "charm_head",
+        "number"
+      ],
+      [
+        "school",
+        "number"
+      ],
+      [
+        "hat_id",
+        "number"
+      ],
+      [
+        "showid",
+        "number"
+      ],
+      [
+        "level",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/tbl/team_player_info.tbl"
+  },
+  "common/protocol/team/c_ask_team.pto": {
+    "id": 2020,
+    "fields": [
+      [
+        "leader_id",
+        "number"
+      ],
+      [
+        "leader_name",
+        "string"
+      ]
+    ],
+    "path": "common/protocol/team/c_ask_team.pto"
+  },
+  "common/protocol/team/c_team_apply_del.pto": {
+    "id": 2021,
+    "fields": [
+      [
+        "player_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_apply_del.pto"
+  },
+  "common/protocol/team/c_team_apply_list.pto": {
+    "id": 2022,
+    "fields": [
+      [
+        "apply_list",
+        "team_player_info",
+        0
+      ],
+      [
+        "away_info_list",
+        "byte",
+        0
+      ]
+    ],
+    "path": "common/protocol/team/c_team_apply_list.pto"
+  },
+  "common/protocol/team/c_team_apply_notify.pto": {
+    "id": 2023,
+    "fields": {},
+    "path": "common/protocol/team/c_team_apply_notify.pto"
+  },
+  "common/protocol/team/c_team_back_with_coord.pto": {
+    "id": 2024,
+    "fields": [
+      [
+        "scene",
+        "number"
+      ],
+      [
+        "x",
+        "number"
+      ],
+      [
+        "y",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_back_with_coord.pto"
+  },
+  "common/protocol/team/c_team_be_leader.pto": {
+    "id": 2025,
+    "fields": [
+      [
+        "leader_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_be_leader.pto"
+  },
+  "common/protocol/team/c_team_be_member.pto": {
+    "id": 2026,
+    "fields": [
+      [
+        "leader_id",
+        "number"
+      ],
+      [
+        "member_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_be_member.pto"
+  },
+  "common/protocol/team/c_team_call_member.pto": {
+    "id": 2027,
+    "fields": {},
+    "path": "common/protocol/team/c_team_call_member.pto"
+  },
+  "common/protocol/team/c_team_change_leader.pto": {
+    "id": 2028,
+    "fields": [
+      [
+        "new_leader_id",
+        "number"
+      ],
+      [
+        "old_leader_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_change_leader.pto"
+  },
+  "common/protocol/team/c_team_desc.pto": {
+    "id": 2029,
+    "fields": [
+      [
+        "team_descs",
+        "team_desc",
+        0
+      ],
+      [
+        "team_leader_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_desc.pto"
+  },
+  "common/protocol/team/c_team_desc_refresh.pto": {
+    "id": 2030,
+    "fields": [
+      [
+        "id",
+        "number"
+      ],
+      [
+        "op",
+        "byte"
+      ],
+      [
+        "value",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_desc_refresh.pto"
+  },
+  "common/protocol/team/c_team_dismiss.pto": {
+    "id": 2031,
+    "fields": [
+      [
+        "leader_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_dismiss.pto"
+  },
+  "common/protocol/team/c_team_leave.pto": {
+    "id": 2032,
+    "fields": [
+      [
+        "leader_id",
+        "number"
+      ],
+      [
+        "member_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_leave.pto"
+  },
+  "common/protocol/team/c_team_member_effect.pto": {
+    "id": 2033,
+    "fields": [
+      [
+        "effect_type",
+        "byte"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_member_effect.pto"
+  },
+  "common/protocol/team/c_team_member_info.pto": {
+    "id": 2034,
+    "fields": [
+      [
+        "member_info",
+        "team_player_info"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_member_info.pto"
+  },
+  "common/protocol/team/c_team_member_list.pto": {
+    "id": 2035,
+    "fields": [
+      [
+        "lineup",
+        "number"
+      ],
+      [
+        "all_lineups",
+        "string"
+      ],
+      [
+        "member_list",
+        "team_player_info",
+        0
+      ],
+      [
+        "position_str",
+        "string"
+      ],
+      [
+        "leader_id",
+        "number"
+      ],
+      [
+        "cure_flag",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_member_list.pto"
+  },
+  "common/protocol/team/c_team_member_location.pto": {
+    "id": 2036,
+    "fields": [
+      [
+        "id",
+        "number"
+      ],
+      [
+        "scene",
+        "number"
+      ],
+      [
+        "x",
+        "number"
+      ],
+      [
+        "y",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_member_location.pto"
+  },
+  "common/protocol/team/c_team_swap_position.pto": {
+    "id": 2037,
+    "fields": [
+      [
+        "source_id",
+        "number"
+      ],
+      [
+        "destination_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_swap_position.pto"
+  },
+  "common/protocol/team/s_accept_invite.pto": {
+    "id": 2038,
+    "fields": [
+      [
+        "leader_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_accept_invite.pto"
+  },
+  "common/protocol/team/s_ask_team.pto": {
+    "id": 2039,
+    "fields": [
+      [
+        "player_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_ask_team.pto"
+  },
+  "common/protocol/team/s_ask_team_batch_ids.pto": {
+    "id": 2040,
+    "fields": [
+      [
+        "player_ids",
+        "number",
+        0
+      ]
+    ],
+    "path": "common/protocol/team/s_ask_team_batch_ids.pto"
+  },
+  "common/protocol/team/s_team_accept.pto": {
+    "id": 2041,
+    "fields": [
+      [
+        "apply_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_accept.pto"
+  },
+  "common/protocol/team/s_team_apply.pto": {
+    "id": 2042,
+    "fields": [
+      [
+        "team_leader_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_apply.pto"
+  },
+  "common/protocol/team/s_team_apply_list.pto": {
+    "id": 2043,
+    "fields": {},
+    "path": "common/protocol/team/s_team_apply_list.pto"
+  },
+  "common/protocol/team/s_team_be_away.pto": {
+    "id": 2044,
+    "fields": {},
+    "path": "common/protocol/team/s_team_be_away.pto"
+  },
+  "common/protocol/team/s_team_be_back.pto": {
+    "id": 2045,
+    "fields": {},
+    "path": "common/protocol/team/s_team_be_back.pto"
+  },
+  "common/protocol/team/s_team_change_leader.pto": {
+    "id": 2046,
+    "fields": [
+      [
+        "new_leader_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_change_leader.pto"
+  },
+  "common/protocol/team/s_team_decline.pto": {
+    "id": 2047,
+    "fields": [
+      [
+        "apply_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_decline.pto"
+  },
+  "common/protocol/team/s_team_decline_all.pto": {
+    "id": 2048,
+    "fields": {},
+    "path": "common/protocol/team/s_team_decline_all.pto"
+  },
+  "common/protocol/team/s_team_dismiss.pto": {
+    "id": 2049,
+    "fields": {},
+    "path": "common/protocol/team/s_team_dismiss.pto"
+  },
+  "common/protocol/team/s_team_kickout.pto": {
+    "id": 2050,
+    "fields": [
+      [
+        "kicked_player_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_kickout.pto"
+  },
+  "common/protocol/team/s_team_leave.pto": {
+    "id": 2051,
+    "fields": {},
+    "path": "common/protocol/team/s_team_leave.pto"
+  },
+  "common/protocol/team/s_team_member_effect.pto": {
+    "id": 2052,
+    "fields": [
+      [
+        "member_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_member_effect.pto"
+  },
+  "common/protocol/team/s_team_member_info.pto": {
+    "id": 2053,
+    "fields": [
+      [
+        "player_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_member_info.pto"
+  },
+  "common/protocol/team/s_team_member_list.pto": {
+    "id": 2054,
+    "fields": {},
+    "path": "common/protocol/team/s_team_member_list.pto"
+  },
+  "common/protocol/team/s_team_set_lineup.pto": {
+    "id": 2055,
+    "fields": [
+      [
+        "lineup",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_set_lineup.pto"
+  },
+  "common/protocol/team/s_team_summon_member.pto": {
+    "id": 2056,
+    "fields": [
+      [
+        "member_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_summon_member.pto"
+  },
+  "common/protocol/team/s_team_swap_position.pto": {
+    "id": 2057,
+    "fields": [
+      [
+        "player_id",
+        "number"
+      ],
+      [
+        "player_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_swap_position.pto"
+  },
+  "common/protocol/war/c_catch_result.pto": {
+    "id": 2136,
+    "fields": [
+      [
+        "fighter_id",
+        "number"
+      ],
+      [
+        "target_id",
+        "number"
+      ],
+      [
+        "succed",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/war/c_catch_result.pto"
+  },
+  "common/protocol/team/s_team_set_oncure_flag.pto": {
+    "id": 3129,
+    "fields": [
+      [
+        "cure_flag",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_set_oncure_flag.pto"
+  },
+  "common/protocol/team/c_new_team_member_list.pto": {
+    "id": 3228,
+    "fields": [
+      [
+        "lineup",
+        "number"
+      ],
+      [
+        "all_lineups",
+        "string"
+      ],
+      [
+        "member_list",
+        "team_player_info",
+        0
+      ],
+      [
+        "position_str",
+        "string"
+      ],
+      [
+        "leader_id",
+        "number"
+      ],
+      [
+        "cure_flag",
+        "number"
+      ],
+      [
+        "task_type",
+        "number",
+        0
+      ],
+      [
+        "grade_limit",
+        "number"
+      ],
+      [
+        "equip_limit",
+        "number"
+      ],
+      [
+        "moonlight_box_info",
+        "string"
+      ],
+      [
+        "flush",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_new_team_member_list.pto"
+  },
+  "common/protocol/team/c_team_apply_leader.pto": {
+    "id": 3577,
+    "fields": [
+      [
+        "leader_name",
+        "string"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_apply_leader.pto"
+  },
+  "common/protocol/team/s_team_apply_leader.pto": {
+    "id": 3578,
+    "fields": {},
+    "path": "common/protocol/team/s_team_apply_leader.pto"
+  },
+  "common/protocol/team/s_team_apply_leader_vote.pto": {
+    "id": 3579,
+    "fields": [
+      [
+        "vote_result",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_apply_leader_vote.pto"
+  },
+  "common/protocol/team/c_team_apply_leader_close_panel.pto": {
+    "id": 3580,
+    "fields": {},
+    "path": "common/protocol/team/c_team_apply_leader_close_panel.pto"
+  },
+  "common/protocol/team/c_team_invite_friend.pto": {
+    "id": 3622,
+    "fields": [
+      [
+        "user_name",
+        "string"
+      ],
+      [
+        "leader_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_invite_friend.pto"
+  },
+  "common/protocol/team/c_team_direct.pto": {
+    "id": 4019,
+    "fields": [
+      [
+        "list",
+        "number",
+        0
+      ]
+    ],
+    "path": "common/protocol/team/c_team_direct.pto"
+  },
+  "common/protocol/team/s_team_member_direct.pto": {
+    "id": 4020,
+    "fields": [
+      [
+        "id",
+        "number"
+      ],
+      [
+        "direct",
+        "byte"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_member_direct.pto"
+  },
+  "common/protocol/team/c_team_member_appearance_info.pto": {
+    "id": 4505,
+    "fields": [
+      [
+        "infos",
+        "string"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_member_appearance_info.pto"
+  },
+  "common/protocol/team/s_team_member_appearance_info.pto": {
+    "id": 4506,
+    "fields": [
+      [
+        "user_id",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_member_appearance_info.pto"
+  },
+  "common/protocol/team/c_team_scheme_all.pto": {
+    "id": 4554,
+    "fields": [
+      [
+        "type",
+        "byte"
+      ],
+      [
+        "strtbl",
+        "string"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_scheme_all.pto"
+  },
+  "common/protocol/team/c_team_scheme_member.pto": {
+    "id": 4555,
+    "fields": [
+      [
+        "tarid",
+        "number"
+      ],
+      [
+        "tarhostid",
+        "number"
+      ],
+      [
+        "strtbl",
+        "string"
+      ]
+    ],
+    "path": "common/protocol/team/c_team_scheme_member.pto"
+  },
+  "common/protocol/team/s_team_scheme_all.pto": {
+    "id": 4556,
+    "fields": [
+      [
+        "type",
+        "byte"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_scheme_all.pto"
+  },
+  "common/protocol/team/s_team_scheme_member.pto": {
+    "id": 4557,
+    "fields": [
+      [
+        "type",
+        "byte"
+      ],
+      [
+        "tarid",
+        "number"
+      ],
+      [
+        "tarhostid",
+        "number"
+      ]
+    ],
+    "path": "common/protocol/team/s_team_scheme_member.pto"
+  },
+  "common/protocol/tbl/team_desc.tbl": {
+    "fields": [
+      [
+        "icon_frame",
+        "number"
+      ],
+      [
+        "hpmin",
+        "number"
+      ],
+      [
+        "rei",
+        "byte"
+      ],
+      [
+        "hp",
+        "number"
+      ],
+      [
+        "autocure_leftday",
+        "number"
+      ],
+      [
+        "race",
+        "number"
+      ],
+      [
+        "mp",
+        "number"
+      ],
+      [
+        "fly",
+        "byte"
+      ],
+      [
+        "icon",
+        "number"
+      ],
+      [
+        "vip",
+        "byte"
+      ],
+      [
+        "type",
+        "number"
+      ],
+      [
+        "id",
+        "number"
+      ],
+      [
+        "jing",
+        "byte"
+      ],
+      [
+        "grade",
+        "number"
+      ],
+      [
+        "mpmin",
+        "number"
+      ],
+      [
+        "name",
+        "string"
+      ],
+      [
+        "mpbuff",
+        "byte"
+      ],
+      [
+        "hpbuff",
+        "byte"
+      ],
+      [
+        "mpmax",
+        "number"
+      ],
+      [
+        "hpmax",
+        "number"
+      ],
+      [
+        "feng",
+        "byte"
+      ]
+    ],
+    "path": "common/protocol/tbl/team_desc.tbl"
+  },
+  "common/protocol/tbl/team_member.tbl": {
+    "fields": [
+      [
+        "office",
+        "byte"
+      ],
+      [
+        "last_join",
+        "byte"
+      ],
+      [
+        "id",
+        "number"
+      ],
+      [
+        "nice_id",
+        "number"
+      ],
+      [
+        "race",
+        "number"
+      ],
+      [
+        "name",
+        "string"
+      ],
+      [
+        "sex",
+        "byte"
+      ],
+      [
+        "contribution",
+        "number"
+      ],
+      [
+        "grade_str",
+        "string"
+      ]
+    ],
+    "path": "common/protocol/tbl/team_member.tbl"
+  }
+}

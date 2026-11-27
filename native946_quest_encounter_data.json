@@ -1,0 +1,567 @@
+{
+  "source": "阿飞参考实现，日常任务战斗数据",
+  "reference_hashes": {
+    "data/G怪物数据.data": "40a4b5189f34208d7d34356dc3243c4f56b224f7fd4d44dc538a218393e638df",
+    "data/G怪物数据表.data": "afc54867eade663b7a8997cb4a5b50303832e98bcf2f23dd5e5e63895b299711",
+    "Script/Z战斗处理类/战斗怪物类.lua": "2e0f60e50dd40836a84a21c642172b366229776a4f4994abb6f94021196e6caf"
+  },
+  "skills": [
+    53,
+    54,
+    55,
+    73,
+    74,
+    75,
+    63,
+    64,
+    65
+  ],
+  "encounters": {
+    "king": {
+      "formation": 100012,
+      "roster": [
+        {
+          "hpmax": 80000,
+          "mpmax": 50000,
+          "attack": 1425,
+          "initiative": 650,
+          "defense": 0,
+          "mag": 0,
+          "reference_id": 20180,
+          "reference_element_power": {
+            "fire": 350,
+            "wind": 350,
+            "water": 350,
+            "thunder": 350
+          }
+        },
+        {
+          "hpmax": 80000,
+          "mpmax": 50000,
+          "attack": 1426,
+          "initiative": 650,
+          "defense": 0,
+          "mag": 0,
+          "reference_id": 20181,
+          "reference_element_power": {
+            "fire": 350,
+            "wind": 350,
+            "water": 350,
+            "thunder": 350
+          }
+        },
+        {
+          "hpmax": 80000,
+          "mpmax": 50000,
+          "attack": 1427,
+          "initiative": 650,
+          "defense": 0,
+          "mag": 0,
+          "reference_id": 20182,
+          "reference_element_power": {
+            "fire": 350,
+            "wind": 350,
+            "water": 350,
+            "thunder": 350
+          }
+        },
+        {
+          "hpmax": 80000,
+          "mpmax": 50000,
+          "attack": 1428,
+          "initiative": 650,
+          "defense": 0,
+          "mag": 0,
+          "reference_id": 20183,
+          "reference_element_power": {
+            "fire": 350,
+            "wind": 350,
+            "water": 350,
+            "thunder": 350
+          }
+        },
+        {
+          "hpmax": 80000,
+          "mpmax": 50000,
+          "attack": 1429,
+          "initiative": 650,
+          "defense": 0,
+          "mag": 0,
+          "reference_id": 20184,
+          "reference_element_power": {
+            "fire": 350,
+            "wind": 350,
+            "water": 350,
+            "thunder": 350
+          }
+        },
+        {
+          "hpmax": 80000,
+          "mpmax": 50000,
+          "attack": 1430,
+          "initiative": 650,
+          "defense": 0,
+          "mag": 0,
+          "reference_id": 20185,
+          "reference_element_power": {
+            "fire": 350,
+            "wind": 350,
+            "water": 350,
+            "thunder": 350
+          }
+        },
+        {
+          "hpmax": 80000,
+          "mpmax": 50000,
+          "attack": 1431,
+          "initiative": 650,
+          "defense": 0,
+          "mag": 0,
+          "reference_id": 20186,
+          "reference_element_power": {
+            "fire": 350,
+            "wind": 350,
+            "water": 350,
+            "thunder": 350
+          }
+        },
+        {
+          "hpmax": 80000,
+          "mpmax": 50000,
+          "attack": 1432,
+          "initiative": 650,
+          "defense": 0,
+          "mag": 0,
+          "reference_id": 20187,
+          "reference_element_power": {
+            "fire": 350,
+            "wind": 350,
+            "water": 350,
+            "thunder": 350
+          }
+        }
+      ],
+      "models": {
+        "冰雪之魄": 2076,
+        "麒麟": 3160,
+        "赌鬼": 3154,
+        "酒鬼": 3153,
+        "龟丞相": 3151,
+        "巡海夜叉": 3150,
+        "突厥刀客": 3148,
+        "芦花": 3147,
+        "蚌精": 3142,
+        "海盗": 3141,
+        "猴刀兵": 3144,
+        "猴枪兵": 3143,
+        "鸟精": 3156,
+        "仙鹤": 2052,
+        "小宝": 3166,
+        "青冥妖": 3177,
+        "赤琉金": 3180,
+        "苍穹月": 3184,
+        "毒毒蛛": 3188,
+        "飞羽": 3189,
+        "天狼": 3196,
+        "千岁婆婆": 3205,
+        "伶俐虫": 3206,
+        "镜泉灵": 3210,
+        "梦泉灵": 3211,
+        "昴日星官": 3212,
+        "泉娃": 3239,
+        "三尾蝎": 3241,
+        "紫玉蝎": 3242,
+        "白泽": 3243,
+        "腾蛇": 3244,
+        "苍麒": 3245,
+        "焰冥猿": 3261,
+        "烈穹飞羽": 3264,
+        "枯摩罗": 3266,
+        "鬼蜥": 3270,
+        "玉面狐狸": 3271,
+        "英招": 3272,
+        "萧晚音": 3273,
+        "初莲仙子": 3276,
+        "某日星官": 3280,
+        "弓箭手": 3287,
+        "熊战士": 3288,
+        "冰雪天马": 3289,
+        "金熊武士": 3290,
+        "极光天马": 3291,
+        "幻叶树妖": 3296,
+        "紫影灵狐": 3298,
+        "虹月灵狐": 3299,
+        "天竺战士": 3301,
+        "破晓": 3312,
+        "奢比尸": 3330,
+        "虚日鼠": 3339,
+        "荒野": 3341,
+        "大阿罗汉": 3314,
+        "铁扇公主": 3274,
+        "虎先锋": 2037,
+        "梅仙": 2054,
+        "菊仙": 2055,
+        "兰仙": 2056,
+        "马元帅": 2058,
+        "崩将军": 2059,
+        "天兵": 2067,
+        "天将": 2068,
+        "吴刚": 2071,
+        "仙女": 2072,
+        "禁卫军": 2078,
+        "镖师": 2079,
+        "士兵": 2082,
+        "高丽侍卫": 2083,
+        "白虎": 2090,
+        "衙役": 2094,
+        "小鬼乙": 2107,
+        "小鬼甲": 2108,
+        "蛟魔王": 3268,
+        "疾风": 3269,
+        "瀚威熊将": 3293,
+        "圣羽天马": 3294,
+        "灵蕊树妖": 3297,
+        "魔晶灵狐": 3300,
+        "血魔": 3302,
+        "白龙帝": 3304,
+        "四天烈": 3305,
+        "无界光": 3306,
+        "苍雪凝": 3307,
+        "雷行使": 3308,
+        "风行使": 3309,
+        "火行使": 3310,
+        "水行使": 3311,
+        "卫兵": 2302,
+        "金身天犬": 3327,
+        "猫妖": 3335,
+        "司宁": 3338,
+        "武僧": 2011,
+        "尾生": 2015,
+        "人参娃娃": 2044
+      }
+    },
+    "heaven": {
+      "formation": 100007,
+      "roster": [
+        {
+          "hpmax": 10000,
+          "mpmax": 10000,
+          "attack": 1000,
+          "initiative": 120,
+          "defense": 500,
+          "mag": 0,
+          "reference_id": 1,
+          "type": 2068,
+          "name": "天将",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 7000,
+          "mpmax": 10000,
+          "attack": 700,
+          "initiative": 100,
+          "defense": 500,
+          "mag": 0,
+          "reference_id": 2,
+          "type": 2067,
+          "name": "天兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 7000,
+          "mpmax": 10000,
+          "attack": 700,
+          "initiative": 100,
+          "defense": 500,
+          "mag": 0,
+          "reference_id": 3,
+          "type": 2067,
+          "name": "天兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 7000,
+          "mpmax": 10000,
+          "attack": 700,
+          "initiative": 100,
+          "defense": 500,
+          "mag": 0,
+          "reference_id": 4,
+          "type": 2067,
+          "name": "天兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 7000,
+          "mpmax": 10000,
+          "attack": 700,
+          "initiative": 100,
+          "defense": 500,
+          "mag": 0,
+          "reference_id": 5,
+          "type": 2067,
+          "name": "天兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 7000,
+          "mpmax": 10000,
+          "attack": 700,
+          "initiative": 100,
+          "defense": 500,
+          "mag": 0,
+          "reference_id": 6,
+          "type": 2067,
+          "name": "天兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 7000,
+          "mpmax": 10000,
+          "attack": 700,
+          "initiative": 100,
+          "defense": 500,
+          "mag": 0,
+          "reference_id": 7,
+          "type": 2067,
+          "name": "天兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 7000,
+          "mpmax": 10000,
+          "attack": 700,
+          "initiative": 100,
+          "defense": 500,
+          "mag": 0,
+          "reference_id": 8,
+          "type": 2067,
+          "name": "天兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        }
+      ]
+    },
+    "sanjie": {
+      "formation": 100008,
+      "roster": [
+        {
+          "hpmax": 15000,
+          "mpmax": 15000,
+          "attack": 400,
+          "initiative": 150,
+          "defense": 700,
+          "mag": 0,
+          "reference_id": 11,
+          "type": 2078,
+          "name": "禁卫军",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 12000,
+          "mpmax": 15000,
+          "attack": 400,
+          "initiative": 120,
+          "defense": 700,
+          "mag": 0,
+          "reference_id": 12,
+          "type": 2082,
+          "name": "士兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 12000,
+          "mpmax": 15000,
+          "attack": 400,
+          "initiative": 120,
+          "defense": 700,
+          "mag": 0,
+          "reference_id": 13,
+          "type": 2082,
+          "name": "士兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 12000,
+          "mpmax": 15000,
+          "attack": 400,
+          "initiative": 120,
+          "defense": 700,
+          "mag": 0,
+          "reference_id": 14,
+          "type": 2082,
+          "name": "士兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 12000,
+          "mpmax": 15000,
+          "attack": 400,
+          "initiative": 120,
+          "defense": 700,
+          "mag": 0,
+          "reference_id": 15,
+          "type": 2082,
+          "name": "士兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 12000,
+          "mpmax": 15000,
+          "attack": 400,
+          "initiative": 120,
+          "defense": 700,
+          "mag": 0,
+          "reference_id": 16,
+          "type": 2082,
+          "name": "士兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 12000,
+          "mpmax": 15000,
+          "attack": 400,
+          "initiative": 120,
+          "defense": 700,
+          "mag": 0,
+          "reference_id": 17,
+          "type": 2082,
+          "name": "士兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        },
+        {
+          "hpmax": 12000,
+          "mpmax": 15000,
+          "attack": 400,
+          "initiative": 120,
+          "defense": 700,
+          "mag": 0,
+          "reference_id": 18,
+          "type": 2082,
+          "name": "士兵",
+          "reference_element_resist": {
+            "fire": -500,
+            "wind": -500,
+            "water": -500,
+            "thunder": -500
+          }
+        }
+      ]
+    },
+    "ghost": {
+      "models": {
+        "恶魔泡泡": 3164,
+        "天使泡泡": 3163,
+        "冰雪之魄": 2076,
+        "凤凰": 3161,
+        "麒麟": 3160,
+        "女娲后裔": 3159,
+        "赌鬼": 3154,
+        "酒鬼": 3153,
+        "龟丞相": 3151,
+        "巡海夜叉": 3150,
+        "突厥刀客": 3148,
+        "芦花": 3147,
+        "蚌精": 3142,
+        "海盗": 3141,
+        "猴刀兵": 3144,
+        "猴枪兵": 3143,
+        "鸟精": 3156
+      },
+      "stats": {
+        "hpmax": 2000,
+        "mpmax": 10000,
+        "initiative": [
+          50,
+          150
+        ],
+        "defense": 0,
+        "attack": [
+          200,
+          500
+        ],
+        "mag": 1,
+        "reference_element_power": {
+          "fire": -300,
+          "wind": -300,
+          "water": -300,
+          "thunder": -300
+        }
+      }
+    }
+  }
+}

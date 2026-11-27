@@ -1,0 +1,91 @@
+{
+  "source": "client-946/resource/configs.wdf#info/info_scene.lua",
+  "source_sha256": "2d49ff996844c4130fc54ee83bbe632e4f79de1ecb4fd923d3059076daa2a19e",
+  "coordinates_source": "本机规则，在客户端地形文件核对可行走格",
+  "scenes": {
+    "8716": {
+      "scene_name": "朱紫国",
+      "map_id": 2457,
+      "width": 5192,
+      "height": 4455,
+      "arrival": [
+        135,
+        113
+      ],
+      "guide": [
+        137,
+        113
+      ]
+    },
+    "8717": {
+      "scene_name": "金圣宫寝殿",
+      "map_id": 2454,
+      "width": 2145,
+      "height": 1494,
+      "arrival": [
+        53,
+        38
+      ],
+      "guide": [
+        55,
+        38
+      ]
+    },
+    "8718": {
+      "scene_name": "五凤楼大殿",
+      "map_id": 2455,
+      "width": 1200,
+      "height": 905,
+      "arrival": [
+        33,
+        23
+      ],
+      "guide": [
+        35,
+        23
+      ]
+    },
+    "8627": {
+      "scene_name": "时空隧道",
+      "map_id": 8028,
+      "width": 5530,
+      "height": 3573,
+      "arrival": [
+        143,
+        85
+      ],
+      "guide": [
+        145,
+        85
+      ]
+    },
+    "8628": {
+      "scene_name": "昔时·天之涯",
+      "map_id": 2381,
+      "width": 3780,
+      "height": 2380,
+      "arrival": [
+        92,
+        60
+      ],
+      "guide": [
+        94,
+        60
+      ]
+    },
+    "8634": {
+      "scene_name": "时间之隙",
+      "map_id": 8005,
+      "width": 2000,
+      "height": 1200,
+      "arrival": [
+        50,
+        30
+      ],
+      "guide": [
+        52,
+        30
+      ]
+    }
+  }
+}

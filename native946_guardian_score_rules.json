@@ -1,0 +1,32 @@
+{
+  "source": "本机规则，按 947 小龙人与封圣守护样本的分数量级校准",
+  "character_panel": "携带守护中的最高分",
+  "base": {
+    "points_per_level": 58,
+    "growth_baseline": 1000,
+    "points_per_growth_unit": 1,
+    "points_at_full_initial_values": 200,
+    "amity_per_point": 100,
+    "points_per_longgu": 100,
+    "points_per_rebirth": 2600,
+    "points_per_ascension": 4200,
+    "points_per_sanctification": 5200
+  },
+  "skills": {
+    "points_per_skill": 40,
+    "half_points_per_level": 13,
+    "points_per_rebirth": 60,
+    "points_per_ascension": 100,
+    "points_per_sanctification": 140
+  },
+  "equipment": {
+    "points_by_grade": [0, 400, 760, 1120, 1480],
+    "points_per_ornament_refinement_stat": 5,
+    "sample_standard_top": 1600,
+    "sample_enhanced_top": 1800,
+    "points_per_jade_level": 40,
+    "points_per_jade_skill": 120,
+    "points_per_old_stone": 40,
+    "points_per_star_stone": 80
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "items": {
+    "46016": {
+      "name": "烟花·天花锦簇",
+      "icon": 5217,
+      "desc": "第一歌会烟花。右键可邀好友共赏，共赏双方及附近玩家可获得经验，当天有效。",
+      "max_stack": 1
+    },
+    "46017": {
+      "name": "烟花·流星落雨",
+      "icon": 5217,
+      "desc": "第一歌会烟花。右键可邀好友共赏，共赏双方及附近玩家可获得经验，当天有效。",
+      "max_stack": 1
+    },
+    "46018": {
+      "name": "烟花·天地鉴情",
+      "icon": 5218,
+      "desc": "第一歌会烟花。右键可邀好友共赏，共赏双方及附近玩家可获得经验，当天有效。",
+      "max_stack": 1
+    },
+    "4000": {
+      "name": "回生丹",
+      "icon": 5757,
+      "desc": "回生丹可恢复一定的气血。#r【种类】药品#r【等级】1#r【效果】#G气血+200#n"
+    },
+    "4001": {
+      "name": "益气散",
+      "icon": 5758,
+      "desc": "益气散常见的药品，可聚敛精神。#r【种类】药品#r【等级】1#r【效果】#G法力+100#n"
+    },
+    "4002": {
+      "name": "独圣散",
+      "icon": 5759,
+      "desc": "二级药品，恢复500点气血。",
+      "max_stack": 500
+    },
+    "4003": {
+      "name": "木香分气丸",
+      "icon": 5760,
+      "desc": "二级药品，恢复200点法力。",
+      "max_stack": 500
+    },
+    "4004": {
+      "name": "玉屑无忧散",
+      "icon": 5761,
+      "desc": "三级药品，恢复900点气血。",
+      "max_stack": 500
+    },
+    "4005": {
+      "name": "清平丸",
+      "icon": 5762,
+      "desc": "三级药品，恢复400点法力。",
+      "max_stack": 500
+    },
+    "5001": {
+      "name": "七彩花环",
+      "icon": 3012,
+      "desc": "采傲来村的鲜花编成的花环，好看之余还可以吸收少量伤害。#r【种类】头饰#r【装备角色】女"
+    },
+    "5004": {
+      "name": "布裙",
+      "icon": 3021,
+      "desc": "傲来冼夫人织制的布裙，颇有南国风味。#r【种类】衣服#r【装备角色】女"
+    },
+    "5023": {
+      "name": "布鞋",
+      "icon": 3018,
+      "desc": "布缝制的鞋子，可以稍微提高速度。#r【种类】鞋子#r【装备角色】全部"
+    },
+    "5000": {
+      "name": "布帽",
+      "icon": 3009,
+      "desc": "布制，普通人家使用的头冠，有伤害吸收的作用。#r【种类】头饰#r【装备角色】男"
+    },
+    "5003": {
+      "name": "麻布衣",
+      "icon": 3024,
+      "desc": "麻布缝制的衣服，可以起到增加防御的作用。#r【种类】衣服#r【装备角色】男"
+    }
+  },
+  "skills": {
+    "6100": {
+      "name": "罡岩咒",
+      "icon": 6100,
+      "cast_id": 6100,
+      "effect": "skill/6100_1s.lua",
+      "texture": "skill/6100/6100.tcp",
+      "sound": "skill/sound/法术/6100.wav"
+    },
+    "6101": {
+      "name": "裂坤斩",
+      "icon": 6101,
+      "cast_id": 6101,
+      "effect": "skill/6101_1s.lua",
+      "texture": "skill/6101/6101.tcp",
+      "sound": "skill/sound/法术/6101.wav"
+    }
+  },
+  "attributes": {
+    "Chc": 42.0,
+    "Point": 21.0,
+    "TiliMax": 14.0,
+    "VimMax": 16.0,
+    "Hp": 26.0,
+    "Race": 5.0,
+    "Mp": 29.0,
+    "NeiliMax": 18.0,
+    "ACMAmount": 86.0,
+    "Id": 2.0,
+    "Cor": 22.0,
+    "AnleiLost": 40.0,
+    "PoteMax": 20.0,
+    "ExpNext": 12.0,
+    "Pote": 19.0,
+    "Rei": 41.0,
+    "ZhenQiMax": 50.0,
+    "Vim": 15.0,
+    "TitleStyle": 71.0,
+    "IconFrame": 57.0,
+    "Fly": 45.0,
+    "ExFishFrame1": 80.0,
+    "Feng": 51.0,
+    "Neili": 17.0,
+    "Grade": 10.0,
+    "AttAll": 32.0,
+    "AnleiWin": 39.0,
+    "Name": 1.0,
+    "Sex": 6.0,
+    "HpMin": 27.0,
+    "Energy": 36.0,
+    "Des": 3.0,
+    "FlyLevel": 54.0,
+    "Exp": 11.0,
+    "Yubo": 73.0,
+    "Shide": 38.0,
+    "Org": 8.0,
+    "ExFishFrame3": 82.0,
+    "Mag": 23.0,
+    "NewTempNPage": 79.0,
+    "Tongshuai": 76.0,
+    "MpMax": 31.0,
+    "MatchSpace": 87.0,
+    "Evaluate": 48.0,
+    "Tili": 13.0,
+    "Str": 24.0,
+    "School": 90.0,
+    "PanTaoXianSmallIcon": 89.0,
+    "ZhenQi": 49.0,
+    "Signature": 44.0,
+    "SummonScore": 88.0,
+    "ExpandSummonRoom": 85.0,
+    "FashionScore": 84.0,
+    "ExFishFrame4": 83.0,
+    "ExFishFrame2": 81.0,
+    "Credit": 9.0,
+    "CardPayFree": 78.0,
+    "TimeCredit": 77.0,
+    "FreeYubo": 75.0,
+    "PayYubo": 74.0,
+    "EquipScore": 72.0,
+    "Spe": 25.0,
+    "Jing": 55.0,
+    "ShowId": 53.0,
+    "ActPointScheme": 52.0,
+    "TempNPageVTime": 47.0,
+    "TempNPage": 46.0,
+    "AccumulationFund": 43.0,
+    "Gongde": 37.0,
+    "Account": 35.0,
+    "Title": 7.0,
+    "DodAll": 33.0,
+    "MpMin": 30.0,
+    "HpMax": 28.0,
+    "QIcon": 56.0,
+    "Shape": 4.0,
+    "Cash": 34.0
+  }
+}

@@ -1,0 +1,2194 @@
+{
+  "client_revision": 946,
+  "rule_policy": "Only verified original 946 mechanics; no invented coefficients or acquisition costs.",
+  "referenced_skills": 233,
+  "skills": {
+    "300": {
+      "name": "万物之灵",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "301": {
+      "name": "修身养性",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "302": {
+      "name": "我行我素",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "303": {
+      "name": "野性之力",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "304": {
+      "name": "阴魂不散",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "305": {
+      "name": "阳关三叠",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "306": {
+      "name": "剑胆琴心",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "307": {
+      "name": "一箭穿心",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "308": {
+      "name": "横冲直撞",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "309": {
+      "name": "睚眦必报",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "310": {
+      "name": "势如破竹",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "311": {
+      "name": "力劈华山",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "312": {
+      "name": "峰回路转",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "313": {
+      "name": "一鼓作气",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "314": {
+      "name": "啸破长空",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "315": {
+      "name": "喝断长流",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "316": {
+      "name": "三头六臂",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "317": {
+      "name": "乘胜追击",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "318": {
+      "name": "画地为牢",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "319": {
+      "name": "六阳融雪",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "320": {
+      "name": "李代桃僵",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "321": {
+      "name": "道骨仙风",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "322": {
+      "name": "灵丹反噬",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "323": {
+      "name": "伺机而动",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "324": {
+      "name": "同赴黄泉",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "325": {
+      "name": "釜底抽薪",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "326": {
+      "name": "退避三舍",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "327": {
+      "name": "善恶有报",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "328": {
+      "name": "乾坤挪移",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "329": {
+      "name": "冥冥一击",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "330": {
+      "name": "不动如山",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "331": {
+      "name": "生生不息",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "332": {
+      "name": "海纳百川",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "333": {
+      "name": "回天之舞",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "334": {
+      "name": "借尸还魂",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "335": {
+      "name": "万虫蚀体",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "336": {
+      "name": "电光火石",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "337": {
+      "name": "水淹七军",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "338": {
+      "name": "灰飞烟灭",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "339": {
+      "name": "阴风怒号",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "340": {
+      "name": "上善若水",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "341": {
+      "name": "咫尺天涯",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "342": {
+      "name": "尘埃落定",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "343": {
+      "name": "美人迟暮",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "344": {
+      "name": "化血成碧",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "345": {
+      "name": "羿射九日",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "346": {
+      "name": "水火无情",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "347": {
+      "name": "振聋发聩",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "348": {
+      "name": "腥风血雨",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "349": {
+      "name": "留恋人间",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "350": {
+      "name": "锋芒毕露",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "351": {
+      "name": "天佑一仙",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "352": {
+      "name": "剥茧抽丝",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "353": {
+      "name": "全神贯注",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "354": {
+      "name": "拖泥带水",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "355": {
+      "name": "宠辱不惊",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "356": {
+      "name": "九天玄机",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "357": {
+      "name": "干戈化帛",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "358": {
+      "name": "心生万象",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "359": {
+      "name": "执迷不悔",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "360": {
+      "name": "万象成空",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "361": {
+      "name": "欲擒故纵",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "362": {
+      "name": "亡羊补牢",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "363": {
+      "name": "孤鸟惊弓",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "364": {
+      "name": "飘忽不定",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "365": {
+      "name": "云罗护体",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "366": {
+      "name": "白犀灵御",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "367": {
+      "name": "五溪清源",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "368": {
+      "name": "百草沁心",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "369": {
+      "name": "甘露还灵",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "370": {
+      "name": "玉山佛甲",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "371": {
+      "name": "百脉疏通",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "398": {
+      "name": "追亡逐北",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "399": {
+      "name": "玉露回生",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4001": {
+      "name": "凝魄还魂",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4002": {
+      "name": "飞羽焚天",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4004": {
+      "name": "凝意培元",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4005": {
+      "name": "化气入虚",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4006": {
+      "name": "百川归海",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4007": {
+      "name": "丹凤朝阳",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4008": {
+      "name": "黯然魂销",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4010": {
+      "name": "甘霖广泽",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4011": {
+      "name": "神威钩镰枪",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4012": {
+      "name": "冥天照符",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4013": {
+      "name": "弑罗刹",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4015": {
+      "name": "红莲吞日",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4016": {
+      "name": "拔山盖世",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4017": {
+      "name": "鬼斩刃",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4018": {
+      "name": "奔雷枪",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4020": {
+      "name": "八卦封魔",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4022": {
+      "name": "玄铁碎",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4024": {
+      "name": "燎原四方",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4026": {
+      "name": "九幽白骨爪",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4028": {
+      "name": "裂山魔手",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4030": {
+      "name": "神还大法",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4031": {
+      "name": "霹雳三昧火",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4033": {
+      "name": "轰雷连环车悬斩",
+      "metadata_present": true,
+      "numerical_parameters_from_server": false,
+      "complete_effect_verified": false
+    },
+    "4035": {
+      "name": "崩山·龙爪旋锋",
+      "metadata_present": true,
+      "numerical_parameters_from_server": false,
+      "complete_effect_verified": false
+    },
+    "4037": {
+      "name": "幻瞑哀砂",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4040": {
+      "name": "丧乱百绝杀",
+      "metadata_present": true,
+      "numerical_parameters_from_server": false,
+      "complete_effect_verified": false
+    },
+    "4042": {
+      "name": "雷泽银霜",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4043": {
+      "name": "寒烟羁水",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4044": {
+      "name": "炎舞惊风",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4045": {
+      "name": "噬影惑心",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4046": {
+      "name": "残生忆旧",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false,
+      "verified_constraints": {
+        "mana_cost": 8000,
+        "cooldown_rounds": 2,
+        "effect_order": ["shock_enemies", "revive_allies"],
+        "source": "946_INFO_SKILL_4046",
+        "mana_revision_source_url": "https://xy3.163.com/2023/12/26/6355_1128430.html",
+        "historical_target_baseline": {
+          "date": "2023-11-08",
+          "enemy_shock_targets": 3,
+          "ally_revive_targets": 3,
+          "source_url": "https://xy3.163.com/2023/11/07/6355_1118904.html"
+        },
+        "linked_passive": {
+          "skill_id": 4762,
+          "additional_healing_targets": 1,
+          "source_url": "https://xy3.163.com/2025/08/26/6355_1256147.html"
+        }
+      },
+      "local_battle_rule": {
+        "normal_battle_cast_enabled": true,
+        "enemy_shock_targets": 3,
+        "ally_revive_targets": 3,
+        "shock_source": "Existing local Runtime.shock; nominal rate 20%, with existing resistance and caps. No original damage delta available to fit.",
+        "recovery_basis_points": 2936,
+        "recovery_source": "Local fixed rate fitted from the 180-grade tooltip at 32.59% and a displayed multiplicative 11% artifact bonus; 4762 only adds a revive target for this skill."
+      }
+    },
+    "4048": {
+      "name": "碧海潮生",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4049": {
+      "name": "返命归元",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4050": {
+      "name": "五气朝元",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4051": {
+      "name": "虹霓安宇内",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4052": {
+      "name": "云叶散天衢",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4054": {
+      "name": "太阴寒云",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4056": {
+      "name": "芳华蚀日",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4058": {
+      "name": "离火焚丹元",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4060": {
+      "name": "日照光华",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4061": {
+      "name": "金蛇走波澜",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4063": {
+      "name": "风火乾坤",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4132": {
+      "name": "国士无双",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4133": {
+      "name": "神牛蹈火",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4135": {
+      "name": "九幽烈焰斩",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4138": {
+      "name": "法力无边",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4139": {
+      "name": "金光琉璃长生花",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4140": {
+      "name": "霸者无双",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4141": {
+      "name": "武动乾坤",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4142": {
+      "name": "半月斩",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4143": {
+      "name": "寸土不让",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4144": {
+      "name": "大杀四方",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4145": {
+      "name": "百步穿杨",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4146": {
+      "name": "境·修身养性",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4148": {
+      "name": "境·野性之力",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4149": {
+      "name": "境·阴魂不散",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4150": {
+      "name": "分身术",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4151": {
+      "name": "冰冻三尺",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false,
+      "verified_constraints": {
+        "success_rate_cap_percent": 70,
+        "condition": "target has no seal resistance",
+        "source": "official_patch_946",
+        "minimum_mana_percent": 50,
+        "mana_cost": "all_current_mana",
+        "mana_source": "946_INFO_SKILL_4151",
+        "target_scope": "multiple_enemies",
+        "target_scope_source_item": 46757,
+        "complete_effect_verified": false
+      }
+    },
+    "4153": {
+      "name": "妙手仁心",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4154": {
+      "name": "迟滞术",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4155": {
+      "name": "初级初灵再生",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4156": {
+      "name": "中级初灵再生",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4157": {
+      "name": "高级初灵再生",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4161": {
+      "name": "初级寒月如锋",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4162": {
+      "name": "中级寒月如锋",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4163": {
+      "name": "高级寒月如锋",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4211": {
+      "name": "气定神闲",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4227": {
+      "name": "万剑诀",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4228": {
+      "name": "分裂攻击",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4229": {
+      "name": "原形毕露",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4230": {
+      "name": "苍生大义",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4231": {
+      "name": "气吞山河",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4232": {
+      "name": "沧澜破",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4233": {
+      "name": "多重火球",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4539": {
+      "name": "境·水火无情",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4540": {
+      "name": "境·炎舞惊风",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4541": {
+      "name": "群星天降",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4548": {
+      "name": "天狗吞月",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4549": {
+      "name": "愈战愈勇",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4559": {
+      "name": "致死之击",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4560": {
+      "name": "回天圣手",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4562": {
+      "name": "金猪奔袭",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4563": {
+      "name": "以和为贵",
+      "metadata_present": true,
+      "numerical_parameters_from_server": false,
+      "complete_effect_verified": false
+    },
+    "4576": {
+      "name": "猫爪神功",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4578": {
+      "name": "饿猪扑食",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4582": {
+      "name": "亲密无间",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4583": {
+      "name": "猪猪相伴",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4584": {
+      "name": "偷天妙手",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4585": {
+      "name": "高级偷天妙手",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4612": {
+      "name": "牛气冲天",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4614": {
+      "name": "白虎吞日",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4615": {
+      "name": "血海毒花",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4616": {
+      "name": "补天诀",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4617": {
+      "name": "梦蛇",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4618": {
+      "name": "言出法随",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4619": {
+      "name": "龙战于野",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4632": {
+      "name": "疾风连斩",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4634": {
+      "name": "境·借尸还魂",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false,
+      "verified_client_preview": {
+        "name": "境·借尸还魂",
+        "description": "守护死亡时有#G41.3％#n的几率复活，复活后守护有#G100％#n的气血；此复活法术神奇无比，唯有毒系法术方可破除。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      }
+    },
+    "4635": {
+      "name": "境·力劈华山",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false,
+      "verified_client_preview": {
+        "name": "境·力劈华山",
+        "description": "物理攻击时有#G59.6％#n的几率使首目标的#R物理防御#n降低#G693#n点，#R物理吸收#n降低#G10.5％#n，效果持续#G5#n回合。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      }
+    },
+    "4636": {
+      "name": "锐不可当",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4639": {
+      "name": "怒浪滔天",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4642": {
+      "name": "横行天下",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4643": {
+      "name": "凤舞九天",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4654": {
+      "name": "春风送暖",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4655": {
+      "name": "势大力沉",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4656": {
+      "name": "坚如磐石",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4739": {
+      "name": "广庇天下",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4740": {
+      "name": "凌云踏霄",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4743": {
+      "name": "独孤九剑",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4749": {
+      "name": "玄豹戍袭",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4750": {
+      "name": "香风灵雨",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4760": {
+      "name": "钟灵毓秀",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4762": {
+      "name": "境·钟灵毓秀",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4764": {
+      "name": "桃灵护身",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4765": {
+      "name": "境·桃灵护身",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4766": {
+      "name": "化灾移劫",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4767": {
+      "name": "滚风生雾",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4768": {
+      "name": "烬染莲台",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4769": {
+      "name": "赤焰破空",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4770": {
+      "name": "钧焰万彩",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4771": {
+      "name": "椒阳似火",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4772": {
+      "name": "境·椒阳似火",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4773": {
+      "name": "椒羽御身",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4774": {
+      "name": "境·椒羽御身",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4797": {
+      "name": "倒反天罡",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4798": {
+      "name": "七星宝剑",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4799": {
+      "name": "紫金葫芦",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4801": {
+      "name": "玄武神诀",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4802": {
+      "name": "问冥",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4803": {
+      "name": "云水从龙",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4804": {
+      "name": "夺目",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4806": {
+      "name": "仙芝葆魂",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4807": {
+      "name": "敲骨",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4808": {
+      "name": "天道盈亏",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4814": {
+      "name": "贯天撼海",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4815": {
+      "name": "定海神珍",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4832": {
+      "name": "佛法无边",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4833": {
+      "name": "慈悲为怀",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4868": {
+      "name": "毒蛇吐信",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4897": {
+      "name": "火尖枪",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false,
+      "verified_original_constraints": {
+        "name": "火尖枪",
+        "verified_946_template_constraints": {
+          "physical_hits": 4,
+          "additional_damage_lost_hp_percent": 15,
+          "additional_damage_lower_basic_attack_multiplier": 1,
+          "additional_damage_upper_basic_attack_multiplier": 5
+        },
+        "historical_official_constraints": [
+          {
+            "source_url": "https://xy3.163.com/2025/05/20/6355_1235532.html",
+            "facts": [
+              "首发公告标示普通攻击倍率120%、每次附加伤害概率100%；没有给出完整逐级及耗蓝规则"
+            ]
+          }
+        ],
+        "pending": [
+          "946逐级普通攻击倍率及附加伤害概率",
+          "每段损血采样时点、基础攻击口径、取整及结算顺序",
+          "完整耗蓝公式、扣费时点与失败规则"
+        ],
+        "skill_id": 4897,
+        "full_946_formula_verified": false,
+        "mana_formula_verified": false,
+        "normal_battle_cast_enabled": false,
+        "status": "待核",
+        "evidence_scope": "946模板中的固定约束及历史公告；不等同完整946逐级规则",
+        "client_template_source": {
+          "archive": "client-946/resource/configs.wdf",
+          "chunk": "info/info_skill.lua",
+          "sha256": "7c31ace4dd2d52868bc995dab8ab234129490d4a58170e890250581fcd280fc7"
+        },
+        "official_sources": [
+          {
+            "url": "https://xy3.163.com/2025/05/20/6355_1235532.html",
+            "file": "D:\\其他项目\\新大话3原生接入测试\\analysis\\guardian-innate-formulas-20261126\\maintenance-e39669e00773.html",
+            "sha256": "d3fa0f91c73945c4ecd1afd527384b247005f1cb0f8e597ba091a357c7297b5c"
+          }
+        ]
+      }
+    },
+    "4899": {
+      "name": "玉液甘霖",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false,
+      "verified_original_constraints": {
+        "name": "玉液甘霖",
+        "verified_946_template_constraints": {
+          "primary_revive": true,
+          "primary_heal_cap": 150000,
+          "other_heal_targets": 4,
+          "primary_damage_reduction_duration": "current round"
+        },
+        "historical_official_constraints": [
+          {
+            "source_url": "https://xy3.163.com/2025/05/20/6355_1235532.html",
+            "facts": [
+              "首发主目标治疗60%最大气血、当回合减伤30%、其他四目标治疗30%最大气血"
+            ]
+          },
+          {
+            "source_url": "https://xy3.163.com/2025/12/30/6355_1279424.html",
+            "facts": [
+              "主目标治疗上限75000上调至150000，减伤30%上调至40%"
+            ]
+          }
+        ],
+        "pending": [
+          "946逐级主副目标治疗率和减伤率",
+          "副目标选择、死亡目标处理、状态及治疗增减交互",
+          "完整耗蓝公式、扣费时点与失败规则"
+        ],
+        "skill_id": 4899,
+        "full_946_formula_verified": false,
+        "mana_formula_verified": false,
+        "normal_battle_cast_enabled": false,
+        "status": "待核",
+        "evidence_scope": "946模板中的固定约束及历史公告；不等同完整946逐级规则",
+        "client_template_source": {
+          "archive": "client-946/resource/configs.wdf",
+          "chunk": "info/info_skill.lua",
+          "sha256": "7c31ace4dd2d52868bc995dab8ab234129490d4a58170e890250581fcd280fc7"
+        },
+        "official_sources": [
+          {
+            "url": "https://xy3.163.com/2025/05/20/6355_1235532.html",
+            "file": "D:\\其他项目\\新大话3原生接入测试\\analysis\\guardian-innate-formulas-20261126\\maintenance-e39669e00773.html",
+            "sha256": "d3fa0f91c73945c4ecd1afd527384b247005f1cb0f8e597ba091a357c7297b5c"
+          },
+          {
+            "url": "https://xy3.163.com/2025/12/30/6355_1279424.html",
+            "file": "D:\\其他项目\\新大话3原生接入测试\\analysis\\guardian-innate-formulas-20261126\\maintenance-7e57c3cc46d2.html",
+            "sha256": "d57d3fcdac476c32e3bdee17bc0858e093cad750ef632420058d6c1bdf991228"
+          }
+        ]
+      }
+    },
+    "4901": {
+      "name": "炽元化甲",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4902": {
+      "name": "金鳞玄甲",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4904": {
+      "name": null,
+      "metadata_present": false,
+      "numerical_parameters_from_server": false,
+      "complete_effect_verified": false
+    },
+    "4906": {
+      "name": "太岁震铃",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false,
+      "verified_original_constraints": {
+        "name": "太岁震铃",
+        "verified_946_template_constraints": {
+          "targets": 5,
+          "damage_kinds": [
+            "physical",
+            "thunder",
+            "fire",
+            "wind"
+          ],
+          "additional_damage_stat": "strength",
+          "strength_relation": "positive; coefficients unresolved"
+        },
+        "historical_official_constraints": [
+          {
+            "source_url": "https://xy3.163.com/2025/08/26/6355_1256147.html",
+            "facts": [
+              "五个敌方目标；物理伤害附加雷、火、风伤害，与力量有关"
+            ]
+          }
+        ],
+        "pending": [
+          "物理倍率及其等级关系",
+          "力量转三系伤害公式",
+          "取整、抗性、加成结算顺序",
+          "完整耗蓝公式、扣费时点与失败规则"
+        ],
+        "skill_id": 4906,
+        "full_946_formula_verified": false,
+        "mana_formula_verified": false,
+        "normal_battle_cast_enabled": false,
+        "status": "待核",
+        "evidence_scope": "946模板中的固定约束及历史公告；不等同完整946逐级规则",
+        "client_template_source": {
+          "archive": "client-946/resource/configs.wdf",
+          "chunk": "info/info_skill.lua",
+          "sha256": "7c31ace4dd2d52868bc995dab8ab234129490d4a58170e890250581fcd280fc7"
+        },
+        "official_sources": [
+          {
+            "url": "https://xy3.163.com/2025/08/26/6355_1256147.html",
+            "file": "D:\\其他项目\\新大话3原生接入测试\\analysis\\guardian-innate-formulas-20261126\\maintenance-f97b8f31dfaf.html",
+            "sha256": "3555257107cd4a04c837a32b9e3f23e53595d433a034903d4b1b45da5c6a66b2"
+          }
+        ]
+      }
+    },
+    "4907": {
+      "name": null,
+      "metadata_present": false,
+      "numerical_parameters_from_server": false,
+      "complete_effect_verified": false
+    },
+    "4908": {
+      "name": "紫金护体",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4909": {
+      "name": "诅咒之握",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false,
+      "verified_original_constraints": {
+        "name": "诅咒之握",
+        "verified_946_template_constraints": {
+          "targets": 1,
+          "intro_hits": 2,
+          "damage_kind": "thunder",
+          "multiplier_range": [
+            1,
+            4
+          ],
+          "no_revive_rounds": 2,
+          "pvp_repeat_same_round_percent": 50,
+          "pvp_repeat_damage_aggregation": "unresolved: per-cast/per-hit marker and update time"
+        },
+        "historical_official_constraints": [
+          {
+            "source_url": "https://xy3.163.com/2025/08/26/6355_1256147.html",
+            "facts": [
+              "两段雷法伤害；每段随机1至4倍"
+            ]
+          },
+          {
+            "source_url": "https://xy3.163.com/2025/09/23/6355_1260905.html",
+            "facts": [
+              "仙体结界加成生效；每段无法复活概率40%上调至45%"
+            ]
+          },
+          {
+            "source_url": "https://xy3.163.com/2025/12/30/6355_1279424.html",
+            "facts": [
+              "下调4倍伤害的出现概率，没有公布各倍率权重"
+            ]
+          }
+        ],
+        "pending": [
+          "基础雷法伤害与等级公式",
+          "1至4倍实际权重；不能默认等概率",
+          "无法复活逐级概率、法宝加成公式及叠加口径",
+          "PVP重复命中计数与结算顺序",
+          "完整耗蓝公式、扣费时点与失败规则"
+        ],
+        "skill_id": 4909,
+        "full_946_formula_verified": false,
+        "mana_formula_verified": false,
+        "normal_battle_cast_enabled": false,
+        "status": "待核",
+        "evidence_scope": "946模板中的固定约束及历史公告；不等同完整946逐级规则",
+        "client_template_source": {
+          "archive": "client-946/resource/configs.wdf",
+          "chunk": "info/info_skill.lua",
+          "sha256": "7c31ace4dd2d52868bc995dab8ab234129490d4a58170e890250581fcd280fc7"
+        },
+        "official_sources": [
+          {
+            "url": "https://xy3.163.com/2025/08/26/6355_1256147.html",
+            "file": "D:\\其他项目\\新大话3原生接入测试\\analysis\\guardian-innate-formulas-20261126\\maintenance-f97b8f31dfaf.html",
+            "sha256": "3555257107cd4a04c837a32b9e3f23e53595d433a034903d4b1b45da5c6a66b2"
+          },
+          {
+            "url": "https://xy3.163.com/2025/09/23/6355_1260905.html",
+            "file": "D:\\其他项目\\新大话3原生接入测试\\analysis\\guardian-innate-formulas-20261126\\maintenance-99130998e5f3.html",
+            "sha256": "26a5d18d75193029b527061118863c7563ec2039c0d8388ad0f766b46d0823b4"
+          },
+          {
+            "url": "https://xy3.163.com/2025/12/30/6355_1279424.html",
+            "file": "D:\\其他项目\\新大话3原生接入测试\\analysis\\guardian-innate-formulas-20261126\\maintenance-7e57c3cc46d2.html",
+            "sha256": "d57d3fcdac476c32e3bdee17bc0858e093cad750ef632420058d6c1bdf991228"
+          }
+        ]
+      }
+    },
+    "4910": {
+      "name": "黑莲化身",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4922": {
+      "name": "背水一战",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4923": {
+      "name": "泪雨还春",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4968": {
+      "name": "沧浪濯心",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4969": {
+      "name": "御水凝冰",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4970": {
+      "name": "天火燎原",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "4971": {
+      "name": "聚火成魂",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "5019": {
+      "name": "春风化雨",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "5021": {
+      "name": "驱邪扶元",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "5022": {
+      "name": "敕令还阳",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    },
+    "6142": {
+      "name": "清蛊灵风",
+      "metadata_present": true,
+      "numerical_parameters_from_server": true,
+      "complete_effect_verified": false
+    }
+  },
+  "pending_requests": {
+    "754": {
+      "name": "s_summon_convert_stunt_exp",
+      "path": "common/protocol/hero/s_summon_convert_stunt_exp.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ],
+        [
+          "stunt_id",
+          "number"
+        ]
+      ]
+    },
+    "756": {
+      "name": "s_summon_drop_stunt",
+      "path": "common/protocol/hero/s_summon_drop_stunt.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ],
+        [
+          "stunt_id",
+          "number"
+        ]
+      ]
+    },
+    "757": {
+      "name": "s_summon_feng",
+      "path": "common/protocol/hero/s_summon_feng.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ]
+      ]
+    },
+    "758": {
+      "name": "s_summon_fly",
+      "path": "common/protocol/hero/s_summon_fly.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ]
+      ]
+    },
+    "759": {
+      "name": "s_summon_get_can_lingwu_stunt",
+      "path": "common/protocol/hero/s_summon_get_can_lingwu_stunt.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ]
+      ]
+    },
+    "763": {
+      "name": "s_summon_lingwu_stunt",
+      "path": "common/protocol/hero/s_summon_lingwu_stunt.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ],
+        [
+          "stunt_id",
+          "number"
+        ]
+      ]
+    },
+    "768": {
+      "name": "s_summon_newzq_stunt_reborn",
+      "path": "common/protocol/hero/s_summon_newzq_stunt_reborn.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ],
+        [
+          "stunt_id",
+          "number"
+        ]
+      ]
+    },
+    "769": {
+      "name": "s_summon_reborn",
+      "path": "common/protocol/hero/s_summon_reborn.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ]
+      ]
+    },
+    "770": {
+      "name": "s_summon_stunt_feng",
+      "path": "common/protocol/hero/s_summon_stunt_feng.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ],
+        [
+          "stunt_id",
+          "number"
+        ]
+      ]
+    },
+    "771": {
+      "name": "s_summon_stunt_fly",
+      "path": "common/protocol/hero/s_summon_stunt_fly.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ],
+        [
+          "stunt_id",
+          "number"
+        ]
+      ]
+    },
+    "772": {
+      "name": "s_summon_stunt_reborn",
+      "path": "common/protocol/hero/s_summon_stunt_reborn.pto",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ],
+        [
+          "stunt_id",
+          "number"
+        ]
+      ]
+    },
+    "773": {
+      "name": "s_summon_trans_stunt_exp",
+      "path": "common/protocol/hero/s_summon_trans_stunt_exp.pto",
+      "fields": [
+        [
+          "SummonId",
+          "number"
+        ],
+        [
+          "StuntId",
+          "number"
+        ],
+        [
+          "ItemId",
+          "number"
+        ],
+        [
+          "Direction",
+          "number"
+        ]
+      ]
+    },
+    "774": {
+      "name": "s_summon_trans_stunt_exp_end",
+      "path": "common/protocol/hero/s_summon_trans_stunt_exp_end.pto",
+      "fields": [
+        [
+          "SummonId",
+          "number"
+        ],
+        [
+          "StuntId",
+          "number"
+        ],
+        [
+          "ItemId",
+          "number"
+        ],
+        [
+          "Direction",
+          "number"
+        ]
+      ]
+    }
+  },
+  "source_sha256": {
+    "client-946\\resource\\configs.wdf": "97bfaeca71ead2c611b74c16d361fbc0fdbeecd9dadc16a7ebdf2097b3600052",
+    "client-946/xymain.bin": "93e958c243c611535ffde000b480a4fa2d1c1945aca321a7988cae382de15cbb"
+  },
+  "verified_rule_sources": {
+    "official_patch_946": {
+      "url": "https://xy3.163.com/2026/11/17/6355_1319797.html",
+      "patch": 946,
+      "sha256": "fdd7e4447a8250b8a6b84e03cac2a28ee3ba213809978a5665722426d57273f0"
+    }
+  },
+  "catalogue_provenance": {
+    "active_archive": "client-946/resource/configs.wdf",
+    "logical_path": "info/info_skill.lua",
+    "active_entries": 1626,
+    "native_selected_entries_verified": 233,
+    "other_archive_not_active": {
+      "path": "client-946/resource/infos.wdf",
+      "entries": 1862,
+      "skill_4904_name": "归元",
+      "accepted_as_active_946_metadata": false
+    }
+  },
+  "verified_client_rules": {
+    "client_revision": 946,
+    "source": {
+      "archive": "client-946/resource/configs.wdf",
+      "archive_sha256": "97bfaeca71ead2c611b74c16d361fbc0fdbeecd9dadc16a7ebdf2097b3600052",
+      "client_sha256": "93e958c243c611535ffde000b480a4fa2d1c1945aca321a7988cae382de15cbb",
+      "chunks": {
+        "info/info_summon_jing_stunt.lua": "2936e54a40ae80e939747efa03276a916cf969b638ad99b8a8efdfa5429c5824",
+        "info/info_skill_mutual_exclusion.lua": "bc6843b2ba2c2740942509190d37d23d40721e65806b651a6975daaed208d166"
+      },
+      "evidence": "analysis/guardian-client-mining-20261126/verification.json",
+      "native_loaded_tables_verified": true
+    },
+    "jing_skill_preview": {
+      "4634": {
+        "name": "境·借尸还魂",
+        "description": "守护死亡时有#G41.3％#n的几率复活，复活后守护有#G100％#n的气血；此复活法术神奇无比，唯有毒系法术方可破除。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4635": {
+        "name": "境·力劈华山",
+        "description": "物理攻击时有#G59.6％#n的几率使首目标的#R物理防御#n降低#G693#n点，#R物理吸收#n降低#G10.5％#n，效果持续#G5#n回合。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4714": {
+        "name": "境·震慑吸收",
+        "description": "气血提高#G10000#n点，并在受到震慑伤害后有#G50％#n的概率回复#G30000#n的气血，由于该伤害直接死亡时，该技能不触发。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4715": {
+        "name": "境·雷法吸收",
+        "description": "气血提高#G10000#n点，并在受到雷法伤害后有#G50％#n的概率回复#G21000#n的气血，由于该伤害直接死亡时，该技能不触发。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4716": {
+        "name": "境·火法吸收",
+        "description": "气血提高#G10000#n点，并在受到火法伤害后有#G50％#n的概率回复#G21000#n的气血，由于该伤害直接死亡时，该技能不触发。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4717": {
+        "name": "境·毒法吸收",
+        "description": "气血提高#G10000#n点，并在受到毒法伤害后有#G50％#n的概率回复#G21000#n的气血，由于该伤害直接死亡时，该技能不触发。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4718": {
+        "name": "境·水法吸收",
+        "description": "气血提高#G10000#n点，并在受到水法伤害后有#G50％#n的概率回复#G21000#n的气血，由于该伤害直接死亡时，该技能不触发。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4719": {
+        "name": "境·风法吸收",
+        "description": "气血提高#G10000#n点，并在受到风法伤害后有#G50％#n的概率回复#G21000#n的气血，由于该伤害直接死亡时，该技能不触发。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4720": {
+        "name": "境·月海茫茫",
+        "description": "施展水系法术时，额外提升相当于目标最大气血的#G7.5％#n的法术伤害（最高20000点）；灵性越高效果越好，最高为基础效果的2倍。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4721": {
+        "name": "境·无尽火域",
+        "description": "施展火系法术时，狂暴概率提升#G25％#n，狂暴倍率提高#G20％#n；灵性越高效果越好，最高为基础效果的2倍。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4722": {
+        "name": "境·法力强化",
+        "description": "加强仙法伤害#G+1500#n；灵性越高效果越好，最高为基础效果的2倍。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4723": {
+        "name": "境·风驰电掣",
+        "description": "加强风法伤害#G+1250#n，施展风系法术时，有#G32.5％#n的几率额外造成一段风法伤害；灵性越高效果越好，最高为基础效果的2倍。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4724": {
+        "name": "境·横冲直撞",
+        "description": "增加守护#G40％#n#Y狂暴率#n和#G40％#n#Y狂暴倍率。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4725": {
+        "name": "境·一剑穿心",
+        "description": "增加守护#G30％#n#Y致命率#n和#G30％#n#Y致命倍率。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4726": {
+        "name": "境·剑胆琴心",
+        "description": "提高守护#G900#n点#Y命中力#n，并且必定不会被物理反击。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4727": {
+        "name": "境·物理吸收",
+        "description": "气血提高#G10000#n点，并在受到物理伤害后有#G50％#n的概率回复#G30000#n的气血，由于该伤害直接死亡时，该技能不触发。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4728": {
+        "name": "境·疾风连斩",
+        "description": "提升守护#G18％#n的连击率，并且连击次数+#G1#n。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4729": {
+        "name": "境·破法一击",
+        "description": "施展法术时，忽视目标#G20％#n的仙法抗性，额外增加#G5％#n的仙法穿透；灵性越高效果越好，最高为基础效果的2倍。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4730": {
+        "name": "境·雷泽银霜",
+        "description": "对#G5#n个对手造成雷法伤害，同时降低对手的#Y仙法抗性#n#G1500#n。守护的法力越高，造成的伤害就越大。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4731": {
+        "name": "境·物理穿透",
+        "description": "提高守护#G1000#n点攻击力和#G15％#n的物理穿透。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4732": {
+        "name": "境·法术波动",
+        "description": "守护造成法术伤害时，伤害会在#G100％#n到#G180％#n之间波动。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4733": {
+        "name": "境·明察秋毫",
+        "description": "守护的躲闪力提高#G600#n，攻击时有#G100％#n概率破除敌方的隐身状态。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4734": {
+        "name": "境·以眼还眼",
+        "description": "守护的人法抗性提高#G120#n点，陷入人法控制状态时有#G70％#n概率尝试使控制者陷入混乱状态#G3#n回合，成功率为#G85％#n。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4735": {
+        "name": "境·兵贵神速",
+        "description": "守护的速度提高#G320#n点，死亡时闪现队列中下一个守护的闪现概率提高#G70％#n。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4736": {
+        "name": "境·玄武神躯",
+        "description": "气血提高#G50000#n点，使复活类技能失效，受到致命伤害时会进入#G不屈#n状态#G2#n回合。（不屈：持续期间不会死亡，结束时离场）",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4737": {
+        "name": "境·金刚伏魔",
+        "description": "携带该技能的守护对其他守护和怪物造成的伤害提高#G50％#n。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4745": {
+        "name": "境·闲庭信步",
+        "description": "携带该技能的守护造成的#G仙法和物理伤害提升20％#n，受到来自#G速度比自身慢#n的单位造成的伤害降低#G40％#n",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4746": {
+        "name": "境·吉人天相",
+        "description": "携带该技能的守护不会受到#G狂暴、火法狂暴、致命#n的影响，并且在受到伤害时，有#G30％#n概率使本次受到伤害降低#G50％#n。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4747": {
+        "name": "境·不动如山",
+        "description": "守护的气血提高#G20000#n点，法力提高#G5000#n点，速度降低#G500#n点。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      },
+      "4748": {
+        "name": "境·神出鬼没",
+        "description": "守护的速度提高#G320#n点，非自动入场触发的普通攻击后有#G40％#n概率进入或延长隐身状态1回合，如造成击杀则必定触发。",
+        "scope": "native jing-skill atlas/recast preview",
+        "complete_effect_verified": false
+      }
+    },
+    "jing_cultivation_costs": {
+      "activate": {
+        "cash": 5000000,
+        "materials": [
+          {
+            "item_type": 47630,
+            "name": "武侯秘典",
+            "amount": 1
+          }
+        ],
+        "scope": "client UI cost check; complete acquisition/eligibility/random-selection rules remain pending"
+      },
+      "recast": {
+        "cash": 2500000,
+        "materials": [
+          {
+            "item_type": 47821,
+            "name": "超级守护魂石",
+            "amount": 1
+          }
+        ],
+        "scope": "client UI cost check; complete acquisition/eligibility/random-selection rules remain pending"
+      }
+    },
+    "huahun_product": {
+      "items": [
+        {
+          "item_type": 47821,
+          "name": "超级守护魂石",
+          "amount": 5
+        }
+      ],
+      "scope": "native help/configuration; sacrifice eligibility and operation not enabled"
+    },
+    "skill_suppression": {
+      "direction": "presence of key skill greys the listed lower-priority skills in the native guardian UI",
+      "relationships": {
+        "4634": [
+          334
+        ],
+        "4635": [
+          311
+        ],
+        "4714": [
+          4536
+        ],
+        "4715": [
+          4532
+        ],
+        "4716": [
+          4533
+        ],
+        "4717": [
+          4538
+        ],
+        "4718": [
+          4535
+        ],
+        "4719": [
+          4534
+        ],
+        "4720": [
+          4629
+        ],
+        "4721": [
+          4627
+        ],
+        "4722": [
+          4626
+        ],
+        "4723": [
+          4711
+        ],
+        "4724": [
+          308
+        ],
+        "4725": [
+          307
+        ],
+        "4726": [
+          306
+        ],
+        "4727": [
+          4537
+        ],
+        "4728": [
+          4632
+        ],
+        "4729": [
+          4628
+        ],
+        "4730": [
+          4042
+        ],
+        "4736": [
+          4634,
+          334,
+          349
+        ],
+        "4746": [
+          4757,
+          4758
+        ],
+        "4910": [
+          4075
+        ]
+      },
+      "scope": "client ineffective/grey-state relationship; does not establish a bidirectional learning restriction"
+    },
+    "ordinary_parameter_contract": {
+      "native_method": "war_data.process_skill_info",
+      "response_fields": [
+        "stunt_info.desc",
+        "stunt_info.cost",
+        "stunt_info.stuntexp",
+        "stunt_info.stuntexp_next"
+      ],
+      "source": "bin_script.wdf/0x9bcaf79c prototype [5] and [5,0]; native callback/table contract",
+      "description_parameter_probe": {
+        "skill_id": 304,
+        "synthetic_probe_arguments": [
+          12345,
+          67
+        ],
+        "scope": "isolated format probe; not recovered original game coefficients",
+        "native_formatter_verified": true
+      },
+      "complete_server_formula_recovered": false
+    },
+    "complete_new_battle_effects": 0
+  }
+}

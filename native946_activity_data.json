@@ -1,0 +1,5529 @@
+{
+  "client_revision": 946,
+  "source_archive": "client-946/resource/configs.wdf",
+  "source_archive_sha256": "97bfaeca71ead2c611b74c16d361fbc0fdbeecd9dadc16a7ebdf2097b3600052",
+  "sources": [
+    {
+      "resource": "info/info_task_tips.lua",
+      "sha256": "554a30fa59712442a6299ce45da589edb1386a64b1c65c4e8729bf1fd0dfc67a"
+    },
+    {
+      "resource": "info/info_scene_task.lua",
+      "sha256": "e4c231d3286268fbe60cce9a6525daf1a0b6164175ffafac6d4bdd7975b8f406"
+    }
+  ],
+  "records": [
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请二人组队到傲来，找#c(2007)#R#u情花仙子#n#n（247，61）领取任务，让我们从陌生人到朋友#n#n（此任务可以带给你和你的朋友丰富的友好度哦！）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "满庭芳",
+      "count": "双人",
+      "id": 1,
+      "original_name": "满庭芳",
+      "locations": [
+        {
+          "scene": 2008,
+          "npc": 2007,
+          "name": "情花仙子",
+          "x": 246,
+          "y": 58,
+          "reachable": true
+        },
+        {
+          "scene": 2310,
+          "npc": 7054,
+          "name": "情花仙子",
+          "x": 11,
+          "y": 193,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到长安皇宫门口(606，57)，找#c(4102)#R#u宋寒#n#n领取三界令任务，升级、得三界令牌两不误。#n#n（此任务是人物升级、练守护、练坐骑的好途径。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "三界令",
+      "count": "多人",
+      "id": 2,
+      "original_name": "三界令",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 4102,
+          "name": "宋寒",
+          "x": 606,
+          "y": 57,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 4102,
+          "task_id": -1,
+          "scene": 2001,
+          "min_grade": 30,
+          "icon": "0",
+          "tips": "三界令"
+        }
+      ],
+      "implementation": "reference_daily",
+      "reference_kind": "sanjie",
+      "missing": []
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到花果山(37，40)，找#c(2615)#R#u马元帅#n#n领取任务，挑战四大天王获取高额经验奖励。#n#n（此任务是人物升级、练守护好途径，同时有机会获得银光石。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "天庭任务",
+      "count": "多人",
+      "id": 3,
+      "original_name": "天庭任务",
+      "locations": [
+        {
+          "scene": 2011,
+          "npc": 2615,
+          "name": "马元帅",
+          "x": 86,
+          "y": 21,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 2615,
+          "task_id": -1,
+          "scene": 2011,
+          "min_grade": 70,
+          "icon": "0",
+          "tips": "天庭任务"
+        }
+      ],
+      "implementation": "reference_daily",
+      "reference_kind": "heaven",
+      "missing": []
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请至少组队3人到长安(627，31)#c(6859)#R#u罗炎#n#n领取神器试炼任务，前往狮驼岭历练，获取高额经验奖励。#n#n（此任务适用于1转110级以上角色升级。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "神器试炼",
+      "count": "多人",
+      "id": 4,
+      "original_name": "神器试炼",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 6859,
+          "name": "罗炎",
+          "x": 627,
+          "y": 31,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n打开主城建设界面建造各类建筑并使用侠客完成建筑任务，最后升级建筑。#r建筑等级、侠客星级和等级越高将获得更多的城主之印属性加成。#n#r入口1：点击人物属性界面#R“城主之门”#n按钮打开界面。#r入口2：前往#R云中殿（256,225）#n点击城主之门打开界面。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "主城建设",
+      "count": "单人",
+      "id": 5,
+      "original_name": "主城建设",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到长安(600,48),点击#c(4365)#R#u皇榜#n#n领取辟邪任务，在三界杀敌获取宝珠。#n#n（宝珠是领取辟邪仪式的重要道具，辟邪仪式能带给你更多经验与物品奖励。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "辟邪任务",
+      "count": "多人",
+      "id": 6,
+      "original_name": "辟邪任务",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 4365,
+          "name": "皇榜",
+          "x": 600,
+          "y": 48,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 4365,
+          "task_id": -1,
+          "scene": 2001,
+          "min_grade": 20,
+          "icon": "0",
+          "tips": "辟邪任务"
+        }
+      ],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到长安长信镖局(269，286)，找#c(1047)#R#u赛天威#n#n领取单人或多人保镖任务。#n（这是赚取大话币的重要途径之一。）#n保镖任务与跑商任务为互斥选项，每日仅能选择其中一项完成，请根据自身需求选择。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "保镖任务",
+      "count": "单/多人",
+      "id": 7,
+      "original_name": "保镖任务",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 1047,
+          "name": "赛天威",
+          "x": 269,
+          "y": 289,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [
+        {
+          "max_grade": 12180,
+          "task_type": 2,
+          "npcid": 1047,
+          "task_id": -1,
+          "scene": 2001,
+          "min_grade": 40,
+          "icon": "0",
+          "tips": "保镖任务"
+        }
+      ],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到长安(336，76)，找#c(8271)#R#u钱多多#n领取单人任务开始跑商#n（这是赚取大话币的重要途径之一。）#n保镖任务与跑商任务为互斥选项，每日仅能选择其中一项完成，请根据自身需求选择。",
+      "task_type": 1,
+      "auto_path_aim": "{336,76,2001}",
+      "suggestion": "★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "跑商任务",
+      "count": "单人",
+      "id": 8,
+      "original_name": "跑商任务",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 8271,
+          "name": "钱多多",
+          "x": 336,
+          "y": 76,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n在每个门派师父处可领取师门任务，这是单人升级的最佳途径。#n#n（此任务还可获得丰厚的技能熟练度！）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "师门任务",
+      "count": "单人",
+      "id": 9,
+      "original_name": "师门任务",
+      "locations": [],
+      "native_conditions": [
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 2709,
+          "task_id": -1,
+          "scene": 2080,
+          "min_grade": 20,
+          "icon": "111@112@113",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 3101,
+          "task_id": -1,
+          "scene": 2030,
+          "min_grade": 20,
+          "icon": "111@112@113@101@102@103",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 3201,
+          "task_id": -1,
+          "scene": 2045,
+          "min_grade": 20,
+          "icon": "101@102@103",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 1041,
+          "task_id": -1,
+          "scene": 2001,
+          "min_grade": 20,
+          "icon": "111@112@113@101@102@103",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 3046,
+          "task_id": -1,
+          "scene": 2014,
+          "min_grade": 20,
+          "icon": "301@302@303@311@312@313",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 1702,
+          "task_id": -1,
+          "scene": 2023,
+          "min_grade": 20,
+          "icon": "311@312@313",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 2204,
+          "task_id": -1,
+          "scene": 2056,
+          "min_grade": 20,
+          "icon": "301@302@303@311@312@313",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 1904,
+          "task_id": -1,
+          "scene": 2012,
+          "min_grade": 20,
+          "icon": "301@302@303",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 3427,
+          "task_id": -1,
+          "scene": 2087,
+          "min_grade": 20,
+          "icon": "211@212@213",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 3426,
+          "task_id": -1,
+          "scene": 2085,
+          "min_grade": 20,
+          "icon": "201@202@203@211@212@213",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 1286,
+          "task_id": -1,
+          "scene": 2054,
+          "min_grade": 20,
+          "icon": "201@202@203",
+          "tips": "师门任务"
+        },
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 1287,
+          "task_id": -1,
+          "scene": 2057,
+          "min_grade": 20,
+          "icon": "201@202@203@211@212@213",
+          "tips": "师门任务"
+        }
+      ],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到宫城（185，72），找#c(1355)#R#u易公公#n#n领取宫廷任务。#n（这是新手玩家单人升级的好任务。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "宫廷任务",
+      "count": "单人",
+      "id": 10,
+      "original_name": "宫廷任务",
+      "locations": [
+        {
+          "scene": 2003,
+          "npc": 1355,
+          "name": "易公公",
+          "x": 185,
+          "y": 71,
+          "reachable": true
+        },
+        {
+          "scene": 2420,
+          "npc": 7335,
+          "name": "易公公",
+          "x": 91,
+          "y": 58,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [
+        {
+          "max_grade": 1100,
+          "task_type": 1,
+          "npcid": 1355,
+          "task_id": -1,
+          "scene": 2003,
+          "min_grade": 40,
+          "icon": "0",
+          "tips": "宫廷任务"
+        }
+      ],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到莲花洞(79，56)找#c(4544)#R#u精细鬼#n#n领取莲花洞任务。#n（这是单人升级和修炼守护法宝的重要途径之一。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "莲花洞任务",
+      "count": "单人",
+      "id": 11,
+      "original_name": "莲花洞任务",
+      "locations": [
+        {
+          "scene": 2220,
+          "npc": 4554,
+          "name": "精细鬼",
+          "x": 76,
+          "y": 98,
+          "reachable": true
+        },
+        {
+          "scene": 2221,
+          "npc": 4544,
+          "name": "精细鬼",
+          "x": 81,
+          "y": 56,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 4544,
+          "task_id": -1,
+          "scene": 2221,
+          "min_grade": 2100,
+          "icon": "0",
+          "tips": "莲花洞任务"
+        }
+      ],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到西梁女国集市(68，130)找#c(4842)#R#u西梁外交大臣#n#n领取女儿国任务，完成挑战获取高额经验奖励。#n#n（此任务适用于人物等级为飞升140级以上的玩家）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "女儿国任务",
+      "count": "多人",
+      "id": 12,
+      "original_name": "女儿国任务",
+      "locations": [
+        {
+          "scene": 2236,
+          "npc": 4842,
+          "name": "西梁外交大臣",
+          "x": 68,
+          "y": 129,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [
+        {
+          "max_grade": 12180,
+          "task_type": 1,
+          "npcid": 4842,
+          "task_id": -1,
+          "scene": 2236,
+          "min_grade": 12140,
+          "icon": "0",
+          "tips": "女儿国任务"
+        }
+      ],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到御天岭(205，56)找#c(6271)#R#u荡魔先锋#n#n领取任务，完成挑战获取高额经验奖励。#n#n（此任务适用于人物等级为封圣150级以上的玩家）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 1,
+      "name": "巡游御天岭",
+      "count": "多人",
+      "id": 13,
+      "original_name": "巡游御天岭",
+      "locations": [
+        {
+          "scene": 2357,
+          "npc": 6271,
+          "name": "荡魔先锋",
+          "x": 205,
+          "y": 56,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [
+        {
+          "max_grade": 112180,
+          "task_type": 1,
+          "npcid": 6271,
+          "task_id": -1,
+          "scene": 2357,
+          "min_grade": 112150,
+          "icon": "0",
+          "tips": "巡游御天岭"
+        }
+      ],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n到长安皇宫门口（662，55）找#c(4214)#R#u李洛封#n#n参加有奖问答。#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "大理寺答题",
+      "count": "单人",
+      "id": 14,
+      "original_name": "大理寺答题",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 4214,
+          "name": "李洛封",
+          "x": 654,
+          "y": 58,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n组队到幽冥地府(137，34)找#c(2123)#R#u钟馗#n#n可以领取抓鬼任务，这是组队升级的一个好途径。#n（此任务适用于人物等级飞升以上的玩家。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "鬼王任务",
+      "count": "单人",
+      "id": 15,
+      "original_name": "鬼王任务",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 7682,
+          "name": "钟馗",
+          "x": 665,
+          "y": 64,
+          "reachable": true
+        },
+        {
+          "scene": 2009,
+          "npc": 2123,
+          "name": "钟馗",
+          "x": 132,
+          "y": 31,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "reference_daily",
+      "reference_kind": "king",
+      "missing": []
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n找#R花果山（63，22）#c(2601)#R#u孙悟空#n#n进入幻境，化身西游主角，勇闯齐天之路！#n（活跃度获得包含主支线与明雷。）",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "大圣齐天路",
+      "count": "多人",
+      "id": 16,
+      "original_name": "大圣齐天路",
+      "locations": [
+        {
+          "scene": 2003,
+          "npc": 7817,
+          "name": "孙悟空",
+          "x": 105,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2009,
+          "npc": 7816,
+          "name": "孙悟空",
+          "x": 7,
+          "y": 265,
+          "reachable": true
+        },
+        {
+          "scene": 2011,
+          "npc": 2601,
+          "name": "孙悟空",
+          "x": 60,
+          "y": 19,
+          "reachable": true
+        },
+        {
+          "scene": 2013,
+          "npc": 7654,
+          "name": "孙悟空",
+          "x": 120,
+          "y": 184,
+          "reachable": true
+        },
+        {
+          "scene": 2013,
+          "npc": 7656,
+          "name": "孙悟空",
+          "x": 66,
+          "y": 145,
+          "reachable": true
+        },
+        {
+          "scene": 2015,
+          "npc": 5733,
+          "name": "孙悟空",
+          "x": 306,
+          "y": 116,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 7495,
+          "name": "孙悟空",
+          "x": 30,
+          "y": 175,
+          "reachable": true
+        },
+        {
+          "scene": 2055,
+          "npc": 7641,
+          "name": "孙悟空",
+          "x": 27,
+          "y": 57,
+          "reachable": true
+        },
+        {
+          "scene": 2056,
+          "npc": 5728,
+          "name": "孙悟空",
+          "x": 60,
+          "y": 55,
+          "reachable": true
+        },
+        {
+          "scene": 2057,
+          "npc": 7812,
+          "name": "孙悟空",
+          "x": 14,
+          "y": 90,
+          "reachable": true
+        },
+        {
+          "scene": 2073,
+          "npc": 4315,
+          "name": "孙悟空",
+          "x": 46,
+          "y": 30,
+          "reachable": true
+        },
+        {
+          "scene": 2220,
+          "npc": 4547,
+          "name": "孙悟空",
+          "x": 178,
+          "y": 129,
+          "reachable": true
+        },
+        {
+          "scene": 2220,
+          "npc": 7778,
+          "name": "孙悟空",
+          "x": 179,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2235,
+          "npc": 5072,
+          "name": "孙悟空",
+          "x": 94,
+          "y": 164,
+          "reachable": true
+        },
+        {
+          "scene": 2235,
+          "npc": 7834,
+          "name": "孙悟空",
+          "x": 153,
+          "y": 209,
+          "reachable": true
+        },
+        {
+          "scene": 2236,
+          "npc": 5080,
+          "name": "孙悟空",
+          "x": 51,
+          "y": 141,
+          "reachable": true
+        },
+        {
+          "scene": 2237,
+          "npc": 5086,
+          "name": "孙悟空",
+          "x": 21,
+          "y": 57,
+          "reachable": true
+        },
+        {
+          "scene": 2256,
+          "npc": 6048,
+          "name": "孙悟空",
+          "x": 67,
+          "y": 154,
+          "reachable": true
+        },
+        {
+          "scene": 2357,
+          "npc": 6320,
+          "name": "孙悟空",
+          "x": 97,
+          "y": 84,
+          "reachable": true
+        },
+        {
+          "scene": 2357,
+          "npc": 6794,
+          "name": "孙悟空",
+          "x": 51,
+          "y": 74,
+          "reachable": true
+        },
+        {
+          "scene": 2359,
+          "npc": 6323,
+          "name": "孙悟空",
+          "x": 59,
+          "y": 38,
+          "reachable": true
+        },
+        {
+          "scene": 2363,
+          "npc": 7921,
+          "name": "孙悟空",
+          "x": 133,
+          "y": 66,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6822,
+          "name": "孙悟空",
+          "x": 18,
+          "y": 204,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6838,
+          "name": "孙悟空",
+          "x": 63,
+          "y": 60,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6845,
+          "name": "孙悟空",
+          "x": 110,
+          "y": 122,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6936,
+          "name": "孙悟空",
+          "x": 118,
+          "y": 96,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7550,
+          "name": "孙悟空",
+          "x": 106,
+          "y": 43,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7554,
+          "name": "孙悟空",
+          "x": 74,
+          "y": 107,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7558,
+          "name": "孙悟空",
+          "x": 128,
+          "y": 105,
+          "reachable": true
+        },
+        {
+          "scene": 2387,
+          "npc": 6797,
+          "name": "孙悟空",
+          "x": 67,
+          "y": 47,
+          "reachable": false
+        },
+        {
+          "scene": 2408,
+          "npc": 7893,
+          "name": "孙悟空",
+          "x": 376,
+          "y": 240,
+          "reachable": true
+        },
+        {
+          "scene": 2410,
+          "npc": 6940,
+          "name": "孙悟空",
+          "x": 112,
+          "y": 87,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7258,
+          "name": "孙悟空",
+          "x": 204,
+          "y": 185,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7265,
+          "name": "孙悟空",
+          "x": 79,
+          "y": 67,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7272,
+          "name": "孙悟空",
+          "x": 187,
+          "y": 52,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7567,
+          "name": "孙悟空",
+          "x": 23,
+          "y": 157,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7570,
+          "name": "孙悟空",
+          "x": 83,
+          "y": 140,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7468,
+          "name": "孙悟空",
+          "x": 97,
+          "y": 151,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7473,
+          "name": "孙悟空",
+          "x": 156,
+          "y": 35,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7479,
+          "name": "孙悟空",
+          "x": 20,
+          "y": 62,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 7632,
+          "name": "孙悟空",
+          "x": 22,
+          "y": 112,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 7634,
+          "name": "孙悟空",
+          "x": 156,
+          "y": 128,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 7638,
+          "name": "孙悟空",
+          "x": 95,
+          "y": 72,
+          "reachable": true
+        },
+        {
+          "scene": 2437,
+          "npc": 7667,
+          "name": "孙悟空",
+          "x": 189,
+          "y": 61,
+          "reachable": true
+        },
+        {
+          "scene": 2437,
+          "npc": 7668,
+          "name": "孙悟空",
+          "x": 91,
+          "y": 48,
+          "reachable": true
+        },
+        {
+          "scene": 2437,
+          "npc": 7669,
+          "name": "孙悟空",
+          "x": 155,
+          "y": 93,
+          "reachable": true
+        },
+        {
+          "scene": 2439,
+          "npc": 7709,
+          "name": "孙悟空",
+          "x": 13,
+          "y": 128,
+          "reachable": true
+        },
+        {
+          "scene": 2442,
+          "npc": 7901,
+          "name": "孙悟空",
+          "x": 114,
+          "y": 52,
+          "reachable": true
+        },
+        {
+          "scene": 2453,
+          "npc": 8132,
+          "name": "孙悟空",
+          "x": 34,
+          "y": 44,
+          "reachable": true
+        },
+        {
+          "scene": 2455,
+          "npc": 8144,
+          "name": "孙悟空",
+          "x": 29,
+          "y": 26,
+          "reachable": true
+        },
+        {
+          "scene": 2456,
+          "npc": 8149,
+          "name": "孙悟空",
+          "x": 21,
+          "y": 28,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8139,
+          "name": "孙悟空",
+          "x": 81,
+          "y": 180,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8142,
+          "name": "孙悟空",
+          "x": 59,
+          "y": 125,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8152,
+          "name": "孙悟空",
+          "x": 65,
+          "y": 101,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8158,
+          "name": "孙悟空",
+          "x": 35,
+          "y": 79,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n找#R长安(583，60)#c(900)#R#u傅奕#n#n领取天庭赠礼，在线即可获得大量经验，提升修为！",
+      "task_type": 1,
+      "auto_path_aim": "{583,60,2001}",
+      "suggestion": "★★★★",
+      "period": "0:30-23:55",
+      "is_new": 0,
+      "name": "西行助益",
+      "count": "单人",
+      "id": 17,
+      "original_name": "西行助益",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 1,
+      "prior": 56,
+      "tips": "#n9:00—21:30，三大镖局将经过五指山、大唐南和花果山。截获镖队可获得神秘的五龙箱。#n#n（挖掘自己或他人掩埋的五龙箱可获得惊喜奖励！）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "9:00-21:30",
+      "is_new": 0,
+      "name": "夺镖",
+      "count": "多人",
+      "id": 18,
+      "original_name": "夺镖",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 1,
+      "prior": 40,
+      "tips": "#n（周一/周四）#n从长安东车夫到襄阳家园（69，60）找#c(4764)#R#u任姚显#n#n参加三界比武大会。#n（得到的战绩可以兑换装备玉佩及其他奖励，战绩越高，奖励越丰厚！）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "19:00-21:00",
+      "is_new": 0,
+      "name": "比武大会",
+      "count": "多人",
+      "id": 19,
+      "original_name": "比武大会",
+      "locations": [
+        {
+          "scene": 2223,
+          "npc": 4764,
+          "name": "任姚显",
+          "x": 66,
+          "y": 56,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 2,
+      "prior": 80,
+      "tips": "#n请前往花果山（30，120）找#c(5873)#R天蓬元帅#n#n报名参加天地劫之风云再起。#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "19:00-23:55",
+      "is_new": 0,
+      "name": "天地劫2",
+      "count": "多人",
+      "id": 20,
+      "original_name": "天地劫2 ",
+      "locations": [
+        {
+          "scene": 2011,
+          "npc": 5873,
+          "name": "天蓬元帅",
+          "x": 31,
+          "y": 123,
+          "reachable": true
+        },
+        {
+          "scene": 2310,
+          "npc": 5208,
+          "name": "天蓬元帅",
+          "x": 43,
+          "y": 204,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 2,
+      "prior": 81,
+      "tips": "#n可到瑶池（138，28）找#c(5470)#R朱雀陵光神君#n#n报名参加天地劫。#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "19:00-23:55",
+      "is_new": 0,
+      "name": "天地劫",
+      "count": "多人",
+      "id": 21,
+      "original_name": "天地劫 ",
+      "locations": [
+        {
+          "scene": 2014,
+          "npc": 5470,
+          "name": "朱雀陵光神君",
+          "x": 138,
+          "y": 28,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 3,
+      "prior": 58,
+      "tips": "#n可在长安（485,276）群星会向导#c(4373)#R#u张枢业#n#n处进入群星会场地。#n#n（经验奖励丰厚，更有机会掉落星符哦！）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "20:00-22:00",
+      "is_new": 0,
+      "name": "群星会",
+      "count": "多人",
+      "id": 22,
+      "original_name": "群星会",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 4373,
+          "name": "张枢业",
+          "x": 485,
+          "y": 276,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 5,
+      "prior": 58,
+      "tips": "#n可在长安（485,276）群星会向导#c(4373)#R#u张枢业#n#n处进入群星会场地。#n#n（经验奖励丰厚，更有机会掉落星符哦！）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "20:00-22:00",
+      "is_new": 0,
+      "name": "群星会",
+      "count": "多人",
+      "id": 23,
+      "original_name": "群星会",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 4373,
+          "name": "张枢业",
+          "x": 485,
+          "y": 276,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 4,
+      "prior": 41,
+      "tips": "#n（周四）#n从长安东车夫到襄阳家园（69，60）找#c(4764)#R#u任姚显#n#n参加三界比武大会。#n（得到的战绩可以兑换装备玉佩及其他奖励，战绩越高，奖励越丰厚！）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "21:00-23:00",
+      "is_new": 0,
+      "name": "比武大会",
+      "count": "多人",
+      "id": 24,
+      "original_name": "比武大会",
+      "locations": [
+        {
+          "scene": 2223,
+          "npc": 4764,
+          "name": "任姚显",
+          "x": 66,
+          "y": 56,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 4,
+      "prior": 59,
+      "tips": "#n周四14:30-16:30、19:30-21:30，找#R长安西市（244，11）#c(900)#R#u西梁女官#n#n，前往女儿国，击退入侵妖魔。#n（完成此任务可获得可观的天元经验。）#n",
+      "task_type": 1,
+      "auto_path_aim": "{244,11,2001}",
+      "suggestion": "★★★★",
+      "period": "14:30-21:30",
+      "is_new": 0,
+      "name": "西梁除魔",
+      "count": "多人",
+      "id": 25,
+      "original_name": "西梁除魔",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 5,
+      "prior": 60,
+      "tips": "#n可到长安（641，275），（83，320）或（124，48）找#R茉雨仙子#n#n领取决战平顶山任务，一起抵抗天庭。#n#n（完成此任务可获得可观的法宝经验。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "20:00-22:00",
+      "is_new": 0,
+      "name": "决战平顶山",
+      "count": "多人",
+      "id": 26,
+      "original_name": "决战平顶山",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 2,
+      "prior": 89,
+      "tips": "#n可到#R长安（580,65）#c(900)#R#u孔雀明王#n#n处，前往英雄海前往协助飞羽对抗天庭来犯。#n",
+      "task_type": 1,
+      "auto_path_aim": "{580,65,2001}",
+      "suggestion": "★★★★",
+      "period": "14:00-23:55",
+      "is_new": 1,
+      "name": "烽火连城",
+      "count": "多人",
+      "id": 27,
+      "original_name": "烽火连城",
+      "locations": [
+        {
+          "scene": 2388,
+          "npc": 6876,
+          "name": "孔雀明王",
+          "x": 23,
+          "y": 57,
+          "reachable": false
+        },
+        {
+          "scene": 2395,
+          "npc": 7248,
+          "name": "孔雀明王",
+          "x": 53,
+          "y": 30,
+          "reachable": true
+        },
+        {
+          "scene": 2408,
+          "npc": 6934,
+          "name": "孔雀明王",
+          "x": 303,
+          "y": 118,
+          "reachable": true
+        },
+        {
+          "scene": 2408,
+          "npc": 6952,
+          "name": "孔雀明王",
+          "x": 151,
+          "y": 223,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 76,
+      "tips": "#n请组队到长安（649，274）找#c(4760)#R#u神秘道人#n#n入场，活动中可获得钥匙打开宝箱。#n",
+      "task_type": 2,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "10:00-23:55",
+      "is_new": 0,
+      "name": "璇玑幻域",
+      "count": "多人",
+      "id": 28,
+      "original_name": "璇玑幻域",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 4760,
+          "name": "神秘道人",
+          "x": 647,
+          "y": 273,
+          "reachable": true
+        },
+        {
+          "scene": 2334,
+          "npc": 6200,
+          "name": "神秘道人",
+          "x": 49,
+          "y": 380,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 77,
+      "tips": "#n可到孔庙（162，36）或（137，25）找科举报名官员#c(1953)#R#u金邦#n#n进行报名参加科举乡试。",
+      "task_type": 2,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "10:00-22:00",
+      "is_new": 0,
+      "name": "御前文举",
+      "count": "单人",
+      "id": 29,
+      "original_name": "御前文举",
+      "locations": [
+        {
+          "scene": 2026,
+          "npc": 1953,
+          "name": "金邦",
+          "x": 137,
+          "y": 25,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 78,
+      "tips": "#n可到阳关（219，157）找#c(4768)#R#u杨明#n#n报名参加御前武举。#n",
+      "task_type": 2,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "16:00-18:00",
+      "is_new": 0,
+      "name": "御前武举",
+      "count": "多人",
+      "id": 30,
+      "original_name": "御前武举",
+      "locations": [
+        {
+          "scene": 2006,
+          "npc": 4768,
+          "name": "杨明",
+          "x": 220,
+          "y": 156,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 80,
+      "tips": "#n请到宫城（146，42）找#c(4259)#R#u刨德快#n#n进行报名，变身成为各参赛代表团队员参与精彩刺激的马拉松比赛。#n",
+      "task_type": 2,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "8:00-22:00",
+      "is_new": 0,
+      "name": "马拉松",
+      "count": "多人",
+      "id": 31,
+      "original_name": "马拉松",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 82,
+      "tips": "#n请到宫城（173，89）找#c(2158)#R#u魏征#n#n进行报名，活动中可获得各种新奇好玩的画像。#n",
+      "task_type": 2,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "9:00-23:55",
+      "is_new": 0,
+      "name": "神魔轶事录",
+      "count": "多人",
+      "id": 32,
+      "original_name": "神魔轶事录",
+      "locations": [
+        {
+          "scene": 2003,
+          "npc": 2158,
+          "name": "魏征",
+          "x": 172,
+          "y": 88,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 75,
+      "tips": "#n活动无需领取任务，请在任务期间组队到广寒宫、方寸山击杀众妖，平息动乱。",
+      "task_type": 2,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "14:30-16:30",
+      "is_new": 0,
+      "name": "除妖平乱",
+      "count": "多人",
+      "id": 33,
+      "original_name": "除妖平乱",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请到西梁女国集市(160，50)，找#c(5529)#R#u西梁物资官#n#n领取西梁女国赏金任务。#n#n（这是赚取大话币的重要途径之一,此任务适用于人物等级为飞升140级以上的玩家。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "西梁国赏金",
+      "count": "多人",
+      "id": 34,
+      "original_name": "西梁国赏金",
+      "locations": [
+        {
+          "scene": 2236,
+          "npc": 5529,
+          "name": "西梁物资官",
+          "x": 159,
+          "y": 49,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 83,
+      "tips": "#n可到瑶池（138，28）找#c(5470)#R朱雀陵光神君#n#n报名参加天地劫。#n",
+      "task_type": 2,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "14:00-20:00",
+      "is_new": 0,
+      "name": "天地劫",
+      "count": "多人",
+      "id": 35,
+      "original_name": "天地劫",
+      "locations": [
+        {
+          "scene": 2014,
+          "npc": 5470,
+          "name": "朱雀陵光神君",
+          "x": 138,
+          "y": 28,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请前往西梁国集市（77，17）找#c(5473)#R小菩提#n#n领取菩提札记任务。#n#n（飞升玩家可领取此任务，并可获得丰厚的经验与金钱奖励。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "菩提札记",
+      "count": "多人",
+      "id": 36,
+      "original_name": "菩提札记",
+      "locations": [
+        {
+          "scene": 2236,
+          "npc": 5473,
+          "name": "小菩提",
+          "x": 78,
+          "y": 16,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 7,
+      "prior": 71,
+      "tips": "#n(周日)#n20：45找#R阳关（239,163）#c(900)#R#u宋楚#n#n进入战场即可参加联盟大战。#n#n（参与联盟大战在结束时可以获得大量经验和丰厚奖励。）#n",
+      "task_type": 1,
+      "auto_path_aim": "{239,163,2006}",
+      "suggestion": "★★★★★",
+      "period": "20:45-22:30",
+      "is_new": 0,
+      "name": "联盟大战",
+      "count": "多人",
+      "id": 37,
+      "original_name": "联盟大战",
+      "locations": [
+        {
+          "scene": 2006,
+          "npc": 2524,
+          "name": "宋楚",
+          "x": 235,
+          "y": 158,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 5,
+      "prior": 61,
+      "tips": "#n找#R阳关（180，155）#c(900)#R#u飞羽幻灵#n#n报名分配阵营，#R10：00-22：00#n，五指山阵营可在#R五指山（36,24）大刀帮军师#n处完成#R50#n次任务，昆仑山阵营可在#R昆仑山（135,420）开明兽#n处完成50次任务。#R22：00-23：00#n分，已分配阵营的英雄需保卫领地击退来敌，并于22:30分伺机击杀#R大刀帮帮主#n和#R开明兽#n！",
+      "task_type": 1,
+      "auto_path_aim": "{180,155,2006}",
+      "suggestion": "★★★★★",
+      "period": "10:00-23:00",
+      "is_new": 0,
+      "name": "攻山夺宝",
+      "count": "多人",
+      "id": 38,
+      "original_name": "攻山夺宝",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n请通过#R花果山（11,50）#c(900)#R#u守洞老猴#n#n处进入水帘洞开始一番奇妙的探险。",
+      "task_type": 1,
+      "auto_path_aim": "{11,50,2011}",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 1,
+      "name": "探秘水帘洞",
+      "count": "单/多人",
+      "id": 39,
+      "original_name": "探秘水帘洞",
+      "locations": [
+        {
+          "scene": 2011,
+          "npc": 5718,
+          "name": "守洞老猴",
+          "x": 11,
+          "y": 53,
+          "reachable": true
+        },
+        {
+          "scene": 2266,
+          "npc": 5701,
+          "name": "守洞老猴",
+          "x": 35,
+          "y": 38,
+          "reachable": false
+        },
+        {
+          "scene": 2267,
+          "npc": 5706,
+          "name": "守洞老猴",
+          "x": 42,
+          "y": 43,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 75,
+      "tips": "#n长安第一楼的老板#c(3432)#R#u花十娘#n#n广募大唐勇士，踏遍三界，探寻天宝图机密。今天#R14：30-16：30#n宝图大派送，一定要来参加哦！",
+      "task_type": 2,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "14:30-16:30",
+      "is_new": 1,
+      "name": "物华天宝",
+      "count": "多人",
+      "id": 40,
+      "original_name": "物华天宝",
+      "locations": [
+        {
+          "scene": 2089,
+          "npc": 3432,
+          "name": "花十娘",
+          "x": 100,
+          "y": 54,
+          "reachable": true
+        },
+        {
+          "scene": 2090,
+          "npc": 1529,
+          "name": "花十娘",
+          "x": 100,
+          "y": 54,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n拥有辟邪宝珠的勇士可在长安#c(3432)#R#u陈中亮#n#n处开启辟邪仪式，挑战BOSS。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "辟邪仪式",
+      "count": "多人",
+      "id": 41,
+      "original_name": "辟邪仪式",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 4367,
+          "name": "陈中亮",
+          "x": 596,
+          "y": 51,
+          "reachable": true
+        },
+        {
+          "scene": 2089,
+          "npc": 3432,
+          "name": "花十娘",
+          "x": 100,
+          "y": 54,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 83,
+      "tips": "#n请前往花果山（30，120）找#c(5873)#R天蓬元帅#n#n报名参加天地劫之风云再起。#n",
+      "task_type": 2,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "14:00-20:00",
+      "is_new": 0,
+      "name": "天地劫2",
+      "count": "多人",
+      "id": 42,
+      "original_name": "天地劫2",
+      "locations": [
+        {
+          "scene": 2011,
+          "npc": 5873,
+          "name": "天蓬元帅",
+          "x": 31,
+          "y": 123,
+          "reachable": true
+        },
+        {
+          "scene": 2310,
+          "npc": 5208,
+          "name": "天蓬元帅",
+          "x": 43,
+          "y": 204,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 3,
+      "prior": 84,
+      "tips": "#n（周三）#R14：00-23：55#n，找#R长安（587,62）#c(900)#R#u薇薇#n#n进入狮驼岭，清剿各路妖怪，挫败狮驼三魔的阴谋！",
+      "task_type": 1,
+      "auto_path_aim": "{587,62,2001}",
+      "suggestion": "★★★★",
+      "period": "14:00-23:55",
+      "is_new": 1,
+      "name": "会猎狮驼",
+      "count": "多人",
+      "id": 43,
+      "original_name": "会猎狮驼",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 1,
+      "prior": 70,
+      "tips": "#n今天#R14：00-16:00、21:00-23:00#n，请各位英雄找到#R长安（616，27）#c(900)#R#u禺狨王#n#n，参加对抗天庭，破解阴谋，解救牛魔王伉俪#145",
+      "task_type": 1,
+      "auto_path_aim": "{630,50,2001}",
+      "suggestion": "★★★★★",
+      "period": "14:00-23:00",
+      "is_new": 1,
+      "name": "拯救牛魔王",
+      "count": "多人",
+      "id": 44,
+      "original_name": "拯救牛魔王",
+      "locations": [
+        {
+          "scene": 2256,
+          "npc": 6017,
+          "name": "禺狨王",
+          "x": 165,
+          "y": 12,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 85,
+      "tips": "#n每天#R8：00-23：55#n，找#R长安(623,30)#c(900)#R#u周斌#n#n参加活动，三界妙境探秘，文学武艺双全！",
+      "task_type": 2,
+      "auto_path_aim": "{623,30,2001}",
+      "suggestion": "★★★★",
+      "period": "8:00-23:55",
+      "is_new": 0,
+      "name": "一字千金",
+      "count": "多人",
+      "id": 45,
+      "original_name": "一字千金",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 86,
+      "tips": "#n每天#R9：00-23：55#n，到#R长安（477，43）#c(900)#R#u南无弥勒尊佛#n#n南无弥勒尊佛#n领取任务，帮助联军，粉碎天庭阴谋。#n",
+      "task_type": 2,
+      "auto_path_aim": "{477,43,2001}",
+      "suggestion": "★★★★",
+      "period": "9:00-23:55",
+      "is_new": 0,
+      "name": "决战灵山",
+      "count": "多人",
+      "id": 46,
+      "original_name": "决战灵山",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 2,
+      "prior": 57,
+      "tips": "#n周二#R14：00-14：30#n到#R帮派内#n剿灭来犯匪寇获取重赏。#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "14:00-14:30",
+      "is_new": 1,
+      "name": "剿灭流寇",
+      "count": "多人",
+      "id": 47,
+      "original_name": "剿灭流寇 ",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 4,
+      "prior": 88,
+      "tips": "#n周四#R14：00-14：30#n到#R帮派内#n剿灭来犯匪寇获取重赏。#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★",
+      "period": "14:00-14:30",
+      "is_new": 1,
+      "name": "剿灭流寇",
+      "count": "多人",
+      "id": 48,
+      "original_name": "剿灭流寇",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n2转120级#n#r组队要求：#n3人以上#n#r秘境入口：#n狮驼岭（114,85）#c(6821)#R#u小巡风#n#c(0)#r秘境奖励：#n侠客函、主城建设物品、人物经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "无底洞",
+      "count": "多人",
+      "id": 49,
+      "original_name": "无底洞",
+      "locations": [
+        {
+          "scene": 2384,
+          "npc": 6821,
+          "name": "小巡风",
+          "x": 112,
+          "y": 85,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n2转130级#n#r组队要求：#n3人以上#n#r秘境入口：#n方寸山（226,44）#c(3102)#R#u祝紫宸#n#c(0)#r秘境奖励：#n秘境套装、元珠碎灵、大量守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "扶摇殿",
+      "count": "多人",
+      "id": 50,
+      "original_name": "扶摇殿",
+      "locations": [
+        {
+          "scene": 2030,
+          "npc": 3102,
+          "name": "祝紫宸",
+          "x": 227,
+          "y": 43,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n2转140级#n#r组队要求：#n3人以上#n#r秘境入口：#n五指山（58,253）#c(4703)#R#u封印碑#n#c(0)#r秘境奖励：#n秘境套装、元珠碎灵、大量守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "封印古墓",
+      "count": "多人",
+      "id": 51,
+      "original_name": "封印古墓",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升130级#n#r组队要求：#n3人以上#n#r秘境入口：#n乌斯藏（241,295）#c(4705)#R#u朱七#n#c(0)#r秘境奖励：#n秘境套装、元珠碎灵、大量守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "炼狱深渊",
+      "count": "多人",
+      "id": 52,
+      "original_name": "炼狱深渊",
+      "locations": [
+        {
+          "scene": 2024,
+          "npc": 4705,
+          "name": "朱七",
+          "x": 238,
+          "y": 294,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n2转130级#n#r组队要求：#n3人以上#n#r秘境入口：#n破儿洞（44,31）#c(5077)#R#u如意真仙#n#c(0)#r秘境奖励：#n女娲之殇、元珠碎灵、大量守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "聚仙庵",
+      "count": "多人",
+      "id": 53,
+      "original_name": "聚仙庵",
+      "locations": [
+        {
+          "scene": 2239,
+          "npc": 5077,
+          "name": "如意真仙",
+          "x": 44,
+          "y": 31,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升130级#n#r组队要求：#n3人以上#n#r秘境入口：#n琵琶洞（7,63）#c(5638)#R#u珠缳#n#c(0)#r秘境奖励：#n女娲之殇、元珠碎灵、大量守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "万蝎窟",
+      "count": "多人",
+      "id": 54,
+      "original_name": "万蝎窟",
+      "locations": [
+        {
+          "scene": 2238,
+          "npc": 5638,
+          "name": "珠缳",
+          "x": 7,
+          "y": 63,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升130级#n#r组队要求：#n3人以上#n#r秘境入口：#n破儿洞（44,31）#c(5077)#R#u如意真仙#n#c(0)#r秘境奖励：#n女娲之殇、元珠碎灵、大量守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "了然蜃影",
+      "count": "多人",
+      "id": 55,
+      "original_name": "了然蜃影",
+      "locations": [
+        {
+          "scene": 2239,
+          "npc": 5077,
+          "name": "如意真仙",
+          "x": 44,
+          "y": 31,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n封圣150级#n#r组队要求：#n3人以上#n#r秘境入口：#n西梁女国野外（177,21）#c(6214)#R#u异界之门#n#c(0)#r秘境奖励：#n女娲之殇、元珠碎灵、大量守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "通天台",
+      "count": "多人",
+      "id": 56,
+      "original_name": "通天台",
+      "locations": [
+        {
+          "scene": 2235,
+          "npc": 6214,
+          "name": "异界之门",
+          "x": 174,
+          "y": 21,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n2转120级#n#r组队要求：#n不限#n#r秘境入口：#n天宫（28,295）#c(2408)#R#u玄乾#n#c(0)#r秘境奖励：#n人物经验、守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "连环灭佛",
+      "count": "单/多人",
+      "id": 57,
+      "original_name": "连环灭佛",
+      "locations": [
+        {
+          "scene": 2015,
+          "npc": 2408,
+          "name": "玄乾",
+          "x": 27,
+          "y": 292,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n2转120级#n#r组队要求：#n不限#n#r秘境入口：#n西梁女国宫殿（62,9）#c(5414)#R#u听琴#n#c(0)#r秘境奖励：#n人物经验、守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "智破通天",
+      "count": "单/多人",
+      "id": 58,
+      "original_name": "智破通天",
+      "locations": [
+        {
+          "scene": 2237,
+          "npc": 5414,
+          "name": "听琴",
+          "x": 62,
+          "y": 10,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n0转80级#n#r组队要求：#n不限#n#r秘境入口：#n傲来国（225,73）#c(6861)#R#u李启明#n#c(0)#r秘境奖励：#n人物经验、守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "勇闯狮驼岭",
+      "count": "单/多人",
+      "id": 59,
+      "original_name": "勇闯狮驼岭",
+      "locations": [
+        {
+          "scene": 2008,
+          "npc": 6861,
+          "name": "李启明",
+          "x": 225,
+          "y": 73,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升160级#n#r组队要求：#n不限#n#r秘境入口：#n傲来国（225,73）#c(6861)#R#u李启明#n#c(0)#r秘境奖励：#n人物经验、守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "逃离万妖国",
+      "count": "单/多人",
+      "id": 60,
+      "original_name": "逃离万妖国",
+      "locations": [
+        {
+          "scene": 2008,
+          "npc": 6861,
+          "name": "李启明",
+          "x": 225,
+          "y": 73,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n封圣160级#n#r组队要求：#n不限#n#r秘境入口：#n傲来国（225,73）#c(6861)#R#u李启明#n#c(0)#r秘境奖励：#n人物经验、守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "封印千鬼域",
+      "count": "单/多人",
+      "id": 61,
+      "original_name": "封印千鬼域",
+      "locations": [
+        {
+          "scene": 2008,
+          "npc": 6861,
+          "name": "李启明",
+          "x": 225,
+          "y": 73,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升160级#n#r组队要求：#n不限#n#r秘境入口：#n北冥（44,101）#c(2854)#R#u冰雪之魄#n#c(0)#r秘境奖励：#n人物经验、守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "无界孤城",
+      "count": "单/多人",
+      "id": 62,
+      "original_name": "无界孤城",
+      "locations": [
+        {
+          "scene": 2019,
+          "npc": 2854,
+          "name": "冰雪之魄",
+          "x": 44,
+          "y": 101,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升150级#n#r组队要求：#n不限#n#r秘境入口：#n西梁女国集市（208,154）#c(5435)#R#u艾丝蒂尔#n#c(0)#r秘境奖励：#n人物经验、守护经验和守护特技经验#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "白龙剑冢",
+      "count": "单/多人",
+      "id": 63,
+      "original_name": "白龙剑冢",
+      "locations": [
+        {
+          "scene": 2236,
+          "npc": 5435,
+          "name": "艾丝蒂尔",
+          "x": 209,
+          "y": 154,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "时间：2016年2月24日—2016年3月1日 每天09:00—23:55。#n#r等级要求：80级#n#r随春霞一起前往春之梦境，唤醒贪睡的春之使者，每天前#n45次#n任务可获得高额奖励。#n#rNPC：#R长安（636,53）春霞#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "09:00-23:55",
+      "is_new": 1,
+      "name": "春回大地",
+      "count": "单/多人",
+      "id": 64,
+      "original_name": "春回大地",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "时间：2020年3月10日—2020年4月6日 每天09:00—23:55。#n#r等级要求：80级#n#r紧随红线童子的踪迹，赢取植树节奖励，每天前#n30次#n任务可获得高额奖励。#n#rNPC：#R长安（636,53）红线童子#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "09:00-23:55",
+      "is_new": 1,
+      "name": "情满萌春",
+      "count": "多人",
+      "id": 65,
+      "original_name": "情满萌春",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "时间：6月15日—6月28日 每天09:00—23:55。#n#r等级要求：50级#n#r协助飞羽削弱三处幻境的守备力量，收集化业、长生、轮回之力，获得#n元气弹奖励#n，参加#n暑假活动大抽奖#n#rNPC：#R北冥（69,121）雪国剑客#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "09:00-23:55",
+      "is_new": 1,
+      "name": "千面明王",
+      "count": "多人",
+      "id": 66,
+      "original_name": "千面明王",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "时间：2016年3月18日—2016年3月29日 每天09:00—23:55。#n#r等级要求：80级#n#r帮助灵英为三界播种生机，每天前#n45次#n任务可获得高额奖励。#n#rNPC：#R长安（636,52）灵英#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "09:00-23:55",
+      "is_new": 1,
+      "name": "春华秋实",
+      "count": "多人",
+      "id": 67,
+      "original_name": "春华秋实",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n活动时间：#n每日10:00—23:55#r#n前往#R长安（636,52）清舟#n处，帮助魏征破解迷局。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "10:00-23:55",
+      "is_new": 1,
+      "name": "离骚魂",
+      "count": "多人",
+      "id": 68,
+      "original_name": "离骚魂",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n活动时间：#n2016年4月30日—2016年5月17日 每日09:00—23:30#r#n前往#R长安（641,73）龙祗#n处领取任务探索万妖迷境，寻找万妖谷的所在之处。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "09:00-23:30",
+      "is_new": 1,
+      "name": "万妖迷境",
+      "count": "多人",
+      "id": 69,
+      "original_name": "万妖迷境",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n每日#R12:00-14:00和21:00-23:00#n，等级大于#R80级#n的玩家组队前往#R长安（614,23）#c(900)#R#u毗沙雪薇#n#n处，进入天竺国击败来犯的天庭势力，粉碎敌方的攻势。",
+      "task_type": 1,
+      "auto_path_aim": "{614,23,2001}",
+      "suggestion": "★★★★★",
+      "period": "12点;21点",
+      "is_new": 1,
+      "name": "天竺突围战",
+      "count": "多人",
+      "id": 70,
+      "original_name": "天竺突围战",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "时间：全天#n#r等级要求：80级#n#r任务要求：单人#n#r奖励：高额人物、守护经验，强大技能体验#n#rNPC：#c(6711)#R#u清玄童子#n#n#r提示：每天可获得#n8#n次高额经验奖励，#n每周首次挑战各关卡胜利可获得巨额经验奖励。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "两仪幻境",
+      "count": "单人",
+      "id": 71,
+      "original_name": "两仪幻境",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 6711,
+          "name": "清玄童子",
+          "x": 509,
+          "y": 266,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：每天00:00-23:59#n#r等级要求：100级#n#r任务要求：3人以上组队#n#r前往#R长安（602,66）#c(900)#R#u五德天鸡#n#n处，突袭七星宫，可获得传说卡片，草还丹等奖励。",
+      "task_type": 1,
+      "auto_path_aim": "{602,66,2001}",
+      "suggestion": "★★★★★",
+      "period": "00:00-23:59",
+      "is_new": 0,
+      "name": "强袭七星宫",
+      "count": "多人",
+      "id": 72,
+      "original_name": "强袭七星宫",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：全天#n#r等级要求：80级#n#r任务要求：使用藏宝图，超级藏宝图挖宝并获得奖励。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "挖宝",
+      "count": "单人",
+      "id": 73,
+      "original_name": "挖宝",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 50,
+      "tips": "活动时间：#n全天#n#r等级要求：#n80级#n#r任务要求：#n3人以上组队#n#r前往#R长安（573,69）#c(900)#R#u苍穹月#n#n处，解救未来的大唐，还可获得丰厚的经验道具奖励。",
+      "task_type": 1,
+      "auto_path_aim": "{573,69,2001}",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 1,
+      "name": "百年后的来客",
+      "count": "多人",
+      "id": 74,
+      "original_name": "百年后的来客",
+      "locations": [
+        {
+          "scene": 2001,
+          "npc": 7510,
+          "name": "苍穹月",
+          "x": 573,
+          "y": 67,
+          "reachable": true
+        },
+        {
+          "scene": 2431,
+          "npc": 7511,
+          "name": "苍穹月",
+          "x": 111,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2432,
+          "npc": 7517,
+          "name": "苍穹月",
+          "x": 121,
+          "y": 96,
+          "reachable": false
+        },
+        {
+          "scene": 2433,
+          "npc": 7518,
+          "name": "苍穹月",
+          "x": 285,
+          "y": 77,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 90,
+      "tips": "等级要求：#n90级#n#r#n更多详细内容前往宗师阁活动界面查看#n#r#R挑战宗师阁#n，赢取每日10战奖励。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "活动界面查看",
+      "is_new": 1,
+      "name": "宗师阁",
+      "count": "单/多人",
+      "id": 75,
+      "original_name": "宗师阁",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 50,
+      "tips": "#n请到皇城(434，91)，找#c(6515)#R#u官职助理#n#n领取官职任务，升级、功绩两不误。#n#n（此任务是人物升级官职的好途径。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "官职任务",
+      "count": "单人",
+      "id": 76,
+      "original_name": "官职任务",
+      "locations": [
+        {
+          "scene": 2002,
+          "npc": 6515,
+          "name": "官职助理",
+          "x": 435,
+          "y": 91,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 50,
+      "tips": "#n请到皇城(434，91)，找#c(6515)#R#u官职助理#n#n领取高级官职任务，官职功绩、官职威望两不误。#n#n（此任务是人物升级官职、获取官职功绩的好途径。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "高级官职任务",
+      "count": "单人",
+      "id": 77,
+      "original_name": "高级官职任务",
+      "locations": [
+        {
+          "scene": 2002,
+          "npc": 6515,
+          "name": "官职助理",
+          "x": 435,
+          "y": 91,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 70,
+      "tips": "#n万妖塔内存有魔晶神秘力量，各路人马前往一探究竟。#n#n请在守护属性界面处，点击#R#u万妖塔#n#n前往挑战，获取人物经验，修行经验及各类珍稀道具。#n#n每日可获得60次高额人物奖励，守护经验无上限#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "万妖塔",
+      "count": "多人",
+      "id": 78,
+      "original_name": "万妖塔",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：每天。#n#r等级要求：封圣170级或达到装备修为要求#n#r任务要求：单人/组队均可#n#r体力消耗：50点#n#r找到云中殿飞羽，进入战火天宫战胜玉帝，赢得命运之战胜利。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "每周",
+      "is_new": 0,
+      "name": "战火天宫",
+      "count": "单/多人",
+      "id": 79,
+      "original_name": "战火天宫",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：每天。#n#r等级要求：飞升165级#n#r任务要求：组队均可#n#r找到灵山空间裂隙，进入三藏经书封印空间，帮助三藏战胜鸿钧道祖留下的挑战，获得经书。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "每周",
+      "is_new": 0,
+      "name": "无限挑战",
+      "count": "多人",
+      "id": 80,
+      "original_name": "无限挑战",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：每天整点。#n#r等级要求：50级#n#r任务要求：单人/组队均可#n#r使用星符或在场景中寻找刷新出的星宿击杀。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "星宿挑战",
+      "count": "单/多人",
+      "id": 81,
+      "original_name": "星宿挑战",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：每天半点。#n#r任务要求：：单人/组队均可。#n#r根据提示在场景中寻找降魔挑战boss击杀。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "降魔挑战",
+      "count": "单/多人",
+      "id": 82,
+      "original_name": "降魔挑战",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "时间：7月2日-7月21日， 每天9:00-23:55#n#r参加要求：50级，5人组队#n#rNPC：#R北冥（82,115）雪国剑客#n#r参加暑假活动，积累每天活跃度，还能收集元气弹，参加暑假大抽奖！",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "9:00-23:55",
+      "is_new": 1,
+      "name": "永恒之战",
+      "count": "多人",
+      "id": 83,
+      "original_name": "永恒之战",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：每天。#n#r等级要求：飞升160级#n#r任务要求：单人#n#r找到长安白居士，完成坊间富商联合发布的各种任务，获得稀有奖励道具。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "每周",
+      "is_new": 1,
+      "name": "任务链",
+      "count": "单人",
+      "id": 84,
+      "original_name": "任务链",
+      "locations": [],
+      "native_conditions": [
+        {
+          "max_grade": 12180,
+          "task_type": 2,
+          "npcid": 3444,
+          "task_id": -1,
+          "scene": 2001,
+          "min_grade": 70,
+          "icon": "0",
+          "tips": "任务链"
+        }
+      ],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "时间：每天09:00—23:55。#n#r等级要求：80级#n#r协助飞羽削弱三处幻境的守备力量，收集化业、长生、轮回之力，获得#n元气弹奖励#n，参加#n暑假活动大抽奖#n#rNPC：#R北冥（69,121）雪国剑客#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "09:00-23:55",
+      "is_new": 1,
+      "name": "化业/轮回境",
+      "count": "多人",
+      "id": 85,
+      "original_name": "化业/轮回境",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：#n#r#n2023年1月11日—2023年2月7日 每天09:00—23:55#n#r等级要求：80级#n#r任务要求：组队#n#r前往#R长安（632,50）#c(900)#R#u玉兔仙子#n处，一起回顾旧岁迎接新年吧。",
+      "task_type": 1,
+      "auto_path_aim": "{632,50,2001}",
+      "suggestion": "★★★★★",
+      "period": "09:00-23:55",
+      "is_new": 1,
+      "name": "闹新春",
+      "count": "多人",
+      "id": 86,
+      "original_name": "闹新春",
+      "locations": [
+        {
+          "scene": 2017,
+          "npc": 8277,
+          "name": "玉兔仙子",
+          "x": 14,
+          "y": 71,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：#n#r#n14:30—16:30#n#r等级要求：80级#n#r任务要求：单人/组队均可#n#通过#R长安（640,55）#c(900)#R#u流元帅#n#n进入蟠桃园，击败桃园中的天兵、天将和巨灵神。",
+      "task_type": 1,
+      "auto_path_aim": "{640,55,2001}",
+      "suggestion": "★★★★★",
+      "period": "14:30—16:30",
+      "is_new": 1,
+      "name": "蟠桃盛会",
+      "count": "单/多人",
+      "id": 87,
+      "original_name": "蟠桃盛会",
+      "locations": [
+        {
+          "scene": 2364,
+          "npc": 6221,
+          "name": "流元帅",
+          "x": 36,
+          "y": 58,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：全天#n#r等级要求：飞升140级#n#r任务要求：使用鱼竿钓鱼并获得奖励。",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "钓鱼玩法",
+      "count": "单人",
+      "id": 88,
+      "original_name": "钓鱼玩法",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升180级#n#r组队要求：#n五人#n#r副本入口：#n竹节山（13,128）#c(7709)#R#u孙悟空#n#c(0)#r副本奖励：#n每周首次挑战可获得丰厚的奖励#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "周一8点-周日23点",
+      "is_new": 1,
+      "name": "玉华州伏狮",
+      "count": "多人",
+      "id": 89,
+      "original_name": "玉华州伏狮",
+      "locations": [
+        {
+          "scene": 2003,
+          "npc": 7817,
+          "name": "孙悟空",
+          "x": 105,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2009,
+          "npc": 7816,
+          "name": "孙悟空",
+          "x": 7,
+          "y": 265,
+          "reachable": true
+        },
+        {
+          "scene": 2011,
+          "npc": 2601,
+          "name": "孙悟空",
+          "x": 60,
+          "y": 19,
+          "reachable": true
+        },
+        {
+          "scene": 2013,
+          "npc": 7654,
+          "name": "孙悟空",
+          "x": 120,
+          "y": 184,
+          "reachable": true
+        },
+        {
+          "scene": 2013,
+          "npc": 7656,
+          "name": "孙悟空",
+          "x": 66,
+          "y": 145,
+          "reachable": true
+        },
+        {
+          "scene": 2015,
+          "npc": 5733,
+          "name": "孙悟空",
+          "x": 306,
+          "y": 116,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 7495,
+          "name": "孙悟空",
+          "x": 30,
+          "y": 175,
+          "reachable": true
+        },
+        {
+          "scene": 2055,
+          "npc": 7641,
+          "name": "孙悟空",
+          "x": 27,
+          "y": 57,
+          "reachable": true
+        },
+        {
+          "scene": 2056,
+          "npc": 5728,
+          "name": "孙悟空",
+          "x": 60,
+          "y": 55,
+          "reachable": true
+        },
+        {
+          "scene": 2057,
+          "npc": 7812,
+          "name": "孙悟空",
+          "x": 14,
+          "y": 90,
+          "reachable": true
+        },
+        {
+          "scene": 2073,
+          "npc": 4315,
+          "name": "孙悟空",
+          "x": 46,
+          "y": 30,
+          "reachable": true
+        },
+        {
+          "scene": 2220,
+          "npc": 4547,
+          "name": "孙悟空",
+          "x": 178,
+          "y": 129,
+          "reachable": true
+        },
+        {
+          "scene": 2220,
+          "npc": 7778,
+          "name": "孙悟空",
+          "x": 179,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2235,
+          "npc": 5072,
+          "name": "孙悟空",
+          "x": 94,
+          "y": 164,
+          "reachable": true
+        },
+        {
+          "scene": 2235,
+          "npc": 7834,
+          "name": "孙悟空",
+          "x": 153,
+          "y": 209,
+          "reachable": true
+        },
+        {
+          "scene": 2236,
+          "npc": 5080,
+          "name": "孙悟空",
+          "x": 51,
+          "y": 141,
+          "reachable": true
+        },
+        {
+          "scene": 2237,
+          "npc": 5086,
+          "name": "孙悟空",
+          "x": 21,
+          "y": 57,
+          "reachable": true
+        },
+        {
+          "scene": 2256,
+          "npc": 6048,
+          "name": "孙悟空",
+          "x": 67,
+          "y": 154,
+          "reachable": true
+        },
+        {
+          "scene": 2357,
+          "npc": 6320,
+          "name": "孙悟空",
+          "x": 97,
+          "y": 84,
+          "reachable": true
+        },
+        {
+          "scene": 2357,
+          "npc": 6794,
+          "name": "孙悟空",
+          "x": 51,
+          "y": 74,
+          "reachable": true
+        },
+        {
+          "scene": 2359,
+          "npc": 6323,
+          "name": "孙悟空",
+          "x": 59,
+          "y": 38,
+          "reachable": true
+        },
+        {
+          "scene": 2363,
+          "npc": 7921,
+          "name": "孙悟空",
+          "x": 133,
+          "y": 66,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6822,
+          "name": "孙悟空",
+          "x": 18,
+          "y": 204,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6838,
+          "name": "孙悟空",
+          "x": 63,
+          "y": 60,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6845,
+          "name": "孙悟空",
+          "x": 110,
+          "y": 122,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6936,
+          "name": "孙悟空",
+          "x": 118,
+          "y": 96,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7550,
+          "name": "孙悟空",
+          "x": 106,
+          "y": 43,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7554,
+          "name": "孙悟空",
+          "x": 74,
+          "y": 107,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7558,
+          "name": "孙悟空",
+          "x": 128,
+          "y": 105,
+          "reachable": true
+        },
+        {
+          "scene": 2387,
+          "npc": 6797,
+          "name": "孙悟空",
+          "x": 67,
+          "y": 47,
+          "reachable": false
+        },
+        {
+          "scene": 2408,
+          "npc": 7893,
+          "name": "孙悟空",
+          "x": 376,
+          "y": 240,
+          "reachable": true
+        },
+        {
+          "scene": 2410,
+          "npc": 6940,
+          "name": "孙悟空",
+          "x": 112,
+          "y": 87,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7258,
+          "name": "孙悟空",
+          "x": 204,
+          "y": 185,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7265,
+          "name": "孙悟空",
+          "x": 79,
+          "y": 67,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7272,
+          "name": "孙悟空",
+          "x": 187,
+          "y": 52,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7567,
+          "name": "孙悟空",
+          "x": 23,
+          "y": 157,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7570,
+          "name": "孙悟空",
+          "x": 83,
+          "y": 140,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7468,
+          "name": "孙悟空",
+          "x": 97,
+          "y": 151,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7473,
+          "name": "孙悟空",
+          "x": 156,
+          "y": 35,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7479,
+          "name": "孙悟空",
+          "x": 20,
+          "y": 62,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 7632,
+          "name": "孙悟空",
+          "x": 22,
+          "y": 112,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 7634,
+          "name": "孙悟空",
+          "x": 156,
+          "y": 128,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 7638,
+          "name": "孙悟空",
+          "x": 95,
+          "y": 72,
+          "reachable": true
+        },
+        {
+          "scene": 2437,
+          "npc": 7667,
+          "name": "孙悟空",
+          "x": 189,
+          "y": 61,
+          "reachable": true
+        },
+        {
+          "scene": 2437,
+          "npc": 7668,
+          "name": "孙悟空",
+          "x": 91,
+          "y": 48,
+          "reachable": true
+        },
+        {
+          "scene": 2437,
+          "npc": 7669,
+          "name": "孙悟空",
+          "x": 155,
+          "y": 93,
+          "reachable": true
+        },
+        {
+          "scene": 2439,
+          "npc": 7709,
+          "name": "孙悟空",
+          "x": 13,
+          "y": 128,
+          "reachable": true
+        },
+        {
+          "scene": 2442,
+          "npc": 7901,
+          "name": "孙悟空",
+          "x": 114,
+          "y": 52,
+          "reachable": true
+        },
+        {
+          "scene": 2453,
+          "npc": 8132,
+          "name": "孙悟空",
+          "x": 34,
+          "y": 44,
+          "reachable": true
+        },
+        {
+          "scene": 2455,
+          "npc": 8144,
+          "name": "孙悟空",
+          "x": 29,
+          "y": 26,
+          "reachable": true
+        },
+        {
+          "scene": 2456,
+          "npc": 8149,
+          "name": "孙悟空",
+          "x": 21,
+          "y": 28,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8139,
+          "name": "孙悟空",
+          "x": 81,
+          "y": 180,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8142,
+          "name": "孙悟空",
+          "x": 59,
+          "y": 125,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8152,
+          "name": "孙悟空",
+          "x": 65,
+          "y": 101,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8158,
+          "name": "孙悟空",
+          "x": 35,
+          "y": 79,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升140级#n#r组队要求：#n五人#n#r副本入口：#n火焰山（219,50）#c(7773)#R#u老者#n#c(0)#r副本奖励：#n每周首次挑战可获得丰厚的奖励#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "周一8点-周日23点",
+      "is_new": 1,
+      "name": "三调芭蕉扇",
+      "count": "多人",
+      "id": 90,
+      "original_name": "三调芭蕉扇",
+      "locations": [
+        {
+          "scene": 2256,
+          "npc": 7773,
+          "name": "老者",
+          "x": 219,
+          "y": 50,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n组队到幽冥地府(148，61)找#c(2142)#R#u驹#n#n可以领取抓鬼任务，这是组队升级的一个好途径。#n（此任务适用于人物等级80以上的玩家。）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "00:10-23:55",
+      "is_new": 1,
+      "name": "捉鬼任务",
+      "count": "单人",
+      "id": 91,
+      "original_name": "捉鬼任务",
+      "locations": [
+        {
+          "scene": 2009,
+          "npc": 2142,
+          "name": "驹",
+          "x": 148,
+          "y": 61,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [
+        {
+          "max_grade": 2130,
+          "task_type": 1,
+          "npcid": 2123,
+          "task_id": -1,
+          "scene": 2009,
+          "min_grade": 50,
+          "icon": "0",
+          "tips": "捉鬼任务"
+        }
+      ],
+      "implementation": "reference_daily",
+      "reference_kind": "ghost",
+      "missing": []
+    },
+    {
+      "weekday": 1,
+      "prior": 57,
+      "tips": "前往宝象国（82，53）找#c(7777)#R#u宝象国国师#n#n参与宝象国降妖。#n（可获得大量金身经验奖励！）#n",
+      "task_type": 1,
+      "auto_path_aim": "7777",
+      "suggestion": "★★★★★",
+      "period": "20:00-22:00",
+      "is_new": 1,
+      "name": "宝象国降妖",
+      "count": "多人",
+      "id": 92,
+      "original_name": "宝象国降妖",
+      "locations": [
+        {
+          "scene": 2041,
+          "npc": 7777,
+          "name": "宝象国国师",
+          "x": 82,
+          "y": 53,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 4,
+      "prior": 57,
+      "tips": "九重幻境，暗藏玄机！前往万妖谷（70,34）#R涂山宁宁#n处挑战幻境挑战首领。活动时间：每周四#R晚上8:00~10:00#n#n（可获得大量人物法宝道行经验奖励！）#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "20:00-22:00",
+      "is_new": 0,
+      "name": "九重幻境",
+      "count": "多人",
+      "id": 93,
+      "original_name": "九重幻境",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n封圣165级#n#r组队要求：#n五人#n#r副本入口：#n平顶山（171,121）#c(7778)#R#u孙悟空#n#c(0)#r副本奖励：#n每周首次挑战可获得丰厚的奖励#n#r体力消耗：50点#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "周一8点-周日23点",
+      "is_new": 1,
+      "name": "重返车迟国",
+      "count": "多人",
+      "id": 94,
+      "original_name": "重返车迟国",
+      "locations": [
+        {
+          "scene": 2003,
+          "npc": 7817,
+          "name": "孙悟空",
+          "x": 105,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2009,
+          "npc": 7816,
+          "name": "孙悟空",
+          "x": 7,
+          "y": 265,
+          "reachable": true
+        },
+        {
+          "scene": 2011,
+          "npc": 2601,
+          "name": "孙悟空",
+          "x": 60,
+          "y": 19,
+          "reachable": true
+        },
+        {
+          "scene": 2013,
+          "npc": 7654,
+          "name": "孙悟空",
+          "x": 120,
+          "y": 184,
+          "reachable": true
+        },
+        {
+          "scene": 2013,
+          "npc": 7656,
+          "name": "孙悟空",
+          "x": 66,
+          "y": 145,
+          "reachable": true
+        },
+        {
+          "scene": 2015,
+          "npc": 5733,
+          "name": "孙悟空",
+          "x": 306,
+          "y": 116,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 7495,
+          "name": "孙悟空",
+          "x": 30,
+          "y": 175,
+          "reachable": true
+        },
+        {
+          "scene": 2055,
+          "npc": 7641,
+          "name": "孙悟空",
+          "x": 27,
+          "y": 57,
+          "reachable": true
+        },
+        {
+          "scene": 2056,
+          "npc": 5728,
+          "name": "孙悟空",
+          "x": 60,
+          "y": 55,
+          "reachable": true
+        },
+        {
+          "scene": 2057,
+          "npc": 7812,
+          "name": "孙悟空",
+          "x": 14,
+          "y": 90,
+          "reachable": true
+        },
+        {
+          "scene": 2073,
+          "npc": 4315,
+          "name": "孙悟空",
+          "x": 46,
+          "y": 30,
+          "reachable": true
+        },
+        {
+          "scene": 2220,
+          "npc": 4547,
+          "name": "孙悟空",
+          "x": 178,
+          "y": 129,
+          "reachable": true
+        },
+        {
+          "scene": 2220,
+          "npc": 7778,
+          "name": "孙悟空",
+          "x": 179,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2235,
+          "npc": 5072,
+          "name": "孙悟空",
+          "x": 94,
+          "y": 164,
+          "reachable": true
+        },
+        {
+          "scene": 2235,
+          "npc": 7834,
+          "name": "孙悟空",
+          "x": 153,
+          "y": 209,
+          "reachable": true
+        },
+        {
+          "scene": 2236,
+          "npc": 5080,
+          "name": "孙悟空",
+          "x": 51,
+          "y": 141,
+          "reachable": true
+        },
+        {
+          "scene": 2237,
+          "npc": 5086,
+          "name": "孙悟空",
+          "x": 21,
+          "y": 57,
+          "reachable": true
+        },
+        {
+          "scene": 2256,
+          "npc": 6048,
+          "name": "孙悟空",
+          "x": 67,
+          "y": 154,
+          "reachable": true
+        },
+        {
+          "scene": 2357,
+          "npc": 6320,
+          "name": "孙悟空",
+          "x": 97,
+          "y": 84,
+          "reachable": true
+        },
+        {
+          "scene": 2357,
+          "npc": 6794,
+          "name": "孙悟空",
+          "x": 51,
+          "y": 74,
+          "reachable": true
+        },
+        {
+          "scene": 2359,
+          "npc": 6323,
+          "name": "孙悟空",
+          "x": 59,
+          "y": 38,
+          "reachable": true
+        },
+        {
+          "scene": 2363,
+          "npc": 7921,
+          "name": "孙悟空",
+          "x": 133,
+          "y": 66,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6822,
+          "name": "孙悟空",
+          "x": 18,
+          "y": 204,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6838,
+          "name": "孙悟空",
+          "x": 63,
+          "y": 60,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6845,
+          "name": "孙悟空",
+          "x": 110,
+          "y": 122,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6936,
+          "name": "孙悟空",
+          "x": 118,
+          "y": 96,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7550,
+          "name": "孙悟空",
+          "x": 106,
+          "y": 43,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7554,
+          "name": "孙悟空",
+          "x": 74,
+          "y": 107,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7558,
+          "name": "孙悟空",
+          "x": 128,
+          "y": 105,
+          "reachable": true
+        },
+        {
+          "scene": 2387,
+          "npc": 6797,
+          "name": "孙悟空",
+          "x": 67,
+          "y": 47,
+          "reachable": false
+        },
+        {
+          "scene": 2408,
+          "npc": 7893,
+          "name": "孙悟空",
+          "x": 376,
+          "y": 240,
+          "reachable": true
+        },
+        {
+          "scene": 2410,
+          "npc": 6940,
+          "name": "孙悟空",
+          "x": 112,
+          "y": 87,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7258,
+          "name": "孙悟空",
+          "x": 204,
+          "y": 185,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7265,
+          "name": "孙悟空",
+          "x": 79,
+          "y": 67,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7272,
+          "name": "孙悟空",
+          "x": 187,
+          "y": 52,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7567,
+          "name": "孙悟空",
+          "x": 23,
+          "y": 157,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7570,
+          "name": "孙悟空",
+          "x": 83,
+          "y": 140,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7468,
+          "name": "孙悟空",
+          "x": 97,
+          "y": 151,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7473,
+          "name": "孙悟空",
+          "x": 156,
+          "y": 35,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7479,
+          "name": "孙悟空",
+          "x": 20,
+          "y": 62,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 7632,
+          "name": "孙悟空",
+          "x": 22,
+          "y": 112,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 7634,
+          "name": "孙悟空",
+          "x": 156,
+          "y": 128,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 7638,
+          "name": "孙悟空",
+          "x": 95,
+          "y": 72,
+          "reachable": true
+        },
+        {
+          "scene": 2437,
+          "npc": 7667,
+          "name": "孙悟空",
+          "x": 189,
+          "y": 61,
+          "reachable": true
+        },
+        {
+          "scene": 2437,
+          "npc": 7668,
+          "name": "孙悟空",
+          "x": 91,
+          "y": 48,
+          "reachable": true
+        },
+        {
+          "scene": 2437,
+          "npc": 7669,
+          "name": "孙悟空",
+          "x": 155,
+          "y": 93,
+          "reachable": true
+        },
+        {
+          "scene": 2439,
+          "npc": 7709,
+          "name": "孙悟空",
+          "x": 13,
+          "y": 128,
+          "reachable": true
+        },
+        {
+          "scene": 2442,
+          "npc": 7901,
+          "name": "孙悟空",
+          "x": 114,
+          "y": 52,
+          "reachable": true
+        },
+        {
+          "scene": 2453,
+          "npc": 8132,
+          "name": "孙悟空",
+          "x": 34,
+          "y": 44,
+          "reachable": true
+        },
+        {
+          "scene": 2455,
+          "npc": 8144,
+          "name": "孙悟空",
+          "x": 29,
+          "y": 26,
+          "reachable": true
+        },
+        {
+          "scene": 2456,
+          "npc": 8149,
+          "name": "孙悟空",
+          "x": 21,
+          "y": 28,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8139,
+          "name": "孙悟空",
+          "x": 81,
+          "y": 180,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8142,
+          "name": "孙悟空",
+          "x": 59,
+          "y": 125,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8152,
+          "name": "孙悟空",
+          "x": 65,
+          "y": 101,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8158,
+          "name": "孙悟空",
+          "x": 35,
+          "y": 79,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 57,
+      "tips": "等级要求：#n飞升120级#n#r组队要求：#n五人#n#r入口：#n幽冥地府（238,160）#c(8009)#R#u魔狱守卫#n#c(0)#r",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "每月",
+      "is_new": 1,
+      "name": "无间魔狱",
+      "count": "多人",
+      "id": 95,
+      "original_name": "无间魔狱",
+      "locations": [
+        {
+          "scene": 2009,
+          "npc": 8009,
+          "name": "魔狱守卫",
+          "x": 238,
+          "y": 160,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n≥0转80级#n#r组队要求：#n≥3人#n#r前往#R长安（635,52）古小玉#n处",
+      "task_type": 1,
+      "auto_path_aim": "{635,52,2001}",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 1,
+      "name": "四族大战",
+      "count": "多人",
+      "id": 96,
+      "original_name": "四族大战",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n活动时间：#n每日11:30:00、15:30:00、17:30:00、19:30:00、22:30:00#r#n组队要求：#n≥3人#n#r等级要求：≥封圣165级#n#r活动地图：傲来、比丘国、天竺国、宝象国、朱紫国#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "11:30-23:15",
+      "is_new": 0,
+      "name": "十二生肖",
+      "count": "多人",
+      "id": 97,
+      "original_name": "十二生肖",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：封圣140级#r入口：不周山（88,60）#c(8010)#R#u陌上岚#n#c(0)",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "每月",
+      "is_new": 0,
+      "name": "玄天幻境",
+      "count": "单人",
+      "id": 98,
+      "original_name": "玄天幻境",
+      "locations": [
+        {
+          "scene": 2019,
+          "npc": 7735,
+          "name": "陌上岚",
+          "x": 239,
+          "y": 24,
+          "reachable": true
+        },
+        {
+          "scene": 2235,
+          "npc": 7823,
+          "name": "陌上岚",
+          "x": 88,
+          "y": 219,
+          "reachable": true
+        },
+        {
+          "scene": 2360,
+          "npc": 8010,
+          "name": "陌上岚化身",
+          "x": 79,
+          "y": 53,
+          "reachable": true
+        },
+        {
+          "scene": 2408,
+          "npc": 6932,
+          "name": "陌上岚",
+          "x": 354,
+          "y": 200,
+          "reachable": true
+        },
+        {
+          "scene": 2442,
+          "npc": 7840,
+          "name": "陌上岚",
+          "x": 184,
+          "y": 101,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n封圣165级#n#r组队要求：#n五人#n#r副本入口：#n天宫（132,186）#c(8012)#R#u猪八戒#n#c(0)#r副本奖励：#n每周首次挑战可获得丰厚的奖励#n#r体力消耗：50点#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "周一8点-周日23点",
+      "is_new": 1,
+      "name": "天蓬问情",
+      "count": "多人",
+      "id": 99,
+      "original_name": "天蓬问情",
+      "locations": [
+        {
+          "scene": 2009,
+          "npc": 7946,
+          "name": "猪八戒",
+          "x": 233,
+          "y": 246,
+          "reachable": true
+        },
+        {
+          "scene": 2011,
+          "npc": 4312,
+          "name": "猪八戒",
+          "x": 142,
+          "y": 59,
+          "reachable": true
+        },
+        {
+          "scene": 2015,
+          "npc": 8012,
+          "name": "猪八戒",
+          "x": 132,
+          "y": 187,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 7496,
+          "name": "猪八戒",
+          "x": 30,
+          "y": 168,
+          "reachable": true
+        },
+        {
+          "scene": 2064,
+          "npc": 7971,
+          "name": "猪八戒",
+          "x": 32,
+          "y": 29,
+          "reachable": true
+        },
+        {
+          "scene": 2221,
+          "npc": 4588,
+          "name": "猪八戒",
+          "x": 51,
+          "y": 21,
+          "reachable": true
+        },
+        {
+          "scene": 2235,
+          "npc": 5073,
+          "name": "猪八戒",
+          "x": 102,
+          "y": 154,
+          "reachable": true
+        },
+        {
+          "scene": 2256,
+          "npc": 6050,
+          "name": "猪八戒",
+          "x": 169,
+          "y": 81,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6843,
+          "name": "猪八戒",
+          "x": 127,
+          "y": 118,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 6945,
+          "name": "猪八戒",
+          "x": 112,
+          "y": 92,
+          "reachable": true
+        },
+        {
+          "scene": 2384,
+          "npc": 7559,
+          "name": "猪八戒",
+          "x": 123,
+          "y": 101,
+          "reachable": true
+        },
+        {
+          "scene": 2408,
+          "npc": 7941,
+          "name": "猪八戒",
+          "x": 224,
+          "y": 139,
+          "reachable": true
+        },
+        {
+          "scene": 2410,
+          "npc": 6941,
+          "name": "猪八戒",
+          "x": 90,
+          "y": 76,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7259,
+          "name": "猪八戒",
+          "x": 189,
+          "y": 184,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7264,
+          "name": "猪八戒",
+          "x": 133,
+          "y": 59,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7270,
+          "name": "猪八戒",
+          "x": 198,
+          "y": 53,
+          "reachable": true
+        },
+        {
+          "scene": 2414,
+          "npc": 7545,
+          "name": "猪八戒",
+          "x": 88,
+          "y": 141,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7469,
+          "name": "猪八戒",
+          "x": 98,
+          "y": 144,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7474,
+          "name": "猪八戒",
+          "x": 149,
+          "y": 32,
+          "reachable": true
+        },
+        {
+          "scene": 2428,
+          "npc": 7480,
+          "name": "猪八戒",
+          "x": 32,
+          "y": 61,
+          "reachable": true
+        },
+        {
+          "scene": 2453,
+          "npc": 8133,
+          "name": "猪八戒",
+          "x": 43,
+          "y": 44,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8138,
+          "name": "猪八戒",
+          "x": 97,
+          "y": 169,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8141,
+          "name": "猪八戒",
+          "x": 63,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8156,
+          "name": "猪八戒",
+          "x": 50,
+          "y": 98,
+          "reachable": true
+        },
+        {
+          "scene": 2463,
+          "npc": 8357,
+          "name": "猪八戒",
+          "x": 33,
+          "y": 63,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n≥0转80级#n#r组队要求：#n≥3人#n#r前往#R长安（634,52）善财童子#n处",
+      "task_type": 1,
+      "auto_path_aim": "{634,52,2001}",
+      "suggestion": "★★★★★",
+      "period": "8:00-23:55",
+      "is_new": 1,
+      "name": "童心未泯",
+      "count": "多人",
+      "id": 100,
+      "original_name": "童心未泯",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：#n#r#n14:30—16:30#n#r等级要求：飞升120级#n#r任务要求：单人/组队均可#n#通过#R长安（635，52）#R白鹤仙人#Y前往",
+      "task_type": 1,
+      "auto_path_aim": "{635,52,2001}",
+      "suggestion": "★★★★★",
+      "period": "14:30-16:30",
+      "is_new": 1,
+      "name": "混沌密战",
+      "count": "单/多人",
+      "id": 101,
+      "original_name": "混沌密战",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 57,
+      "tips": "等级要求：#n80级#n#r组队要求：#n五人#n#r入口：#n长安（558,75）#c(8009)#R#u魔狱守卫#n#c(0)#r",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "每周",
+      "is_new": 1,
+      "name": "新锐·无间魔狱",
+      "count": "多人",
+      "id": 102,
+      "original_name": "新锐·无间魔狱",
+      "locations": [
+        {
+          "scene": 2009,
+          "npc": 8009,
+          "name": "魔狱守卫",
+          "x": 238,
+          "y": 160,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "#n活动时间：#n每日11:30:00、15:30:00、17:30:00、19:30:00、22:30:00#r#n组队要求：#n≥3人#n#r等级要求：≥80级#n#r活动地图：傲来、比丘国、天竺国、宝象国、朱紫国#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "11:30-23:15",
+      "is_new": 0,
+      "name": "新锐·十二生肖",
+      "count": "多人",
+      "id": 103,
+      "original_name": "新锐·十二生肖",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升140级#n#r组队要求：#n五人#n#r活动时间：#n每日15:45、21:45#r入口：#n净土、北冥、蟠桃园、竹节山#r体力消耗：50点#n",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "15:45-23:30",
+      "is_new": 1,
+      "name": "逆转时轮",
+      "count": "多人",
+      "id": 104,
+      "original_name": "逆转时轮",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "活动时间：#n#r#n16:00-18:30#n#r等级要求：飞升120级#n#r任务要求：3人或以上组队#n#通过#R长安（616,37）#R木叶#Y前往",
+      "task_type": 1,
+      "auto_path_aim": "{616,37,2001}",
+      "suggestion": "★★★★★",
+      "period": "16:00-18:30",
+      "is_new": 1,
+      "name": "守卫临墟",
+      "count": "多人",
+      "id": 105,
+      "original_name": "守卫临墟",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 70,
+      "tips": "幽深混沌之处，地水风火有无之间。令四曼法宝洞悉冥冥宇宙之力。前往曼陀罗境获取种族法宝道行，曼陀罗境共4层，随着层数的增加，曼陀罗境中的怪物也越来越强。每日可获得100次种族法宝道行。#r#R每日10:45-21:45每层曼陀罗境都将会出现曼陀罗境首领，击败后可获得各类珍稀道具。",
+      "task_type": 1,
+      "auto_path_aim": "{62,36,2092}",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "曼陀罗境",
+      "count": "多人",
+      "id": 106,
+      "original_name": "曼陀罗境",
+      "locations": [
+        {
+          "scene": 2092,
+          "npc": 8071,
+          "name": "曼陀罗境传送门",
+          "x": 62,
+          "y": 36,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "进境传送和各层的通行条件",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升180级#n#r组队要求：#n五人#n#r副本入口：#n汤谷（128,96）#c(7709)#R#u金蝉子#n#c(0)#r副本奖励：#n每周首次挑战可获得丰厚的奖励#n#r体力消耗：50点#n",
+      "task_type": 1,
+      "auto_path_aim": "{128,96,2436}",
+      "suggestion": "★★★★★",
+      "period": "周一8点-周日23点",
+      "is_new": 1,
+      "name": "白夜双生",
+      "count": "多人",
+      "id": 107,
+      "original_name": "白夜双生",
+      "locations": [
+        {
+          "scene": 2012,
+          "npc": 8062,
+          "name": "金蝉子",
+          "x": 93,
+          "y": 103,
+          "reachable": true
+        },
+        {
+          "scene": 2013,
+          "npc": 8054,
+          "name": "金蝉子",
+          "x": 15,
+          "y": 92,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 8031,
+          "name": "金蝉子",
+          "x": 165,
+          "y": 98,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 8046,
+          "name": "金蝉子",
+          "x": 168,
+          "y": 140,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 8048,
+          "name": "金蝉子",
+          "x": 273,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2416,
+          "npc": 8051,
+          "name": "金蝉子",
+          "x": 31,
+          "y": 31,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 8072,
+          "name": "金蝉子",
+          "x": 128,
+          "y": 96,
+          "reachable": true
+        },
+        {
+          "scene": 2439,
+          "npc": 7709,
+          "name": "孙悟空",
+          "x": 13,
+          "y": 128,
+          "reachable": true
+        },
+        {
+          "scene": 2439,
+          "npc": 8057,
+          "name": "金蝉子",
+          "x": 56,
+          "y": 42,
+          "reachable": true
+        },
+        {
+          "scene": 2447,
+          "npc": 8028,
+          "name": "金蝉子",
+          "x": 74,
+          "y": 22,
+          "reachable": true
+        },
+        {
+          "scene": 2451,
+          "npc": 8301,
+          "name": "金蝉子",
+          "x": 152,
+          "y": 28,
+          "reachable": true
+        },
+        {
+          "scene": 2451,
+          "npc": 8304,
+          "name": "金蝉子",
+          "x": 18,
+          "y": 14,
+          "reachable": true
+        },
+        {
+          "scene": 2456,
+          "npc": 8169,
+          "name": "金蝉子",
+          "x": 45,
+          "y": 27,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8168,
+          "name": "金蝉子",
+          "x": 31,
+          "y": 69,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8314,
+          "name": "金蝉子",
+          "x": 275,
+          "y": 117,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8319,
+          "name": "金蝉子",
+          "x": 68,
+          "y": 190,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8324,
+          "name": "金蝉子",
+          "x": 95,
+          "y": 155,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8336,
+          "name": "金蝉子",
+          "x": 137,
+          "y": 212,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8340,
+          "name": "金蝉子",
+          "x": 180,
+          "y": 193,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8348,
+          "name": "金蝉子",
+          "x": 245,
+          "y": 22,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8352,
+          "name": "金蝉子",
+          "x": 150,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2463,
+          "npc": 8355,
+          "name": "金蝉子",
+          "x": 69,
+          "y": 61,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 0,
+      "tips": "活动时间：#n#r#n14:00-16:30#n#r等级要求：≥80级#n#r任务要求：5人#n#活动入口：通过#R长安（609,43）#R云阶使者#n前往",
+      "task_type": 2,
+      "auto_path_aim": "{609,43,2001}",
+      "suggestion": "★★★★★",
+      "period": "14:00-16:30",
+      "is_new": 1,
+      "name": "云阶秘藏",
+      "count": "多人",
+      "id": 108,
+      "original_name": "云阶秘藏",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n飞升180级#n#r组队要求：#n五人#n#r副本入口：#n朱紫国（174,172）#c(8075)#R#u金光太岁#n#c(0)#r副本奖励：#n每周首次挑战可获得丰厚的奖励#n#r体力消耗：50点#n",
+      "task_type": 1,
+      "auto_path_aim": "{174,172,2457}",
+      "suggestion": "★★★★★",
+      "period": "周一8点-周日23点",
+      "is_new": 1,
+      "name": "朱紫秘辛",
+      "count": "多人",
+      "id": 109,
+      "original_name": "朱紫秘辛",
+      "locations": [
+        {
+          "scene": 2457,
+          "npc": 8075,
+          "name": "金光太岁",
+          "x": 171,
+          "y": 171,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8157,
+          "name": "金光太岁",
+          "x": 31,
+          "y": 77,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8171,
+          "name": "金光太岁",
+          "x": 28,
+          "y": 193,
+          "reachable": true
+        },
+        {
+          "scene": 2463,
+          "npc": 8354,
+          "name": "金光太岁",
+          "x": 72,
+          "y": 82,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：80级#r组队要求：#n单人/多人#n#r入口：本帮#R#u帮派总管处#n",
+      "task_type": 1,
+      "auto_path_aim": "{207,97,2435}",
+      "suggestion": "★★★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "帮派任务",
+      "count": "单/多人",
+      "id": 110,
+      "original_name": "帮派任务",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 57,
+      "tips": "等级要求：#n飞升140级#n#r组队要求：#n五人#n#r入口：#n魔西天（33,113）#c(8270)#R#u魔影#n#c(0)#r",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★★★",
+      "period": "每月",
+      "is_new": 1,
+      "name": "轮回炼狱",
+      "count": "多人",
+      "id": 111,
+      "original_name": "轮回炼狱",
+      "locations": [
+        {
+          "scene": 2409,
+          "npc": 6993,
+          "name": "魔影",
+          "x": 56,
+          "y": 142,
+          "reachable": true
+        },
+        {
+          "scene": 2451,
+          "npc": 8270,
+          "name": "魔影",
+          "x": 33,
+          "y": 113,
+          "reachable": true
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 0,
+      "tips": "等级要求：#n封圣180级#n#r组队要求：#n五人#n#r副本入口：#n境（150,127）#c(8352)#R#u金蝉子#n#c(0)#r副本奖励：#n每周首次挑战可获得丰厚的奖励#n#r体力消耗：50点#n",
+      "task_type": 1,
+      "auto_path_aim": "{150,127,2459}",
+      "suggestion": "★★★★★",
+      "period": "周一8点-周日23点",
+      "is_new": 1,
+      "name": "般若心境",
+      "count": "多人",
+      "id": 112,
+      "original_name": "般若心境",
+      "locations": [
+        {
+          "scene": 2012,
+          "npc": 8062,
+          "name": "金蝉子",
+          "x": 93,
+          "y": 103,
+          "reachable": true
+        },
+        {
+          "scene": 2013,
+          "npc": 8054,
+          "name": "金蝉子",
+          "x": 15,
+          "y": 92,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 8031,
+          "name": "金蝉子",
+          "x": 165,
+          "y": 98,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 8046,
+          "name": "金蝉子",
+          "x": 168,
+          "y": 140,
+          "reachable": true
+        },
+        {
+          "scene": 2024,
+          "npc": 8048,
+          "name": "金蝉子",
+          "x": 273,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2416,
+          "npc": 8051,
+          "name": "金蝉子",
+          "x": 31,
+          "y": 31,
+          "reachable": true
+        },
+        {
+          "scene": 2436,
+          "npc": 8072,
+          "name": "金蝉子",
+          "x": 128,
+          "y": 96,
+          "reachable": true
+        },
+        {
+          "scene": 2439,
+          "npc": 8057,
+          "name": "金蝉子",
+          "x": 56,
+          "y": 42,
+          "reachable": true
+        },
+        {
+          "scene": 2447,
+          "npc": 8028,
+          "name": "金蝉子",
+          "x": 74,
+          "y": 22,
+          "reachable": true
+        },
+        {
+          "scene": 2451,
+          "npc": 8301,
+          "name": "金蝉子",
+          "x": 152,
+          "y": 28,
+          "reachable": true
+        },
+        {
+          "scene": 2451,
+          "npc": 8304,
+          "name": "金蝉子",
+          "x": 18,
+          "y": 14,
+          "reachable": true
+        },
+        {
+          "scene": 2456,
+          "npc": 8169,
+          "name": "金蝉子",
+          "x": 45,
+          "y": 27,
+          "reachable": true
+        },
+        {
+          "scene": 2457,
+          "npc": 8168,
+          "name": "金蝉子",
+          "x": 31,
+          "y": 69,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8314,
+          "name": "金蝉子",
+          "x": 275,
+          "y": 117,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8319,
+          "name": "金蝉子",
+          "x": 68,
+          "y": 190,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8324,
+          "name": "金蝉子",
+          "x": 95,
+          "y": 155,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8336,
+          "name": "金蝉子",
+          "x": 137,
+          "y": 212,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8340,
+          "name": "金蝉子",
+          "x": 180,
+          "y": 193,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8348,
+          "name": "金蝉子",
+          "x": 245,
+          "y": 22,
+          "reachable": true
+        },
+        {
+          "scene": 2459,
+          "npc": 8352,
+          "name": "金蝉子",
+          "x": 150,
+          "y": 127,
+          "reachable": true
+        },
+        {
+          "scene": 2463,
+          "npc": 8355,
+          "name": "金蝉子",
+          "x": 69,
+          "y": 61,
+          "reachable": false
+        }
+      ],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算"
+      ]
+    },
+    {
+      "weekday": 10,
+      "prior": 50,
+      "tips": "活动时间：每天#n#r等级要求：飞升120级#n#r任务要求：单人#n#r请到房屋内找侍女领取房屋任务，完成任务可获得大量房屋升级经验",
+      "task_type": 1,
+      "auto_path_aim": "",
+      "suggestion": "★★★",
+      "period": "全天",
+      "is_new": 0,
+      "name": "房屋任务",
+      "count": "单人",
+      "id": 113,
+      "original_name": "房屋任务",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    },
+    {
+      "weekday": 11,
+      "prior": 0,
+      "tips": "活动时间：#n#r#n14:30—22:00#n#r等级要求：1转100级#n#r任务要求：单人/组队均可#n#通过#R长安（602，53）#R古陵使者#Y前往",
+      "task_type": 2,
+      "auto_path_aim": "{602,53,2001}",
+      "suggestion": "★★★★★",
+      "period": "14:30-22:00",
+      "is_new": 1,
+      "name": "探陵寻珍",
+      "count": "单/多人",
+      "id": 114,
+      "original_name": "探陵寻珍",
+      "locations": [],
+      "native_conditions": [],
+      "implementation": "missing_server_flow",
+      "reference_kind": null,
+      "missing": [
+        "活动领取与阶段脚本",
+        "活动实例及战斗配置",
+        "原版奖励与日次结算",
+        "当前世界中对应的领取NPC"
+      ]
+    }
+  ],
+  "policy": "原版说明、条件、时间与领取人保留；已有参考日常流程单独标明，未核实的活动不接取、不生成战斗、不发放奖励。"
+}

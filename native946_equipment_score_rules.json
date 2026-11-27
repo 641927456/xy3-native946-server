@@ -1,0 +1,17 @@
+{
+  "source": "本机计分。总评沿用 947 穿脱实测的单件求和口径，单件权重为本机规则。",
+  "starter_grade": 1,
+  "points_per_grade": 100,
+  "default_property_weight": "1",
+  "property_weights": {
+    "hpmax": "0.1",
+    "mpmax": "0.1",
+    "attack": "0.5",
+    "defense": "0.5",
+    "initiative": "5",
+    "cor": "5",
+    "mag": "5",
+    "strength": "5",
+    "speed": "5"
+  }
+}

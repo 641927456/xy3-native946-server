@@ -1,0 +1,299 @@
+{
+  "version": "native946-physical-books-reference-v2",
+  "rules": {
+    "6214": {
+      "item": 6214,
+      "skill": 300,
+      "name": "万物之灵",
+      "tier": 0,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "hpmax": [
+          45,
+          10
+        ],
+        "mpmax": [
+          45,
+          10
+        ],
+        "attack": [
+          8,
+          10
+        ],
+        "initiative": [
+          32,
+          100
+        ]
+      },
+      "reference_skill": 101,
+      "tooltip_args": 6
+    },
+    "6215": {
+      "item": 6215,
+      "skill": 301,
+      "name": "修身养性",
+      "tier": 0,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "mpmax": [
+          124,
+          10
+        ]
+      },
+      "reference_skill": 103,
+      "tooltip_args": 2
+    },
+    "6216": {
+      "item": 6216,
+      "skill": 302,
+      "name": "我行我素",
+      "tier": 0,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "initiative": [
+          955,
+          1000
+        ]
+      },
+      "reference_skill": 102,
+      "tooltip_args": 2
+    },
+    "6217": {
+      "item": 6217,
+      "skill": 303,
+      "name": "野性之力",
+      "tier": 0,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "attack": [
+          1522,
+          1000
+        ]
+      },
+      "reference_skill": 105,
+      "tooltip_args": 2
+    },
+    "6218": {
+      "item": 6218,
+      "skill": 304,
+      "name": "阴魂不散",
+      "tier": 0,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "hpmax": [
+          123,
+          10
+        ]
+      },
+      "reference_skill": 104,
+      "tooltip_args": 2
+    },
+    "6219": {
+      "item": 6219,
+      "skill": 305,
+      "name": "阳关三叠",
+      "tier": 1,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "book_dodge": [
+          1144,
+          1000
+        ]
+      },
+      "reference_skill": 107,
+      "tooltip_args": 2
+    },
+    "6220": {
+      "item": 6220,
+      "skill": 306,
+      "name": "剑胆琴心",
+      "tier": 1,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "book_hit": [
+          1727,
+          1000
+        ]
+      },
+      "reference_skill": 109,
+      "tooltip_args": 3
+    },
+    "6221": {
+      "item": 6221,
+      "skill": 307,
+      "name": "一箭穿心",
+      "tier": 1,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "book_fatal": [
+          103,
+          1000
+        ]
+      },
+      "reference_skill": 108,
+      "tooltip_args": 2
+    },
+    "6222": {
+      "item": 6222,
+      "skill": 308,
+      "name": "横冲直撞",
+      "tier": 1,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "book_cruel": [
+          174,
+          1000
+        ]
+      },
+      "reference_skill": 111,
+      "tooltip_args": 2
+    },
+    "6223": {
+      "item": 6223,
+      "skill": 309,
+      "name": "睚眦必报",
+      "tier": 1,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {
+        "book_counter": [
+          206,
+          1000
+        ]
+      },
+      "reference_skill": 110,
+      "tooltip_args": 2,
+      "counter_count": 1
+    }
+  },
+  "sources": {
+    "analysis\\remaining-native-rules-20261126\\native\\ed1a9e3e-data.json": "b0519fb4562440f8586dee40983c2cb285aa05a8a17286c7c7c187a0d2674db0",
+    "analysis\\online-gap-rules-20261126\\lua\\0e92bf99.lua": "7521cea7b183fb19a528d57709ed672f887bbd1a37caf5470dd50923fb5bc28c",
+    "analysis\\online-gap-rules-20261126\\lua\\67a09259.lua": "93fdd42bdb22bf102fb33f51351655b711743669d1fdb2b281f5e4440801db04",
+    "analysis\\online-gap-rules-20261126\\use-ef60f56a-prototype.json": "dfaaf9a264a9a6a839d259a5f37c783606e5c595dd7416f6920926929341969a",
+    "analysis\\online-gap-rules-20261126\\bin_script-cd9050b3-prototype.json": "27cfeaa4d06448692b85de56630fa0d3e825d10505f141a01f5f01382e1685f0",
+    "analysis\\advanced-rules-20261126\\lua\\0bdaed4e.lua": "636b394cc5d810363b432e93151ec99e4af9fb6addafe11b7653ea031b05eba0",
+    "analysis\\advanced-rules-20261126\\lua\\0f346113.lua": "c3f470357ee980ef896be3e0de9a26067dd896fe35b0f3846c7b4ca4a28f2fb6"
+  },
+  "policy": {
+    "balance": "supplied DH3HSH stat coefficients and growth thresholds; not official hidden coefficients",
+    "crafted_position": 7,
+    "min_level": 50,
+    "max_crafted_zero_tier": 1,
+    "wild_caught_allowed": false,
+    "cross_race_allowed": true,
+    "convert_current_exp_min": 500,
+    "convert_fraction": [
+      1,
+      5
+    ],
+    "native_exp_race_discount_verified": false,
+    "tier_one_and_active_books_enabled": false,
+    "tier_one_physical_books_enabled": true,
+    "crafted_slots": {
+      "7": {
+        "tier": 0,
+        "rank": 50
+      },
+      "8": {
+        "tier": 1,
+        "rank": 100
+      },
+      "9": {
+        "tier": 1,
+        "rank": 1100
+      },
+      "10": {
+        "tier": 1,
+        "rank": 2120
+      },
+      "11": {
+        "tier": 1,
+        "rank": 2140
+      }
+    }
+  },
+  "native_attack_effects": {
+    "mATTACK_EFFECT_CRUEL": 1,
+    "mATTACK_EFFECT_FATAL": 2
+  }
+}

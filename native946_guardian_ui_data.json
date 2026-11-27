@@ -1,0 +1,166 @@
+{
+  "client_revision": 946,
+  "pending": {
+    "869": {
+      "name": "s_lianqi_guardian_boost",
+      "path": "common/protocol/lianqi/s_lianqi_guardian_boost.pto",
+      "label": "守护炼气",
+      "fields": [
+        [
+          "main_guardian_id",
+          "number"
+        ],
+        [
+          "sub_guardian_id",
+          "number"
+        ]
+      ]
+    },
+    "870": {
+      "name": "s_lianqi_item_forge",
+      "path": "common/protocol/lianqi/s_lianqi_item_forge.pto",
+      "label": "守护炼气",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ],
+        [
+          "item_id_list",
+          "number",
+          0
+        ]
+      ]
+    },
+    "871": {
+      "name": "s_lianqi_summon_merge",
+      "path": "common/protocol/lianqi/s_lianqi_summon_merge.pto",
+      "label": "守护炼气",
+      "fields": [
+        [
+          "summon_id1",
+          "number"
+        ],
+        [
+          "summon_id2",
+          "number"
+        ]
+      ]
+    },
+    "950": {
+      "name": "s_make_new_stone_for_summon",
+      "path": "common/protocol/new_stone/s_make_new_stone_for_summon.pto",
+      "label": "守护灵石",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ],
+        [
+          "new_stone_id",
+          "number"
+        ],
+        [
+          "hole_index",
+          "number"
+        ]
+      ]
+    },
+    "952": {
+      "name": "s_open_summon_new_stone_panel",
+      "path": "common/protocol/new_stone/s_open_summon_new_stone_panel.pto",
+      "label": "守护灵石",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ]
+      ]
+    },
+    "3043": {
+      "name": "s_summon_stone_open_inlay_panel",
+      "path": "common/protocol/summon_stone/s_summon_stone_open_inlay_panel.pto",
+      "label": "守护灵石",
+      "fields": [
+        [
+          "summon_id",
+          "number"
+        ]
+      ]
+    },
+    "3147": {
+      "name": "s_sixiang_base_addexp",
+      "path": "common/protocol/summon_op/s_sixiang_base_addexp.pto",
+      "label": "四象修抗",
+      "fields": [
+        [
+          "tag",
+          "number"
+        ],
+        [
+          "id",
+          "number"
+        ]
+      ]
+    },
+    "3148": {
+      "name": "s_sixiang_base_detail",
+      "path": "common/protocol/summon_op/s_sixiang_base_detail.pto",
+      "label": "四象修抗",
+      "fields": [
+        [
+          "id",
+          "number"
+        ]
+      ]
+    },
+    "3149": {
+      "name": "s_sixiang_org_addexp",
+      "path": "common/protocol/summon_op/s_sixiang_org_addexp.pto",
+      "label": "四象修抗",
+      "fields": [
+        [
+          "tag",
+          "number"
+        ]
+      ]
+    },
+    "3150": {
+      "name": "s_sixiang_power_detail",
+      "path": "common/protocol/summon_op/s_sixiang_power_detail.pto",
+      "label": "四象修抗",
+      "fields": [
+        [
+          "id",
+          "number"
+        ]
+      ]
+    },
+    "3151": {
+      "name": "s_sixiang_power_reforge",
+      "path": "common/protocol/summon_op/s_sixiang_power_reforge.pto",
+      "label": "四象修抗",
+      "fields": [
+        [
+          "id",
+          "number"
+        ]
+      ]
+    },
+    "3152": {
+      "name": "s_sixiang_power_reforge_choose",
+      "path": "common/protocol/summon_op/s_sixiang_power_reforge_choose.pto",
+      "label": "四象修抗",
+      "fields": [
+        [
+          "id",
+          "number"
+        ],
+        [
+          "choose",
+          "number"
+        ]
+      ]
+    }
+  }
+}

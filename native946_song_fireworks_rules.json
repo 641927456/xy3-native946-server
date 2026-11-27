@@ -1,0 +1,9 @@
+{
+  "source": "本机规则",
+  "experience": {
+    "sender": 1000000,
+    "friend": 1000000,
+    "nearby": 1000000
+  },
+  "nearby_radius_cells": null
+}

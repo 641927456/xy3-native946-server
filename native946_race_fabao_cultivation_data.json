@@ -1,0 +1,382 @@
+{
+  "materials": {
+    "47934": {
+      "name": "阴阳灵石",
+      "icon": 8569,
+      "desc": "种族法宝专用培养道具，可用于激活或逆转法宝进阶可获得的两仪属性。",
+      "max_stack": 99,
+      "trade_flag": 1
+    },
+    "47935": {
+      "name": "道蕴魔晶",
+      "icon": 8570,
+      "desc": "种族法宝专用培养道具，可用于洗炼种族法宝已经激活的两仪属性。",
+      "max_stack": 99,
+      "trade_flag": 1
+    },
+    "47936": {
+      "name": "蓝月琼浆",
+      "icon": 8571,
+      "desc": "种族法宝专用培养道具，可用于提升种族法宝的道行。",
+      "max_stack": 99,
+      "trade_flag": 1
+    }
+  },
+  "activation": [
+    {
+      "ForgeCash": 10000,
+      "ForgeCost": 1,
+      "ActiveCash": 100000,
+      "ActiveCost": 1
+    },
+    {
+      "ForgeCash": 10000,
+      "ForgeCost": 1,
+      "ActiveCash": 100000,
+      "ActiveCost": 1
+    },
+    {
+      "ForgeCash": 10000,
+      "ForgeCost": 1,
+      "ActiveCash": 200000,
+      "ActiveCost": 2
+    },
+    {
+      "ForgeCash": 10000,
+      "ForgeCost": 1,
+      "ActiveCash": 200000,
+      "ActiveCost": 2
+    },
+    {
+      "ForgeCash": 20000,
+      "ForgeCost": 2,
+      "ActiveCash": 300000,
+      "ActiveCost": 3
+    },
+    {
+      "ForgeCash": 20000,
+      "ForgeCost": 2,
+      "ActiveCash": 300000,
+      "ActiveCost": 3
+    },
+    {
+      "ForgeCash": 20000,
+      "ForgeCost": 2,
+      "ActiveCash": 400000,
+      "ActiveCost": 4
+    },
+    {
+      "ForgeCash": 20000,
+      "ForgeCost": 2,
+      "ActiveCash": 400000,
+      "ActiveCost": 4
+    },
+    {
+      "ForgeCash": 30000,
+      "ForgeCost": 3,
+      "ActiveCash": 500000,
+      "ActiveCost": 5
+    },
+    {
+      "ForgeCost": 3,
+      "ForgeCash": 30000,
+      "ActiveCash": 500000,
+      "ActiveCost": 5
+    }
+  ],
+  "attributes": {
+    "1": {
+      "AttrValue": 15,
+      "RaceLimit": [
+        1,
+        7
+      ],
+      "YinYang": 1
+    },
+    "2": {
+      "AttrValue": 15,
+      "RaceLimit": [
+        1,
+        7
+      ],
+      "YinYang": 1
+    },
+    "3": {
+      "AttrValue": 15,
+      "RaceLimit": [
+        1,
+        7
+      ],
+      "YinYang": 1
+    },
+    "4": {
+      "AttrValue": 900,
+      "RaceLimit": [
+        3
+      ],
+      "YinYang": 1
+    },
+    "5": {
+      "AttrValue": 500,
+      "RaceLimit": [
+        1,
+        3
+      ],
+      "YinYang": 1
+    },
+    "6": {
+      "AttrValue": 500,
+      "RaceLimit": [
+        1,
+        3
+      ],
+      "YinYang": 1
+    },
+    "7": {
+      "AttrValue": 500,
+      "RaceLimit": [
+        1,
+        3
+      ],
+      "YinYang": 1
+    },
+    "8": {
+      "AttrValue": 500,
+      "RaceLimit": [
+        1,
+        3
+      ],
+      "YinYang": 1
+    },
+    "9": {
+      "AttrValue": 60,
+      "RaceLimit": [
+        2,
+        3
+      ],
+      "YinYang": 1
+    },
+    "10": {
+      "AttrValue": 30,
+      "RaceLimit": [
+        2
+      ],
+      "YinYang": 1
+    },
+    "11": {
+      "AttrValue": 60,
+      "RaceLimit": [
+        2,
+        3
+      ],
+      "YinYang": 1
+    },
+    "12": {
+      "AttrValue": 500,
+      "RaceLimit": [
+        2,
+        7
+      ],
+      "YinYang": 1
+    },
+    "13": {
+      "AttrValue": 500,
+      "RaceLimit": [
+        2,
+        7
+      ],
+      "YinYang": 1
+    },
+    "14": {
+      "AttrValue": 30,
+      "RaceLimit": [
+        2,
+        7
+      ],
+      "YinYang": 1
+    },
+    "15": {
+      "AttrValue": 30,
+      "RaceLimit": [
+        2,
+        7
+      ],
+      "YinYang": 1
+    },
+    "16": {
+      "AttrValue": 50,
+      "RaceLimit": [
+        1,
+        2,
+        3,
+        7
+      ],
+      "YinYang": 2
+    },
+    "17": {
+      "AttrValue": 75,
+      "RaceLimit": [
+        1,
+        2,
+        3,
+        7
+      ],
+      "YinYang": 2
+    },
+    "18": {
+      "AttrValue": 1000,
+      "RaceLimit": [
+        1,
+        2,
+        3,
+        7
+      ],
+      "YinYang": 2
+    },
+    "19": {
+      "AttrValue": 1000,
+      "RaceLimit": [
+        1,
+        2,
+        3,
+        7
+      ],
+      "YinYang": 2
+    },
+    "20": {
+      "AttrValue": 5,
+      "RaceLimit": [
+        1
+      ],
+      "YinYang": 2
+    },
+    "21": {
+      "AttrValue": 5,
+      "RaceLimit": [
+        1
+      ],
+      "YinYang": 2
+    },
+    "22": {
+      "AttrValue": 5,
+      "RaceLimit": [
+        1
+      ],
+      "YinYang": 2
+    },
+    "23": {
+      "AttrValue": 200,
+      "RaceLimit": [
+        1
+      ],
+      "YinYang": 2
+    },
+    "24": {
+      "AttrValue": 200,
+      "RaceLimit": [
+        3
+      ],
+      "YinYang": 2
+    },
+    "25": {
+      "AttrValue": 200,
+      "RaceLimit": [
+        3
+      ],
+      "YinYang": 2
+    },
+    "26": {
+      "AttrValue": 200,
+      "RaceLimit": [
+        3
+      ],
+      "YinYang": 2
+    },
+    "27": {
+      "AttrValue": 200,
+      "RaceLimit": [
+        3
+      ],
+      "YinYang": 2
+    },
+    "28": {
+      "AttrValue": 50,
+      "RaceLimit": [
+        7
+      ],
+      "YinYang": 2
+    },
+    "29": {
+      "AttrValue": 50,
+      "RaceLimit": [
+        7
+      ],
+      "YinYang": 2
+    },
+    "30": {
+      "AttrValue": 20,
+      "RaceLimit": [
+        7
+      ],
+      "YinYang": 2
+    },
+    "31": {
+      "AttrValue": 100,
+      "RaceLimit": [
+        7
+      ],
+      "YinYang": 2
+    },
+    "32": {
+      "AttrValue": 30,
+      "RaceLimit": [
+        2
+      ],
+      "YinYang": 2
+    },
+    "33": {
+      "AttrValue": 20,
+      "RaceLimit": [
+        2
+      ],
+      "YinYang": 2
+    },
+    "34": {
+      "AttrValue": 50,
+      "RaceLimit": [
+        2
+      ],
+      "YinYang": 2
+    },
+    "35": {
+      "AttrValue": 30,
+      "RaceLimit": [
+        2
+      ],
+      "YinYang": 2
+    }
+  },
+  "stove_items": [
+    46808,
+    46838,
+    46839,
+    46840,
+    46841,
+    46862,
+    46863,
+    46873,
+    46980,
+    47021,
+    47022,
+    47023,
+    47221,
+    47223,
+    47224
+  ],
+  "stove_cooldown_days": 3,
+  "stove_reward_types": [
+    47934,
+    47935,
+    47936
+  ]
+}

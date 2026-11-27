@@ -1,0 +1,30 @@
+{
+  "client_revision": 946,
+  "scope": "Officially announced fixed battle cores; growth costs and unresolved interactions remain pending.",
+  "source": {
+    "url": "https://xy3.163.com/2025/11/11/6355_1270367.html",
+    "sha256": "5d36f9beaa912491d76d173a63125088245b152965492a57c180c10439383c3e",
+    "announcement_revision": 897,
+    "client_skill_chunk_sha256": "7c31ace4dd2d52868bc995dab8ab234129490d4a58170e890250581fcd280fc7"
+  },
+  "rules": {
+    "4922": {
+      "name": "背水一战",
+      "species": 3390,
+      "damage_percent": 100,
+      "battle_limit": 1,
+      "mana": 0,
+      "description": "被击杀倒地或离场时，对攻击者发起伤害为100%的普通攻击。（每场战斗只能触发1次）",
+      "pending": ["培养经验与消耗", "复活及其他特殊退场效果的优先级", "没有存活攻击者的间接伤害"]
+    },
+    "4923": {
+      "name": "泪雨还春",
+      "species": 3391,
+      "heal_max_hp_percent": 100,
+      "battle_limit": 1,
+      "mana": 0,
+      "description": "被击杀倒地或离场时，对本方当前气血最低的单位回复其最大生命值100%的气血。（每场战斗只能触发1次）",
+      "pending": ["培养经验与消耗", "最低气血并列时的目标顺序", "己方另有倒地单位时的目标与复活规则", "禁止或削减治疗状态的交互"]
+    }
+  }
+}

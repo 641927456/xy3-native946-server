@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "client_revision": 946,
+  "seller_currency": 1,
+  "shop_profile": "local reference prices from supplied DH3HSH package",
+  "price_source": "D:\\DH3\\dh3hsh\\RLRLYYJDHHSH\\服务端\\新数据表\\S商店数据.xls",
+  "price_source_sha256": "1a59533228bc0ea7e141014d532dede8dc8c0692cbbd6ae43d54b4cceed31a23",
+  "medicine_shop": {
+    "scene": 2034,
+    "npc_id": 1271,
+    "goods": {
+      "4000": 1,
+      "4001": 1,
+      "4002": 4,
+      "4003": 4,
+      "4004": 8,
+      "4005": 8
+    }
+  },
+  "medical_cost": 0,
+  "storage_page": 20,
+  "storage_capacity": 24
+}

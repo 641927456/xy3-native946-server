@@ -1,0 +1,3260 @@
+{
+  "sources": {
+    "sigil": "946 configs.wdf 505d8e68、edfecc11；阿飞同名编队与本机缩放；未对应单体使用本机同级编队。",
+    "titles": "946 configs.wdf a95a038d、a961d106、edfecc11；经验数额为本机规则。",
+    "drop": "本机规则：野外星宿结算每人20%，按946可确认来源等级或本机前一星级选择。",
+    "model": "部分高级星符首怪造型来自946 configs.wdf 98e34889，其余使用匹配编队的造型。"
+  },
+  "sigils": {
+    "6407": {
+      "name": "凤篆天符-15级地魁星",
+      "star_name": "15级地魁星",
+      "rank": 15,
+      "map": 2002,
+      "map_name": "皇城",
+      "template": 67,
+      "step": 60,
+      "source_natural_ranks": [
+        14,
+        15
+      ],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "凤篆天符-15级地魁星",
+        "desc": "神秘的符牌，使用后可于#Y皇城#n召唤出#G地魁星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2115,
+        "max_stack": 20
+      },
+      "native_shape": 2359
+    },
+    "6411": {
+      "name": "龙章天符-14级天威星",
+      "star_name": "14级天威星",
+      "rank": 14,
+      "map": 2014,
+      "map_name": "瑶池",
+      "template": 63,
+      "step": 59,
+      "source_natural_ranks": [
+        13,
+        14
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-14级天威星",
+        "desc": "神秘的符牌，使用后可于#Y瑶池#n召唤出#R天威星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      },
+      "native_shape": 2080
+    },
+    "6412": {
+      "name": "龙章天符-14级天捷星",
+      "star_name": "14级天捷星",
+      "rank": 14,
+      "map": 2014,
+      "map_name": "瑶池",
+      "template": 63,
+      "step": 58,
+      "source_natural_ranks": [
+        13,
+        14
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-14级天捷星",
+        "desc": "神秘的符牌，使用后可于#Y瑶池#n召唤出#R天捷星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      },
+      "native_shape": 2064
+    },
+    "6413": {
+      "name": "龙章天符-14级天立星",
+      "star_name": "14级天立星",
+      "rank": 14,
+      "map": 2014,
+      "map_name": "瑶池",
+      "template": 63,
+      "step": 57,
+      "source_natural_ranks": [
+        13,
+        14
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-14级天立星",
+        "desc": "神秘的符牌，使用后可于#Y瑶池#n召唤出#R天立星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      },
+      "native_shape": 2068
+    },
+    "6414": {
+      "name": "龙章天符-13级天寿星",
+      "star_name": "13级天寿星",
+      "rank": 13,
+      "map": 2022,
+      "map_name": "海藏",
+      "template": 59,
+      "step": 56,
+      "source_natural_ranks": [
+        12,
+        13
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-13级天寿星",
+        "desc": "神秘的符牌，使用后可于#Y海藏#n召唤出#R天寿星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "6415": {
+      "name": "龙章天符-12级天微星",
+      "star_name": "12级天微星",
+      "rank": 12,
+      "map": 2016,
+      "map_name": "东海",
+      "template": 58,
+      "step": 55,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-12级天微星",
+        "desc": "神秘的符牌，使用后可于#Y东海#n召唤出#R天微星#n#r【建议挑战等级】#Y120#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "6416": {
+      "name": "龙章天符-16级天罡星",
+      "star_name": "16级天罡星",
+      "rank": 16,
+      "map": 2026,
+      "map_name": "孔庙",
+      "template": 69,
+      "step": 61,
+      "source_natural_ranks": [
+        15
+      ],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-16级天罡星",
+        "desc": "神秘的符牌，使用后可于#Y孔庙#n召唤出#R天罡星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      },
+      "native_shape": 2012
+    },
+    "6655": {
+      "name": "凤篆天符-13级地勇星",
+      "star_name": "13级地勇星",
+      "rank": 13,
+      "map": 2013,
+      "map_name": "昆仑山",
+      "template": 60,
+      "step": 45,
+      "source_natural_ranks": [
+        12
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-13级地勇星",
+        "desc": "神秘的符牌，使用后可于#Y昆仑山#n召唤出#G地勇星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟#r【挑战条件】击败#Y10#n级以上星宿后方可挑战",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6656": {
+      "name": "龙章天符-11级天暗星",
+      "star_name": "11级天暗星",
+      "rank": 11,
+      "map": 2023,
+      "map_name": "五庄观",
+      "template": 47,
+      "step": 51,
+      "source_natural_ranks": [
+        10
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-11级天暗星",
+        "desc": "神秘的符牌，使用后可于#Y五庄观#n召唤出#R天暗星#n#r【建议挑战等级】#Y115#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟#r【挑战条件】击败#Y10#n级以上星宿后方可挑战",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6657": {
+      "name": "龙章天符-12级天伤星",
+      "star_name": "12级天伤星",
+      "rank": 12,
+      "map": 2023,
+      "map_name": "五庄观",
+      "template": 52,
+      "step": 50,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-12级天伤星",
+        "desc": "神秘的符牌，使用后可于#Y五庄观#n召唤出#R天伤星#n#r【建议挑战等级】#Y120#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟#r【挑战条件】击败#Y10#n级以上星宿后方可挑战",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6658": {
+      "name": "龙章天符-12级天孤星",
+      "star_name": "12级天孤星",
+      "rank": 12,
+      "map": 2023,
+      "map_name": "五庄观",
+      "template": 52,
+      "step": 49,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-12级天孤星",
+        "desc": "神秘的符牌，使用后可于#Y五庄观#n召唤出#R天孤星#n#r【建议挑战等级】#Y120#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟#r【挑战条件】击败#Y10#n级以上星宿后方可挑战",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6659": {
+      "name": "龙章天符-13级天贵星",
+      "star_name": "13级天贵星",
+      "rank": 13,
+      "map": 2013,
+      "map_name": "昆仑山",
+      "template": 59,
+      "step": 48,
+      "source_natural_ranks": [
+        12
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-13级天贵星",
+        "desc": "神秘的符牌，使用后可于#Y昆仑山#n召唤出#R天贵星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟#r【挑战条件】击败#Y10#n级以上星宿后方可挑战",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6660": {
+      "name": "龙章天符-13级天英星",
+      "star_name": "13级天英星",
+      "rank": 13,
+      "map": 2013,
+      "map_name": "昆仑山",
+      "template": 59,
+      "step": 47,
+      "source_natural_ranks": [
+        12
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-13级天英星",
+        "desc": "神秘的符牌，使用后可于#Y昆仑山#n召唤出#R天英星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟#r【挑战条件】击败#Y10#n级以上星宿后方可挑战",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6661": {
+      "name": "龙章天符-14级天雄星",
+      "star_name": "14级天雄星",
+      "rank": 14,
+      "map": 2014,
+      "map_name": "瑶池",
+      "template": 63,
+      "step": 46,
+      "source_natural_ranks": [
+        13
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-14级天雄星",
+        "desc": "神秘的符牌，使用后可于#Y瑶池#n召唤出#R天雄星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟#r【挑战条件】击败#Y10#n级以上星宿后方可挑战",
+        "icon": 2114,
+        "max_stack": 99
+      },
+      "native_shape": 2532
+    },
+    "6662": {
+      "name": "凤篆天符-12级地煞星",
+      "star_name": "12级地煞星",
+      "rank": 12,
+      "map": 2012,
+      "map_name": "普陀山",
+      "template": 52,
+      "step": 52,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "凤篆天符-12级地煞星",
+        "desc": "神秘的符牌，使用后可于#Y普陀山#n召唤出#G地煞星#n#r【建议挑战等级】#Y125#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟#r【挑战条件】击败#Y10#n级以上星宿后方可挑战",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6663": {
+      "name": "凤篆天符-15级地然星",
+      "star_name": "15级地然星",
+      "rank": 15,
+      "map": 2002,
+      "map_name": "皇城",
+      "template": 67,
+      "step": 53,
+      "source_natural_ranks": [
+        14
+      ],
+      "history_gate": 10,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "凤篆天符-15级地然星",
+        "desc": "神秘的符牌，使用后可于#Y皇城#n召唤出#G地然星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟#r【挑战条件】击败#Y10#n级以上星宿后方可挑战",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6740": {
+      "name": "凤篆天符-地贼星",
+      "star_name": "1级地贼星",
+      "rank": 1,
+      "map": 2027,
+      "map_name": "大唐东",
+      "template": 3,
+      "step": 21,
+      "source_natural_ranks": [
+        1
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地贼星",
+        "desc": "神秘的符牌，使用后可于#Y大唐东#n召唤出#G地贼星#n#r【建议挑战等级】#Y25#n#r【建议挑战人数】#Y3#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6741": {
+      "name": "凤篆天符-地贼星",
+      "star_name": "1级地贼星",
+      "rank": 1,
+      "map": 2027,
+      "map_name": "大唐东",
+      "template": 4,
+      "step": 22,
+      "source_natural_ranks": [
+        1
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "variant_size": 8,
+      "item": {
+        "name": "凤篆天符-地贼星",
+        "desc": "神秘的符牌，使用后可于#Y大唐东#n召唤出#G地贼星#n#r【建议挑战等级】#Y25#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6742": {
+      "name": "凤篆天符-地俊星",
+      "star_name": "2级地俊星",
+      "rank": 2,
+      "map": 2011,
+      "map_name": "花果山",
+      "template": 9,
+      "step": 23,
+      "source_natural_ranks": [
+        1
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地俊星",
+        "desc": "神秘的符牌，使用后可于#Y花果山#n召唤出#G地俊星#n#r【建议挑战等级】#Y35#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6743": {
+      "name": "凤篆天符-地乐星",
+      "star_name": "2级地乐星",
+      "rank": 2,
+      "map": 2011,
+      "map_name": "花果山",
+      "template": 8,
+      "step": 24,
+      "source_natural_ranks": [
+        1
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地乐星",
+        "desc": "神秘的符牌，使用后可于#Y花果山#n召唤出#G地乐星#n#r【建议挑战等级】#Y35#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6744": {
+      "name": "凤篆天符-地短星",
+      "star_name": "3级地短星",
+      "rank": 3,
+      "map": 2010,
+      "map_name": "五指山",
+      "template": 10,
+      "step": 25,
+      "source_natural_ranks": [
+        2
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地短星",
+        "desc": "神秘的符牌，使用后可于#Y五指山#n召唤出#G地短星#n#r【建议挑战等级】#Y40#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6745": {
+      "name": "凤篆天符-地损星",
+      "star_name": "3级地损星",
+      "rank": 3,
+      "map": 2010,
+      "map_name": "五指山",
+      "template": 12,
+      "step": 26,
+      "source_natural_ranks": [
+        2
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地损星",
+        "desc": "神秘的符牌，使用后可于#Y五指山#n召唤出#G地损星#n#r【建议挑战等级】#Y45#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6746": {
+      "name": "凤篆天符-地平星",
+      "star_name": "4级地平星",
+      "rank": 4,
+      "map": 2009,
+      "map_name": "幽冥地府",
+      "template": 13,
+      "step": 27,
+      "source_natural_ranks": [
+        3
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地平星",
+        "desc": "神秘的符牌，使用后可于#Y幽冥地府#n召唤出#G地平星#n#r【建议挑战等级】#Y50#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6747": {
+      "name": "凤篆天符-地平星",
+      "star_name": "4级地平星",
+      "rank": 4,
+      "map": 2016,
+      "map_name": "东海",
+      "template": 14,
+      "step": 28,
+      "source_natural_ranks": [
+        3
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地平星",
+        "desc": "神秘的符牌，使用后可于#Y东海#n召唤出#G地平星#n#r【建议挑战等级】#Y50#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6748": {
+      "name": "凤篆天符-地强星",
+      "star_name": "5级地强星",
+      "rank": 5,
+      "map": 2009,
+      "map_name": "幽冥地府",
+      "template": 17,
+      "step": 29,
+      "source_natural_ranks": [
+        4
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地强星",
+        "desc": "神秘的符牌，使用后可于#Y幽冥地府#n召唤出#G地强星#n#r【建议挑战等级】#Y55#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6749": {
+      "name": "凤篆天符-地微星",
+      "star_name": "5级地微星",
+      "rank": 5,
+      "map": 2030,
+      "map_name": "方寸山",
+      "template": 20,
+      "step": 30,
+      "source_natural_ranks": [
+        4
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地微星",
+        "desc": "神秘的符牌，使用后可于#Y方寸山#n召唤出#G地微星#n#r【建议挑战等级】#Y55#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6750": {
+      "name": "凤篆天符-地慧星",
+      "star_name": "6级地慧星",
+      "rank": 6,
+      "map": 2009,
+      "map_name": "幽冥地府",
+      "template": 21,
+      "step": 31,
+      "source_natural_ranks": [
+        5
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地慧星",
+        "desc": "神秘的符牌，使用后可于#Y幽冥地府#n召唤出#G地慧星#n#r【建议挑战等级】#Y65#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6751": {
+      "name": "凤篆天符-地阴星",
+      "star_name": "6级地阴星",
+      "rank": 6,
+      "map": 2024,
+      "map_name": "乌斯藏",
+      "template": 24,
+      "step": 32,
+      "source_natural_ranks": [
+        5
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地阴星",
+        "desc": "神秘的符牌，使用后可于#Y乌斯藏#n召唤出#G地阴星#n#r【建议挑战等级】#Y65#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6752": {
+      "name": "凤篆天符-地猛星",
+      "star_name": "7级地猛星",
+      "rank": 7,
+      "map": 2024,
+      "map_name": "乌斯藏",
+      "template": 25,
+      "step": 33,
+      "source_natural_ranks": [
+        6
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地猛星",
+        "desc": "神秘的符牌，使用后可于#Y乌斯藏#n召唤出#G地猛星#n#r【建议挑战等级】#Y75#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6753": {
+      "name": "龙章天符-天暴星",
+      "star_name": "7级天暴星",
+      "rank": 7,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 28,
+      "step": 34,
+      "source_natural_ranks": [
+        6
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天暴星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G天暴星#n#r【建议挑战等级】#Y75#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6754": {
+      "name": "龙章天符-天罪星",
+      "star_name": "8级天罪星",
+      "rank": 8,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 32,
+      "step": 35,
+      "source_natural_ranks": [
+        7
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天罪星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G天罪星#n#r【建议挑战等级】#Y80#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6755": {
+      "name": "龙章天符-天异星",
+      "star_name": "8级天异星",
+      "rank": 8,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 33,
+      "step": 36,
+      "source_natural_ranks": [
+        7
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天异星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G天异星#n#r【建议挑战等级】#Y80#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6756": {
+      "name": "龙章天符-天慧星",
+      "star_name": "9级天慧星",
+      "rank": 9,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 37,
+      "step": 37,
+      "source_natural_ranks": [
+        8
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天慧星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G天慧星#n#r【建议挑战等级】#Y85#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6757": {
+      "name": "龙章天符-天牢星",
+      "star_name": "9级天牢星",
+      "rank": 9,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 38,
+      "step": 38,
+      "source_natural_ranks": [
+        8
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天牢星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G天牢星#n#r【建议挑战等级】#Y85#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6758": {
+      "name": "凤篆天符-地恶星",
+      "star_name": "1级地恶星",
+      "rank": 1,
+      "map": 2006,
+      "map_name": "阳关",
+      "template": 2,
+      "step": 13,
+      "source_natural_ranks": [
+        1
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地恶星",
+        "desc": "神秘的符牌，使用后可于#Y阳关#n召唤出#G地恶星#n#r【建议挑战等级】#Y25#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6759": {
+      "name": "凤篆天符-地察星",
+      "star_name": "2级地察星",
+      "rank": 2,
+      "map": 2016,
+      "map_name": "东海",
+      "template": 6,
+      "step": 14,
+      "source_natural_ranks": [
+        1
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地察星",
+        "desc": "神秘的符牌，使用后可于#Y东海#n召唤出#G地察星#n#r【建议挑战等级】#Y35#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6760": {
+      "name": "凤篆天符-地壮星",
+      "star_name": "4级地壮星",
+      "rank": 4,
+      "map": 2009,
+      "map_name": "幽冥地府",
+      "template": 15,
+      "step": 15,
+      "source_natural_ranks": [
+        3
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地壮星",
+        "desc": "神秘的符牌，使用后可于#Y幽冥地府#n召唤出#G地壮星#n#r【建议挑战等级】#Y50#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6761": {
+      "name": "凤篆天符-地巧星",
+      "star_name": "5级地巧星",
+      "rank": 5,
+      "map": 2030,
+      "map_name": "方寸山",
+      "template": 18,
+      "step": 16,
+      "source_natural_ranks": [
+        4
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地巧星",
+        "desc": "神秘的符牌，使用后可于#Y方寸山#n召唤出#G地巧星#n#r【建议挑战等级】#Y55#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6762": {
+      "name": "凤篆天符-地孤星",
+      "star_name": "6级地孤星",
+      "rank": 6,
+      "map": 2030,
+      "map_name": "方寸山",
+      "template": 22,
+      "step": 17,
+      "source_natural_ranks": [
+        5
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地孤星",
+        "desc": "神秘的符牌，使用后可于#Y方寸山#n召唤出#G地孤星#n#r【建议挑战等级】#Y65#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6763": {
+      "name": "凤篆天符-地羁星",
+      "star_name": "7级地羁星",
+      "rank": 7,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 26,
+      "step": 18,
+      "source_natural_ranks": [
+        6
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地羁星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G地羁星#n#r【建议挑战等级】#Y75#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6764": {
+      "name": "凤篆天符-地文星",
+      "star_name": "8级地文星",
+      "rank": 8,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 30,
+      "step": 19,
+      "source_natural_ranks": [
+        7
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地文星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G地文星#n#r【建议挑战等级】#Y80#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6765": {
+      "name": "龙章天符-天速星",
+      "star_name": "9级天速星",
+      "rank": 9,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 35,
+      "step": 20,
+      "source_natural_ranks": [
+        8
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天速星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G天速星#n#r【建议挑战等级】#Y100#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6766": {
+      "name": "凤篆天符-地空星",
+      "star_name": "3级地空星",
+      "rank": 3,
+      "map": 2010,
+      "map_name": "五指山",
+      "template": 11,
+      "step": 54,
+      "source_natural_ranks": [
+        2
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地空星",
+        "desc": "神秘的符牌，使用后可于#Y五指山#n召唤出#G地空星#n#r【建议挑战等级】#Y45#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6767": {
+      "name": "凤篆天符-地奴星",
+      "star_name": "6级地奴星",
+      "rank": 6,
+      "map": 2030,
+      "map_name": "方寸山",
+      "template": 23,
+      "step": 70,
+      "source_natural_ranks": [
+        5
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地奴星",
+        "desc": "神秘的符牌，使用后可于#Y方寸山#n召唤出#G地奴星#n#r【建议挑战等级】#Y65#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6768": {
+      "name": "凤篆天符-地周星",
+      "star_name": "7级地周星",
+      "rank": 7,
+      "map": 2030,
+      "map_name": "方寸山",
+      "template": 29,
+      "step": 71,
+      "source_natural_ranks": [
+        6
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地周星",
+        "desc": "神秘的符牌，使用后可于#Y方寸山#n召唤出#G地周星#n#r【建议挑战等级】#Y75#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6769": {
+      "name": "凤篆天符-地进星",
+      "star_name": "9级地进星",
+      "rank": 9,
+      "map": 2024,
+      "map_name": "乌斯藏",
+      "template": 39,
+      "step": 72,
+      "source_natural_ranks": [
+        8
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地进星",
+        "desc": "神秘的符牌，使用后可于#Y乌斯藏#n召唤出#G地进星#n#r【建议挑战等级】#Y85#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6770": {
+      "name": "龙章天符-天退星",
+      "star_name": "10级天退星",
+      "rank": 10,
+      "map": 2012,
+      "map_name": "普陀山",
+      "template": 41,
+      "step": 39,
+      "source_natural_ranks": [
+        9
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天退星",
+        "desc": "神秘的符牌，使用后可于#Y普陀山#n召唤出#G天退星#n#r【建议挑战等级】#Y105#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6771": {
+      "name": "龙章天符-天剑星",
+      "star_name": "10级天剑星",
+      "rank": 10,
+      "map": 2023,
+      "map_name": "五庄观",
+      "template": 40,
+      "step": 40,
+      "source_natural_ranks": [
+        9
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天剑星",
+        "desc": "神秘的符牌，使用后可于#Y五庄观#n召唤出#G天剑星#n#r【建议挑战等级】#Y110#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6772": {
+      "name": "龙章天符-天杀星",
+      "star_name": "11级天杀星",
+      "rank": 11,
+      "map": 2012,
+      "map_name": "普陀山",
+      "template": 49,
+      "step": 41,
+      "source_natural_ranks": [
+        10
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天杀星",
+        "desc": "神秘的符牌，使用后可于#Y普陀山#n召唤出#G天杀星#n#r【建议挑战等级】#Y110#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6773": {
+      "name": "龙章天符-天佑星",
+      "star_name": "11级天佑星",
+      "rank": 11,
+      "map": 2023,
+      "map_name": "五庄观",
+      "template": 46,
+      "step": 42,
+      "source_natural_ranks": [
+        10
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天佑星",
+        "desc": "神秘的符牌，使用后可于#Y五庄观#n召唤出#G天佑星#n#r【建议挑战等级】#Y115#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6774": {
+      "name": "龙章天符-天巧星",
+      "star_name": "12级天巧星",
+      "rank": 12,
+      "map": 2012,
+      "map_name": "普陀山",
+      "template": 55,
+      "step": 43,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天巧星",
+        "desc": "神秘的符牌，使用后可于#Y普陀山#n召唤出#G天巧星#n#r【建议挑战等级】#Y120#n#r【建议挑战人数】#Y4#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6775": {
+      "name": "龙章天符-天富星",
+      "star_name": "12级天富星",
+      "rank": 12,
+      "map": 2023,
+      "map_name": "五庄观",
+      "template": 54,
+      "step": 44,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天富星",
+        "desc": "神秘的符牌，使用后可于#Y五庄观#n召唤出#G天富星#n#r【建议挑战等级】#Y120#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6776": {
+      "name": "凤篆天符-地妖星",
+      "star_name": "10级地妖星",
+      "rank": 10,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 43,
+      "step": 73,
+      "source_natural_ranks": [
+        9
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地妖星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G地妖星#n#r【建议挑战等级】#Y105#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6777": {
+      "name": "凤篆天符-地捷星",
+      "star_name": "10级地捷星",
+      "rank": 10,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 42,
+      "step": 74,
+      "source_natural_ranks": [
+        9
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地捷星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G地捷星#n#r【建议挑战等级】#Y105#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6778": {
+      "name": "凤篆天符-地奇星",
+      "star_name": "11级地奇星",
+      "rank": 11,
+      "map": 2012,
+      "map_name": "普陀山",
+      "template": 48,
+      "step": 75,
+      "source_natural_ranks": [
+        10
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地奇星",
+        "desc": "神秘的符牌，使用后可于#Y普陀山#n召唤出#G地奇星#n#r【建议挑战等级】#Y125#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6779": {
+      "name": "凤篆天符-地威星",
+      "star_name": "11级地威星",
+      "rank": 11,
+      "map": 2025,
+      "map_name": "万寿山",
+      "template": 50,
+      "step": 76,
+      "source_natural_ranks": [
+        10
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-地威星",
+        "desc": "神秘的符牌，使用后可于#Y万寿山#n召唤出#G地威星#n#r【建议挑战等级】#Y105#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 99
+      }
+    },
+    "6780": {
+      "name": "龙章天符-天空星",
+      "star_name": "11级天空星",
+      "rank": 11,
+      "map": 2023,
+      "map_name": "五庄观",
+      "template": 45,
+      "step": 77,
+      "source_natural_ranks": [
+        10
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天空星",
+        "desc": "神秘的符牌，使用后可于#Y五庄观#n召唤出#G天空星#n#r【建议挑战等级】#Y120#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "6781": {
+      "name": "龙章天符-天损星",
+      "star_name": "13级天损星",
+      "rank": 13,
+      "map": 2013,
+      "map_name": "昆仑山",
+      "template": 59,
+      "step": 78,
+      "source_natural_ranks": [
+        12
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-天损星",
+        "desc": "神秘的符牌，使用后可于#Y昆仑山#n召唤出#G天损星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r#R【不可交易】#n#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 99
+      }
+    },
+    "45086": {
+      "name": "凤篆天符-12级地轴星",
+      "star_name": "12级地轴星",
+      "rank": 12,
+      "map": 2116,
+      "map_name": "宝象国野外",
+      "template": 57,
+      "step": 83,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-12级地轴星",
+        "desc": "神秘的符牌，使用后可于#Y宝象国野外#n召唤出#G地轴星#n#r【建议挑战等级】#Y130#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y10#n级以上星宿后方可挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 20
+      }
+    },
+    "45087": {
+      "name": "凤篆天符-12级地幽星",
+      "star_name": "12级地幽星",
+      "rank": 12,
+      "map": 2009,
+      "map_name": "幽冥地府",
+      "template": 52,
+      "step": 84,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-12级地幽星",
+        "desc": "神秘的符牌，使用后可于#Y幽冥地府#n召唤出#G地幽星#n#r【建议挑战等级】#Y130#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y10#n级以上星宿后方可挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 20
+      }
+    },
+    "45088": {
+      "name": "凤篆天符-12级地杰星",
+      "star_name": "12级地杰星",
+      "rank": 12,
+      "map": 2009,
+      "map_name": "幽冥地府",
+      "template": 53,
+      "step": 85,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-12级地杰星",
+        "desc": "神秘的符牌，使用后可于#Y幽冥地府#n召唤出#G地杰星#n#r【建议挑战等级】#Y130#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y10#n级以上星宿后方可挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 20
+      }
+    },
+    "45089": {
+      "name": "龙章天符-13级天满星",
+      "star_name": "13级天满星",
+      "rank": 13,
+      "map": 2019,
+      "map_name": "北冥",
+      "template": 61,
+      "step": 86,
+      "source_natural_ranks": [
+        12
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-13级天满星",
+        "desc": "神秘的符牌，使用后可于#Y北冥#n召唤出#R天满星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y10#n级以上星宿后方可挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "45090": {
+      "name": "龙章天符-13级天究星",
+      "star_name": "13级天究星",
+      "rank": 13,
+      "map": 2019,
+      "map_name": "北冥",
+      "template": 62,
+      "step": 87,
+      "source_natural_ranks": [
+        12
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-13级天究星",
+        "desc": "神秘的符牌，使用后可于#Y北冥#n召唤出#R天究星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y10#n级以上星宿后方可挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "45091": {
+      "name": "龙章天符-14级天猛星",
+      "star_name": "14级天猛星",
+      "rank": 14,
+      "map": 2220,
+      "map_name": "平顶山",
+      "template": 63,
+      "step": 88,
+      "source_natural_ranks": [
+        13
+      ],
+      "history_gate": 13,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-14级天猛星",
+        "desc": "神秘的符牌，使用后可于#Y平顶山#n召唤出#R天猛星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y13#n级以上星宿后方可挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "45092": {
+      "name": "龙章天符-15级天勇星",
+      "star_name": "15级天勇星",
+      "rank": 15,
+      "map": 2220,
+      "map_name": "平顶山",
+      "template": 68,
+      "step": 89,
+      "source_natural_ranks": [
+        14
+      ],
+      "history_gate": 14,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-15级天勇星",
+        "desc": "神秘的符牌，使用后可于#Y平顶山#n召唤出#R天勇星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y14#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "45093": {
+      "name": "龙章天符-16级天闲星",
+      "star_name": "16级天闲星",
+      "rank": 16,
+      "map": 2220,
+      "map_name": "平顶山",
+      "template": 69,
+      "step": 90,
+      "source_natural_ranks": [
+        15
+      ],
+      "history_gate": 14,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-16级天闲星",
+        "desc": "神秘的符牌，使用后可于#Y平顶山#n召唤出#R天闲星#n#r【建议挑战等级】#Y150#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y14#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      },
+      "native_shape": 2041
+    },
+    "45094": {
+      "name": "龙章天符-16级天魁星",
+      "star_name": "16级天魁星",
+      "rank": 16,
+      "map": 2237,
+      "map_name": "西梁女国宫殿",
+      "template": 70,
+      "step": 91,
+      "source_natural_ranks": [
+        15
+      ],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "阿飞同名编队100082及946模型2028（本机属性缩放）",
+      "native_shape": 2028,
+      "item": {
+        "name": "龙章天符-16级天魁星",
+        "desc": "神秘的符牌，使用后可于#Y西梁国宫殿#n召唤出#R天魁星#n#r【建议挑战等级】#Y160#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "45410": {
+      "name": "凤篆天符-12级癫狂之地微星",
+      "star_name": "12级癫狂之地微星",
+      "rank": 12,
+      "map": 2236,
+      "map_name": "西梁女国集市",
+      "template": 56,
+      "step": 100,
+      "source_natural_ranks": [
+        11
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-12级癫狂之地微星",
+        "desc": "神秘的符牌，使用后可于#Y西梁女国集市#n召唤出#G癫狂之地微星#n#r【建议挑战等级】#Y135#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y10#n级以上星宿后方可挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 20
+      }
+    },
+    "45411": {
+      "name": "龙章天符-14级精进之天巧星",
+      "star_name": "14级精进之天巧星",
+      "rank": 14,
+      "map": 2236,
+      "map_name": "西梁女国集市",
+      "template": 64,
+      "step": 101,
+      "source_natural_ranks": [
+        13
+      ],
+      "history_gate": 10,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-14级精进之天巧星",
+        "desc": "神秘的符牌，使用后可于#Y西梁女国集市#n召唤出#G精进之天巧星#n#r【建议挑战等级】#Y150#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y10#n级以上星宿后方可挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "45412": {
+      "name": "龙章天符-16级天机星",
+      "star_name": "16级天机星",
+      "rank": 16,
+      "map": 2236,
+      "map_name": "西梁女国集市",
+      "template": 69,
+      "step": 102,
+      "source_natural_ranks": [
+        15
+      ],
+      "history_gate": 10,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-16级天机星",
+        "desc": "神秘的符牌，使用后可于#Y西梁女国集市#n召唤出#G天机星#n#r【建议挑战等级】#Y封圣160#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y10#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "45917": {
+      "name": "龙章天符-得势之天伤星",
+      "star_name": "14级得势之天伤星",
+      "rank": 14,
+      "map": 2005,
+      "map_name": "乌鸡国野外",
+      "template": 65,
+      "step": 104,
+      "source_natural_ranks": [
+        13
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-得势之天伤星",
+        "desc": "神秘的符牌，使用后可于#Y乌鸡国野外#n召唤出#R得势之天伤星#n#r【建议挑战等级】#Y140#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "45918": {
+      "name": "龙章天符-狂躁之天猛星",
+      "star_name": "15级狂躁之天猛星",
+      "rank": 15,
+      "map": 2256,
+      "map_name": "火焰山",
+      "template": 67,
+      "step": 103,
+      "source_natural_ranks": [
+        14
+      ],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "龙章天符-狂躁之天猛星",
+        "desc": "神秘的符牌，使用后可于#Y火焰山#n召唤出#R狂躁之天猛星#n#r【建议挑战等级】#Y封圣160#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      }
+    },
+    "45987": {
+      "name": "龙章天符-15级天捷星",
+      "star_name": "15级天捷星",
+      "rank": 15,
+      "map": 2238,
+      "map_name": "琵琶洞",
+      "template": 67,
+      "step": 105,
+      "source_natural_ranks": [
+        14
+      ],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本机同级替代编队",
+      "item": {
+        "name": "龙章天符-15级天捷星",
+        "desc": "神秘的符牌，使用后可于#Y琵琶洞#n召唤出#R15级天捷星#n#r【建议挑战等级】#Y145#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20
+      },
+      "native_shape": 2064
+    },
+    "46542": {
+      "name": "凤篆天符-戎装之地勇星",
+      "star_name": "14级戎装之地勇星",
+      "rank": 14,
+      "map": 2357,
+      "map_name": "御天岭",
+      "template": 66,
+      "step": 0,
+      "source_natural_ranks": [
+        13
+      ],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 3600,
+      "roster_source": "阿飞同名编队（本机属性缩放）",
+      "item": {
+        "name": "凤篆天符-戎装之地勇星",
+        "desc": "神秘的符牌，使用后可于#Y御天岭#n召唤出#R戎装之地勇星#n#r【建议挑战等级】#Y140#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 20
+      }
+    }
+  },
+  "local_group_policy": {
+    "source": "本机规则：奖励采用可用的946道具，概率为每名参战胜者独立结算。",
+    "rank_experience": 20000,
+    "rank_cash": 350,
+    "ordinary_drops": [
+      6029,
+      6106,
+      40037,
+      40038,
+      40039,
+      40040
+    ],
+    "shayao_drops": [
+      47554,
+      47605,
+      40040,
+      6106
+    ],
+    "shayao_experience": 500000,
+    "shayao_cash": 6000,
+    "bonus": {
+      "46542": [
+        45097,
+        12
+      ],
+      "45098": [
+        45097,
+        20
+      ],
+      "45097": [
+        45101,
+        20
+      ],
+      "45101": [
+        45102,
+        15
+      ]
+    },
+    "supply_percent": 10,
+    "group_hp": 8500,
+    "variant_hp": 11000,
+    "group_attack": 420,
+    "group_defense": 120,
+    "retaliation_percent": 18,
+    "retaliation_cap": 8444,
+    "revive_round": 3,
+    "revive_percent": 25,
+    "shayao_shapes": [
+      2028,
+      3249,
+      2077,
+      313,
+      2103,
+      2309,
+      3144,
+      112,
+      2081
+    ],
+    "replacements": {
+      "天威星": 2103,
+      "天猛星": 2081,
+      "地英星": 3144
+    },
+    "prize_items": {
+      "47554": {
+        "name": "神兵礼包",
+        "desc": "本服规则。开启后随机获得适用角色的一级神兵冠饰或戒指。",
+        "icon": 3201,
+        "max_stack": 99,
+        "trade_flag": 1,
+        "contents": [
+          7505,
+          7506
+        ]
+      },
+      "47605": {
+        "name": "新品武侯图礼包",
+        "desc": "本服规则。开启后随机获得法力强化、无尽火域、破法一击、月海茫茫、幻影迷踪中的一本武侯天演图。",
+        "icon": 2033,
+        "max_stack": 99,
+        "trade_flag": 0,
+        "contents": [
+          47589,
+          47590,
+          47591,
+          47592,
+          47594
+        ]
+      }
+    },
+    "prize_materials": {
+      "47589": {
+        "name": "武侯天演图·法力强化",
+        "desc": "据说是诸葛武侯所传之图，其内容神秘难解。#r【功能】守护使用后学习特技#G法力强化#n，可提高守护的加强仙法数值。#n#r【技能阶数】#G1阶#n#r【学习等级】#G0级#n",
+        "icon": 8229,
+        "max_stack": 10
+      },
+      "47590": {
+        "name": "武侯天演图·无尽火域",
+        "desc": "据说是诸葛武侯所传之图，其内容神秘难解。#r【功能】守护使用后学习特技#G无尽火域#n，释放火法时可提高火法狂暴率。#n#r【技能阶数】#G1阶#n#r【学习等级】#G0级#n",
+        "icon": 8230,
+        "max_stack": 10
+      },
+      "47591": {
+        "name": "武侯天演图·破法一击",
+        "desc": "据说是诸葛武侯所传之图，其内容神秘难解。#r【功能】守护使用后学习特技#G破法一击#n，法术攻击时可忽视目标一定仙法抗性。#n#r【技能阶数】#G1阶#n#r【学习等级】#G0级#n",
+        "icon": 8231,
+        "max_stack": 10
+      },
+      "47592": {
+        "name": "武侯天演图·月海茫茫",
+        "desc": "据说是诸葛武侯所传之图，其内容神秘难解。#r【功能】守护使用后学习特技#G月海茫茫#n，释放水法时根据目标气血最大值提升伤害。#n#r【技能阶数】#G1阶#n#r【学习等级】#G0级#n",
+        "icon": 8232,
+        "max_stack": 10
+      },
+      "47594": {
+        "name": "武侯天演图·幻影迷踪",
+        "desc": "据说是诸葛武侯所传之图，其内容神秘难解。#r【功能】守护使用后学习特技#G幻影迷踪#n，一进入战斗后在一定回合内自动进入隐身状态。#n#r【技能阶数】#G1阶#n#r【学习等级】#G0级#n",
+        "icon": 8234,
+        "max_stack": 10
+      }
+    }
+  },
+  "groups": {
+    "6409": {
+      "star_name": "最强之地煞",
+      "rank": 15,
+      "map": 2057,
+      "map_name": "森罗宝殿",
+      "template": 68,
+      "step": 64,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "凤篆天符-最强之地煞",
+        "desc": "神秘的符牌，使用后可于#Y森罗宝殿#n召唤出#G最强的地煞星宿#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2115,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "6410": {
+      "star_name": "神机军略",
+      "rank": 15,
+      "map": 2026,
+      "map_name": "孔庙",
+      "template": 68,
+      "step": 68,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "凤篆天符-神机军略",
+        "desc": "神秘的符牌，使用后可于#Y孔庙#n召唤出#G地魁群星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2115,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "6417": {
+      "star_name": "疆场伉俪",
+      "rank": 14,
+      "map": 2017,
+      "map_name": "广寒宫",
+      "template": 66,
+      "step": 65,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-疆场伉俪",
+        "desc": "神秘的符牌，使用后可于#Y广寒宫#n召唤出#R天捷群星#n#r【建议挑战等级】#Y135#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "6418": {
+      "star_name": "虎将之角逐",
+      "rank": 14,
+      "map": 2019,
+      "map_name": "北冥",
+      "template": 66,
+      "step": 66,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-虎将之角逐",
+        "desc": "神秘的符牌，使用后可于#Y北冥#n召唤出#R天雄群星#n#r【建议挑战等级】#Y135#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "6419": {
+      "star_name": "水族的光辉",
+      "rank": 14,
+      "map": 2022,
+      "map_name": "海藏",
+      "template": 66,
+      "step": 62,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1200,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-水族的光辉",
+        "desc": "神秘的符牌，使用后可于#Y海藏#n召唤出#R天寿群星#n#r【建议挑战等级】#Y130#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y20分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "6420": {
+      "star_name": "千古一将",
+      "rank": 14,
+      "map": 2003,
+      "map_name": "宫城",
+      "template": 66,
+      "step": 67,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-千古一将",
+        "desc": "神秘的符牌，使用后可于#Y宫城#n召唤出#R天罡群星#n#r【建议挑战等级】#Y谜#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "8581": {
+      "star_name": "天罡之魂",
+      "rank": 16,
+      "map": 2018,
+      "map_name": "兜率宫",
+      "template": 70,
+      "step": 69,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-天罡之魂",
+        "desc": "神秘的符牌，使用后可于#Y兜率宫#n召唤出#R天罡群星#n#r【建议挑战等级】#Y谜#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "45095": {
+      "star_name": "伉俪殊勋",
+      "rank": 16,
+      "map": 2073,
+      "map_name": "波月洞",
+      "template": 70,
+      "step": 92,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-伉俪殊勋",
+        "desc": "神秘的符牌，使用后可于#Y波月洞#n召唤出#R天捷群星#n#r【建议挑战等级】#Y150#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "45096": {
+      "star_name": "秣马厉兵",
+      "rank": 16,
+      "map": 2001,
+      "map_name": "长安",
+      "template": 70,
+      "step": 93,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-秣马厉兵",
+        "desc": "神秘的符牌，使用后可于#Y长安#n召唤出#R天罡群星#n#r【建议挑战等级】#Y150#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "45097": {
+      "star_name": "煞曜诛天",
+      "rank": 16,
+      "map": 2001,
+      "map_name": "长安",
+      "template": 70,
+      "step": 94,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "凤篆天符-煞曜诛天",
+        "desc": "神秘的符牌，使用后可于#Y长安#n召唤出#G地魁群星#n#r【建议挑战等级】#Y150#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2115,
+        "max_stack": 20,
+        "trade_flag": 1
+      },
+      "summon_position": [
+        552,
+        251
+      ],
+      "min_character_level": 142,
+      "native_shape": 2359,
+      "opening_battle": {
+        "scene_name": "煞曜诛天",
+        "fixed_roster": true,
+        "enemy_layout": 7,
+        "enemies": [
+          {
+            "name": "地魁星"
+          },
+          {
+            "name": "地然星"
+          },
+          {
+            "name": "地勇星"
+          },
+          {
+            "name": "地煞星"
+          },
+          {
+            "name": "地奇星"
+          },
+          {
+            "name": "地杰星"
+          },
+          {
+            "name": "地幽星"
+          },
+          {
+            "name": "地轴星"
+          },
+          {
+            "name": "地威星"
+          }
+        ]
+      }
+    },
+    "45098": {
+      "star_name": "五虎威临",
+      "rank": 16,
+      "map": 2001,
+      "map_name": "长安",
+      "template": 70,
+      "step": 95,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-五虎威临",
+        "desc": "神秘的符牌，使用后可于#Y长安#n召唤出#R天罡群星#n#r【建议挑战等级】#Y封圣170#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "45099": {
+      "star_name": "义释魔君",
+      "rank": 16,
+      "map": 2235,
+      "map_name": "西梁女国野外",
+      "template": 70,
+      "step": 96,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-义释魔君",
+        "desc": "神秘的符牌，使用后可于#Y西梁女国野外#n召唤出#R天闲群星#n#r【建议挑战等级】#Y165#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "45100": {
+      "star_name": "十面埋伏",
+      "rank": 16,
+      "map": 2020,
+      "map_name": "蟠桃园",
+      "template": 70,
+      "step": 97,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-十面埋伏",
+        "desc": "神秘的符牌，使用后可于#Y蟠桃园#n召唤出#R天机群星#n#r【建议挑战等级】#Y谜#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "45101": {
+      "star_name": "九宫八阵",
+      "rank": 16,
+      "map": 2020,
+      "map_name": "蟠桃园",
+      "template": 70,
+      "step": 98,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-九宫八阵",
+        "desc": "神秘的符牌，使用后可于#Y蟠桃园#n召唤出#R天机群星#n#r【建议挑战等级】#Y谜#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "45102": {
+      "star_name": "永远的星宿之传说",
+      "rank": 16,
+      "map": 2055,
+      "map_name": "灵霄宝殿",
+      "template": 70,
+      "step": 99,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "龙章天符-永远的星宿之传说",
+        "desc": "神秘的符牌，使用后可于#Y灵霄宝殿#n召唤出#R天魁群星#n#r【建议挑战等级】#Y谜#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "47011": {
+      "star_name": "化龙之天慧星",
+      "rank": 16,
+      "map": 2409,
+      "map_name": "英雄海",
+      "template": 70,
+      "step": 0,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：变体编队和结算",
+      "form": "variant",
+      "item": {
+        "name": "龙章天符-化龙之天慧星",
+        "desc": "神秘的符牌，使用后可于#Y英雄海#n召唤出#G化龙之天慧星#n#r【建议挑战等级】#Y封圣170#n#r【建议挑战人数】#Y5#n#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "47012": {
+      "star_name": "无尽之天英星",
+      "rank": 16,
+      "map": 2357,
+      "map_name": "御天岭",
+      "template": 70,
+      "step": 0,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：变体编队和结算",
+      "form": "variant",
+      "item": {
+        "name": "龙章天符-无尽之天英星",
+        "desc": "神秘的符牌，使用后可于#Y御天岭#n召唤出#G无尽之天英星#n#r【建议挑战等级】#Y封圣170#n#r【建议挑战人数】#Y5#n#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "47013": {
+      "star_name": "不灭之天寿星",
+      "rank": 16,
+      "map": 2419,
+      "map_name": "南海",
+      "template": 70,
+      "step": 0,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：变体编队和结算",
+      "form": "variant",
+      "item": {
+        "name": "龙章天符-不灭之天寿星",
+        "desc": "神秘的符牌，使用后可于#Y南海#n召唤出#G不灭之天寿星#n#r【建议挑战等级】#Y封圣170#n#r【建议挑战人数】#Y5#n#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "47014": {
+      "star_name": "万劫之地妖星",
+      "rank": 16,
+      "map": 2419,
+      "map_name": "南海",
+      "template": 70,
+      "step": 0,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 3600,
+      "roster_source": "本服规则：变体编队和结算",
+      "form": "variant",
+      "item": {
+        "name": "凤篆天符-万劫之地妖星",
+        "desc": "神秘的符牌，使用后可于#Y南海#n召唤出#R万劫之地妖星#n#r【建议挑战等级】#Y封圣170#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "47015": {
+      "star_name": "死灵之地幽星",
+      "rank": 16,
+      "map": 2409,
+      "map_name": "英雄海",
+      "template": 70,
+      "step": 0,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 3600,
+      "roster_source": "本服规则：变体编队和结算",
+      "form": "variant",
+      "item": {
+        "name": "凤篆天符-死灵之地幽星",
+        "desc": "神秘的符牌，使用后可于#Y英雄海#n召唤出#R死灵之地幽星#n#r【建议挑战等级】#Y封圣170#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y60#n分钟",
+        "icon": 2115,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "47016": {
+      "star_name": "灭世之天魁星",
+      "rank": 16,
+      "map": 2357,
+      "map_name": "御天岭",
+      "template": 70,
+      "step": 0,
+      "source_natural_ranks": [],
+      "history_gate": 15,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：变体编队和结算",
+      "form": "variant",
+      "item": {
+        "name": "龙章天符-灭世之天魁星",
+        "desc": "神秘的符牌，使用后可于#Y御天岭#n召唤出#G灭世之天魁星#n#r【建议挑战等级】#Y封圣170#n#r【建议挑战人数】#Y5#n#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战#r【挑战条件】击败#Y15#n级以上星宿后方可挑战，总有效时间为#Y120#n分钟",
+        "icon": 2114,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    },
+    "6408": {
+      "star_name": "地然星归来",
+      "rank": 15,
+      "map": 2026,
+      "map_name": "孔庙",
+      "template": 68,
+      "step": 63,
+      "source_natural_ranks": [],
+      "history_gate": 0,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "roster_source": "本服规则：群星编队和结算",
+      "form": "group",
+      "item": {
+        "name": "凤篆天符-地然星归来",
+        "desc": "神秘的符牌，使用后可于#Y孔庙#n召唤出#G地然星#n#r【建议挑战等级】#Y142#n#r【建议挑战人数】#Y5#n#r【可交易】#r【温馨提示】召唤出的星宿在#Y30分钟#n内只能由您的队伍进行挑战，总有效时间为#Y120#n分钟",
+        "icon": 2115,
+        "max_stack": 20,
+        "trade_flag": 1
+      }
+    }
+  },
+  "pending_groups": {
+    "45097": {
+      "map": 2001,
+      "map_name": "长安",
+      "summon_position": [
+        552,
+        251
+      ],
+      "min_character_level": 142,
+      "history_gate": 15,
+      "suggested_level": "150",
+      "suggested_party": 5,
+      "exclusive": 1800,
+      "lifetime": 7200,
+      "step": 94,
+      "native_shape": 2359,
+      "source": "946 configs.wdf 505d8e68 道具45097，98e34889 图鉴10402，edfecc11 步骤94。",
+      "spirit_help_observation": {
+        "source": "按用户确认采用2026-11-27 07:48大话精灵截图（条目3002182）的等级及召唤落点；星符ID对照946 configs.wdf 505d8e68。",
+        "recommended_character_level": 150,
+        "sigil_sources": [
+          {
+            "encounter": "五虎威临",
+            "summon_item": 45098
+          },
+          {
+            "encounter": "戎装之地勇星",
+            "summon_item": 46542
+          }
+        ],
+        "reward_categories": [
+          "镇宅",
+          "武侯图",
+          "神兵"
+        ],
+        "reward_sigil": 45101
+      },
+      "opening_source": "946 info/info_lineup10.lua 5f0314d2；2023实录 BV158411E7CG 00:25、03:55 对照敌方九个首发坐标。",
+      "opening_battle": {
+        "scene_name": "煞曜诛天",
+        "fixed_roster": true,
+        "enemy_layout": 7,
+        "enemies": [
+          {
+            "name": "地魁星"
+          },
+          {
+            "name": "地然星"
+          },
+          {
+            "name": "地勇星"
+          },
+          {
+            "name": "地煞星"
+          },
+          {
+            "name": "地奇星"
+          },
+          {
+            "name": "地杰星"
+          },
+          {
+            "name": "地幽星"
+          },
+          {
+            "name": "地轴星"
+          },
+          {
+            "name": "地威星"
+          }
+        ]
+      },
+      "observed_replacement_positions": [
+        {
+          "name": "天威星",
+          "slot": 10,
+          "source": "2023实录 BV158411E7CG 01:07、04:12；对照946阵型7的敌方槽10。"
+        },
+        {
+          "name": "天威星",
+          "slot": 2,
+          "source": "2023实录 BV158411E7CG 10:22.5；对照946阵型7的敌方槽2。"
+        },
+        {
+          "name": "天威星",
+          "slot": 1,
+          "source": "2023实录 BV158411E7CG 11:54、14:18；对照946阵型7的敌方槽1。"
+        },
+        {
+          "name": "天猛星",
+          "slot": 7,
+          "source": "2023实录 BV158411E7CG 01:31；对照946阵型7的敌方槽7。"
+        },
+        {
+          "name": "天猛星",
+          "slot": 1,
+          "source": "2023实录 BV158411E7CG 04:36；对照946阵型7的敌方槽1。"
+        },
+        {
+          "name": "天猛星",
+          "slot": 10,
+          "source": "2023实录 BV158411E7CG 10:25.5；对照946阵型7的敌方槽10。"
+        },
+        {
+          "name": "天猛星",
+          "slot": 2,
+          "source": "2023实录 BV158411E7CG 11:57、14:35；对照946阵型7的敌方槽2。"
+        },
+        {
+          "name": "天猛星",
+          "slot": 3,
+          "source": "2023实录 BV158411E7CG 17:39.25–17:39.50；对照946阵型7的敌方槽3。"
+        },
+        {
+          "name": "地英星",
+          "slot": 8,
+          "replaces": "地轴星",
+          "source": "2023实录 BV158411E7CG 01:27–01:31、04:36–04:39；对照946阵型7的敌方槽8。"
+        },
+        {
+          "name": "地英星",
+          "slot": 10,
+          "source": "2023实录 BV158411E7CG 12:00、12:07；对照946阵型7的敌方槽10，当时地然在8号位。"
+        },
+        {
+          "name": "地英星",
+          "slot": 7,
+          "source": "2023实录 BV158411E7CG 17:46.00–17:46.35；对照946阵型7的敌方槽7，此时8号位空出。"
+        }
+      ],
+      "observed_tianmeng_defeat_notice": {
+        "text": "晴日击败天猛星会招致致命打击。",
+        "source": "2023实录 BV158411E7CG 20:21.7–20:22.3 的战斗提示。",
+        "player_side_red_number": {
+          "value": 8444,
+          "minimum_visible_positions": 6,
+          "source": "2023实录 BV158411E7CG 14:42–14:43、18:03–18:05、20:30–20:32。20:31.30可辨认至少六处。"
+        }
+      },
+      "item": {
+        "name": "凤篆天符-煞曜诛天",
+        "desc": "在长安（552,251）召唤地魁群星。人物须满142级并击败过15级或更高的星宿。建议150级、5人组队。召唤队伍优先挑战30分钟，召唤总时限120分钟。此符可交易。#r本机当前仅提供入口校验。",
+        "icon": 2115,
+        "max_stack": 20
+      }
+    }
+  },
+  "skipped": {
+    "6409": "凤篆天符-最强之地煞",
+    "6410": "凤篆天符-神机军略",
+    "6417": "龙章天符-疆场伉俪",
+    "6418": "龙章天符-虎将之角逐",
+    "6419": "龙章天符-水族的光辉",
+    "6420": "龙章天符-千古一将",
+    "8581": "龙章天符-天罡之魂",
+    "45095": "龙章天符-伉俪殊勋",
+    "45096": "龙章天符-秣马厉兵",
+    "45097": "凤篆天符-煞曜诛天",
+    "45098": "龙章天符-五虎威临",
+    "45099": "龙章天符-义释魔君",
+    "45100": "龙章天符-十面埋伏",
+    "45101": "龙章天符-九宫八阵",
+    "45102": "龙章天符-永远的星宿之传说",
+    "47011": "龙章天符-化龙之天慧星",
+    "47012": "龙章天符-无尽之天英星",
+    "47013": "龙章天符-不灭之天寿星",
+    "47014": "凤篆天符-万劫之地妖星",
+    "47015": "凤篆天符-死灵之地幽星",
+    "47016": "龙章天符-灭世之天魁星",
+    "6408": "凤篆天符-地然星归来"
+  },
+  "natural": {
+    "2": {
+      "step": 13,
+      "rank": 1
+    },
+    "3": {
+      "step": 21,
+      "rank": 1
+    },
+    "4": {
+      "step": 22,
+      "rank": 1
+    },
+    "5": {
+      "step": 14,
+      "rank": 2
+    },
+    "6": {
+      "step": 14,
+      "rank": 2
+    },
+    "7": {
+      "step": 0,
+      "rank": 2
+    },
+    "8": {
+      "step": 24,
+      "rank": 2
+    },
+    "9": {
+      "step": 23,
+      "rank": 2
+    },
+    "10": {
+      "step": 25,
+      "rank": 3
+    },
+    "11": {
+      "step": 54,
+      "rank": 3
+    },
+    "12": {
+      "step": 26,
+      "rank": 3
+    },
+    "13": {
+      "step": 27,
+      "rank": 4
+    },
+    "14": {
+      "step": 28,
+      "rank": 4
+    },
+    "15": {
+      "step": 15,
+      "rank": 4
+    },
+    "16": {
+      "step": 15,
+      "rank": 4
+    },
+    "17": {
+      "step": 29,
+      "rank": 5
+    },
+    "18": {
+      "step": 16,
+      "rank": 5
+    },
+    "19": {
+      "step": 0,
+      "rank": 5
+    },
+    "20": {
+      "step": 30,
+      "rank": 5
+    },
+    "21": {
+      "step": 31,
+      "rank": 6
+    },
+    "22": {
+      "step": 17,
+      "rank": 6
+    },
+    "23": {
+      "step": 70,
+      "rank": 6
+    },
+    "24": {
+      "step": 32,
+      "rank": 6
+    },
+    "25": {
+      "step": 33,
+      "rank": 7
+    },
+    "26": {
+      "step": 18,
+      "rank": 7
+    },
+    "27": {
+      "step": 0,
+      "rank": 7
+    },
+    "28": {
+      "step": 34,
+      "rank": 7
+    },
+    "29": {
+      "step": 71,
+      "rank": 7
+    },
+    "30": {
+      "step": 19,
+      "rank": 8
+    },
+    "31": {
+      "step": 19,
+      "rank": 8
+    },
+    "32": {
+      "step": 35,
+      "rank": 8
+    },
+    "33": {
+      "step": 36,
+      "rank": 8
+    },
+    "34": {
+      "step": 80,
+      "rank": 8
+    },
+    "35": {
+      "step": 20,
+      "rank": 9
+    },
+    "36": {
+      "step": 20,
+      "rank": 9
+    },
+    "37": {
+      "step": 37,
+      "rank": 9
+    },
+    "38": {
+      "step": 38,
+      "rank": 9
+    },
+    "39": {
+      "step": 72,
+      "rank": 9
+    },
+    "40": {
+      "step": 40,
+      "rank": 10
+    },
+    "41": {
+      "step": 39,
+      "rank": 10
+    },
+    "42": {
+      "step": 74,
+      "rank": 10
+    },
+    "43": {
+      "step": 73,
+      "rank": 10
+    },
+    "44": {
+      "step": 81,
+      "rank": 10
+    },
+    "45": {
+      "step": 77,
+      "rank": 11
+    },
+    "46": {
+      "step": 42,
+      "rank": 11
+    },
+    "47": {
+      "step": 51,
+      "rank": 11
+    },
+    "48": {
+      "step": 75,
+      "rank": 11
+    },
+    "49": {
+      "step": 41,
+      "rank": 11
+    },
+    "50": {
+      "step": 76,
+      "rank": 11
+    },
+    "51": {
+      "step": 82,
+      "rank": 11
+    },
+    "52": {
+      "step": 84,
+      "rank": 12
+    },
+    "53": {
+      "step": 85,
+      "rank": 12
+    },
+    "54": {
+      "step": 44,
+      "rank": 12
+    },
+    "55": {
+      "step": 43,
+      "rank": 12
+    },
+    "56": {
+      "step": 100,
+      "rank": 12
+    },
+    "57": {
+      "step": 83,
+      "rank": 12
+    },
+    "58": {
+      "step": 55,
+      "rank": 12
+    },
+    "59": {
+      "step": 78,
+      "rank": 13
+    },
+    "60": {
+      "step": 45,
+      "rank": 13
+    },
+    "61": {
+      "step": 86,
+      "rank": 13
+    },
+    "62": {
+      "step": 87,
+      "rank": 13
+    },
+    "63": {
+      "step": 88,
+      "rank": 14
+    },
+    "64": {
+      "step": 101,
+      "rank": 14
+    },
+    "65": {
+      "step": 104,
+      "rank": 14
+    },
+    "66": {
+      "step": 0,
+      "rank": 14
+    },
+    "67": {
+      "step": 103,
+      "rank": 15
+    },
+    "68": {
+      "step": 89,
+      "rank": 15
+    },
+    "69": {
+      "step": 102,
+      "rank": 16
+    },
+    "1": {
+      "step": 79,
+      "rank": 1
+    },
+    "70": {
+      "step": 91,
+      "rank": 16
+    }
+  },
+  "titles": {
+    "1": {
+      "name": "地煞斗士",
+      "desc": "【达成方法】击败1至4级地煞星。",
+      "steps": [
+        1001,
+        1002,
+        1003,
+        1004
+      ],
+      "experience": 10000,
+      "summoned": false,
+      "naturals": false
+    },
+    "2": {
+      "name": "地煞克星",
+      "desc": "【达成方法】击败1至7级地煞星。",
+      "steps": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "experience": 20000,
+      "summoned": false,
+      "naturals": false
+    },
+    "3": {
+      "name": "地煞战神",
+      "desc": "【达成方法】击败1至10级地煞星。",
+      "steps": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007,
+        1008,
+        1009,
+        1010
+      ],
+      "experience": 30000,
+      "summoned": false,
+      "naturals": false
+    },
+    "4": {
+      "name": "天罡克星",
+      "desc": "【达成方法】击败8至13级星宿。",
+      "steps": [
+        1008,
+        1009,
+        1010,
+        1011,
+        1012,
+        1013
+      ],
+      "experience": 40000,
+      "summoned": false,
+      "naturals": false
+    },
+    "5": {
+      "name": "天罡战神",
+      "desc": "【达成方法】击败11至16级天罡星。",
+      "steps": [
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016
+      ],
+      "experience": 50000,
+      "summoned": false,
+      "naturals": false
+    },
+    "6": {
+      "name": "豹尾星君",
+      "desc": "【达成方法】击败1级地恶星、地贼星（4位星宿）、地贼星（8位星宿），2级地察星、地乐星、地俊星。",
+      "steps": [
+        13,
+        21,
+        22,
+        14,
+        24,
+        23
+      ],
+      "experience": 60000,
+      "summoned": false,
+      "naturals": false
+    },
+    "7": {
+      "name": "射月星君",
+      "desc": "【达成方法】击败3级地短星、地损星，4级地壮星、地平星（地府）、地平星（东海），5级地巧星、地微星、地强星，6级地孤星、地慧星、地阴星。",
+      "steps": [
+        25,
+        26,
+        15,
+        27,
+        28,
+        16,
+        30,
+        29,
+        17,
+        31,
+        32
+      ],
+      "experience": 70000,
+      "summoned": false,
+      "naturals": false
+    },
+    "8": {
+      "name": "黄幡星君",
+      "desc": "【达成方法】击败7级地羁星、地猛星、天暴星，8级地文星、天罪星、天异星，9级天速星、天慧星、天牢星，10级天退星、天剑星。",
+      "steps": [
+        18,
+        33,
+        34,
+        19,
+        35,
+        36,
+        20,
+        37,
+        38,
+        39,
+        40
+      ],
+      "experience": 80000,
+      "summoned": false,
+      "naturals": false
+    },
+    "9": {
+      "name": "荧惑星君",
+      "desc": "【达成方法】击败3级地空星，6级地奴星，7级地周星，10级地妖星、地捷星，11级地威星、天空星。",
+      "steps": [
+        54,
+        70,
+        71,
+        73,
+        74,
+        76,
+        77
+      ],
+      "experience": 90000,
+      "summoned": false,
+      "naturals": false
+    },
+    "10": {
+      "name": "斩辰星君",
+      "desc": "【达成方法】击败1级地劣星，8级地遂星，10级地镇星，11级天平星，12级地轴星、地幽星、地杰星。",
+      "steps": [
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85
+      ],
+      "experience": 100000,
+      "summoned": false,
+      "naturals": false
+    },
+    "11": {
+      "name": "灭日星君",
+      "desc": "【达成方法】击败野外的10级天退星、天剑星，11级天杀星、天佑星，12级天巧星、天富星，13级地勇星。",
+      "steps": [
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45
+      ],
+      "experience": 110000,
+      "summoned": false,
+      "naturals": true
+    },
+    "12": {
+      "name": "北镇星君",
+      "desc": "【达成方法】击败天符召唤出的11级天暗星，12级地煞星（特定名称）、天孤星、天伤星，13级天英星。",
+      "steps": [
+        51,
+        52,
+        49,
+        50,
+        47
+      ],
+      "experience": 120000,
+      "summoned": true,
+      "naturals": false
+    },
+    "13": {
+      "name": "太岁星君",
+      "desc": "【达成方法】击败天符召唤出的13级天贵星，14级天雄星，15级地然星。",
+      "steps": [
+        48,
+        46,
+        53
+      ],
+      "experience": 130000,
+      "summoned": true,
+      "naturals": false
+    },
+    "14": {
+      "name": "斗战星君",
+      "desc": "【达成方法】击败9级地进星，11级地奇星，12级天微星，13级天寿星、天损星、水族的光辉。",
+      "steps": [
+        72,
+        75,
+        55,
+        56,
+        78,
+        62
+      ],
+      "experience": 140000,
+      "summoned": false,
+      "naturals": false
+    },
+    "15": {
+      "name": "百胜星君",
+      "desc": "【达成方法】击败14级天立星、天雄星、天捷星、天威星，15级疆场伉俪、虎将角逐。",
+      "steps": [
+        57,
+        46,
+        58,
+        59,
+        65,
+        66
+      ],
+      "experience": 150000,
+      "summoned": false,
+      "naturals": false
+    },
+    "16": {
+      "name": "六道圣君",
+      "desc": "【达成方法】击败15级地然星、地魁星、最强地煞星、地然星归来，16级神机军略。",
+      "steps": [
+        53,
+        60,
+        64,
+        63,
+        68
+      ],
+      "experience": 160000,
+      "summoned": false,
+      "naturals": false
+    },
+    "17": {
+      "name": "九天战神",
+      "desc": "【达成方法】击败16级天罡星、千古一将、天罡之魂。",
+      "steps": [
+        61,
+        67,
+        69
+      ],
+      "experience": 170000,
+      "summoned": false,
+      "naturals": false
+    },
+    "18": {
+      "name": "极乐战神",
+      "desc": "【达成方法】击败13级天满星、天究星，14级天猛星，15级天勇星。",
+      "steps": [
+        86,
+        87,
+        88,
+        89
+      ],
+      "experience": 180000,
+      "summoned": false,
+      "naturals": false
+    },
+    "19": {
+      "name": "独觉星尊",
+      "desc": "【达成方法】击败16级天闲星、伉俪殊勋、秣马厉兵。",
+      "steps": [
+        90,
+        92,
+        93
+      ],
+      "experience": 190000,
+      "summoned": false,
+      "naturals": false
+    },
+    "20": {
+      "name": "万法星尊",
+      "desc": "本服规则。完成以下群星挑战后可到祖老天师处领取一次奖励。#r击败16级煞曜诛天#r击败16级五虎威临#r击败16级义释魔君",
+      "steps": [
+        94,
+        95,
+        96
+      ],
+      "experience": 0,
+      "summoned": true,
+      "naturals": false
+    },
+    "21": {
+      "name": "帝释星尊",
+      "desc": "本服规则。完成以下群星挑战后可到祖老天师处领取一次奖励。#r击败16级煞曜诛天#r击败16级十面埋伏#r击败16级九宫八阵",
+      "steps": [
+        94,
+        97,
+        98
+      ],
+      "experience": 0,
+      "summoned": true,
+      "naturals": false
+    },
+    "22": {
+      "name": "八部圣君",
+      "desc": "本服规则。完成以下群星挑战后可到祖老天师处领取一次奖励。#r击败16级五虎威临#r击败16级义释魔君#r击败16级十面埋伏#r击败16级九宫八阵",
+      "steps": [
+        95,
+        96,
+        97,
+        98
+      ],
+      "experience": 0,
+      "summoned": true,
+      "naturals": false
+    },
+    "23": {
+      "name": "中天至尊",
+      "desc": "本服规则。完成以下群星挑战后可到祖老天师处领取一次奖励。#r击败16级煞曜诛天#r击败16级五虎威临#r击败16级义释魔君#r击败16级十面埋伏#r击败16级九宫八阵#r击败永远的星宿之传说",
+      "steps": [
+        94,
+        95,
+        96,
+        97,
+        98,
+        99
+      ],
+      "experience": 0,
+      "summoned": true,
+      "naturals": false
+    }
+  },
+  "steps": {
+    "1": "通过义之章一",
+    "2": "通过义之章二",
+    "3": "通过义之章三",
+    "4": "通过义之章四",
+    "5": "通过义之章五",
+    "6": "通过义之章六",
+    "7": "通过义之章八",
+    "8": "通过奋之章一",
+    "9": "通过奋之章二",
+    "10": "通过奋之章三",
+    "11": "通过奋之章四",
+    "12": "通过奋之章五",
+    "13": "击败1级地恶星",
+    "14": "击败2级地察星",
+    "15": "击败4级地壮星",
+    "16": "击败5级地巧星",
+    "17": "击败6级地孤星",
+    "18": "击败7级地羁星",
+    "19": "击败8级地文星",
+    "20": "击败9级天速星",
+    "21": "击败1级地贼星",
+    "22": "击败1级地贼星",
+    "23": "击败2级地俊星",
+    "24": "击败2级地乐星",
+    "25": "击败3级地短星",
+    "26": "击败3级地损星",
+    "27": "击败4级地平星",
+    "28": "击败4级地平星",
+    "29": "击败5级地强星",
+    "30": "击败5级地微星",
+    "31": "击败6级地慧星",
+    "32": "击败6级地阴星",
+    "33": "击败7级地猛星",
+    "34": "击败7级天暴星",
+    "35": "击败8级天罪星",
+    "36": "击败8级天异星",
+    "37": "击败9级天慧星",
+    "38": "击败9级天牢星",
+    "39": "击败10级天退星",
+    "40": "击败10级天剑星",
+    "41": "击败11级天杀星",
+    "42": "击败11级天佑星",
+    "43": "击败12级天巧星",
+    "44": "击败12级天富星",
+    "45": "击败13级地勇星",
+    "46": "击败14级天雄星",
+    "47": "击败13级天英星",
+    "48": "击败13级天贵星",
+    "49": "击败12级天孤星",
+    "50": "击败12级天伤星",
+    "51": "击败11级天暗星",
+    "52": "击败12级地煞星",
+    "53": "击败15级地然星",
+    "54": "击败3级地空星",
+    "55": "击败12级天微星",
+    "56": "击败13级天寿星",
+    "57": "击败14级天立星",
+    "58": "击败14级天捷星",
+    "59": "击败14级天威星",
+    "60": "击败15级地魁星",
+    "61": "击败16级天罡星",
+    "62": "击破14级水族的光辉",
+    "63": "击破15级地然星归来",
+    "64": "击破15级最强地煞星",
+    "65": "击破15级疆场伉俪",
+    "66": "击破15级虎将角逐",
+    "67": "击破16级千古一将",
+    "68": "击破16级神机军略",
+    "69": "击破16级天罡之魂",
+    "70": "击败6级地奴星",
+    "71": "击败7级地周星",
+    "72": "击败9级地进星",
+    "73": "击败10级地妖星",
+    "74": "击败10级地捷星",
+    "75": "击败11级地奇星",
+    "76": "击败11级地威星",
+    "77": "击败11级天空星",
+    "78": "击败13级天损星",
+    "79": "击败1级地劣星",
+    "80": "击败8级地遂星",
+    "81": "击败10级地镇星",
+    "82": "击败11级天平星",
+    "83": "击败12级地轴星",
+    "84": "击败12级地幽星",
+    "85": "击败12级地杰星",
+    "86": "击败13级天满星",
+    "87": "击败13级天究星",
+    "88": "击败14级天猛星",
+    "89": "击败15级天勇星",
+    "90": "击败16级天闲星",
+    "91": "击败16级天魁星",
+    "92": "击败16级伉俪殊勋",
+    "93": "击败16级秣马厉兵",
+    "94": "击败16级煞曜诛天",
+    "95": "击败16级五虎威临",
+    "96": "击败16级义释魔君",
+    "97": "击败16级十面埋伏",
+    "98": "击败16级九宫八阵",
+    "99": "击败永远的星宿之传说",
+    "100": "击败12级癫狂之地微星",
+    "101": "击败14级精进之天巧星",
+    "102": "击败16级天机星",
+    "103": "击败15级狂躁之天猛星",
+    "104": "击败14级得势之天伤星",
+    "105": "击败15级天捷星",
+    "1001": "击败1级地煞星",
+    "1002": "击败2级地煞星",
+    "1003": "击败3级地煞星",
+    "1004": "击败4级地煞星",
+    "1005": "击败5级地煞星",
+    "1006": "击败6级地煞星",
+    "1007": "击败7级地煞星",
+    "1008": "击败8级地煞星",
+    "1009": "击败9级地煞星",
+    "1010": "击败10级地煞星",
+    "1011": "击败11级天罡星",
+    "1012": "击败12级天罡星",
+    "1013": "击败13级天罡星",
+    "1014": "击败14级天罡星",
+    "1015": "击败15级天罡星",
+    "1016": "击败16级天罡星",
+    "1017": "击败17级天罡星",
+    "1018": "击败18级天罡星",
+    "1019": "击败19级天罡星",
+    "10001": "[地煞斗士]奖励查询",
+    "10002": "[地煞克星]奖励查询",
+    "10003": "[地煞战神]奖励查询",
+    "10004": "[天罡克星]奖励查询",
+    "10005": "[天罡战神]奖励查询",
+    "10006": "谜",
+    "10007": "[豹尾星君]奖励查询",
+    "10008": "[射月星君]奖励查询",
+    "10009": "[黄幡星君]奖励查询",
+    "10010": "[灭日星君]奖励查询",
+    "10011": "[北镇星君]奖励查询",
+    "10012": "[太岁星君]奖励查询",
+    "10013": "[荧惑星君]奖励查询",
+    "10014": "[斗战星君]奖励查询",
+    "10015": "[百胜星君]奖励查询",
+    "10016": "[六道圣君]奖励查询",
+    "10017": "[九天战神]奖励查询",
+    "10018": "[极乐战神]奖励查询",
+    "10019": "[独觉星尊]奖励查询",
+    "10020": "[万法星尊]奖励查询",
+    "10021": "[帝释星尊]奖励查询",
+    "10022": "[斩辰星君]奖励查询",
+    "10023": "[中天至尊]奖励查询",
+    "10122": "[八部圣君]奖励查询",
+    "20001": "武将军衔",
+    "20002": "在比武中完成200场战斗",
+    "20003": "在比武中完成300场战斗",
+    "20004": "在比武中完成400场战斗",
+    "20005": "在比武中完成500场战斗",
+    "20006": "在比武中完成600场战斗",
+    "20007": "在比武中获得70场胜利",
+    "20008": "在比武中完成700场战斗",
+    "20009": "在比武中获得100场胜利",
+    "20010": "在比武中完成900场战斗",
+    "20011": "在比武中获得160场胜利",
+    "20012": "在比武中完成1000场战斗",
+    "20013": "在比武中获得190场胜利",
+    "20014": "在比武中完成1100场战斗",
+    "20015": "在比武中获得220场胜利",
+    "20016": "在比武中完成1200场战斗",
+    "20017": "在比武中获得250场胜利",
+    "20018": "在比武中完成1300场战斗",
+    "20019": "在比武中获得280场胜利",
+    "20020": "在比武中完成1400场战斗",
+    "20021": "在比武中获得310场胜利",
+    "20022": "在比武中完成1600场战斗",
+    "20023": "在比武中获得370场胜利",
+    "20024": "在比武中完成1750场战斗",
+    "20025": "在比武中获得400场胜利",
+    "30001": "击败真假禺狨王",
+    "30002": "击败牛魔王之难",
+    "30003": "击败幽冥之幻",
+    "30004": "击败黄风大王",
+    "30005": "击败金角大王之怨",
+    "30006": "击败赤煞妖姬",
+    "30007": "击败百花劫",
+    "30008": "击败如来之幻",
+    "30009": "击败萧晚音"
+  },
+  "drop_percent": 20
+}

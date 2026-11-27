@@ -1,0 +1,5 @@
+{
+  "source": "本机普通 NPC 现金货单，按用户确认的规则计算",
+  "pawn_numerator": 1,
+  "pawn_denominator": 2
+}

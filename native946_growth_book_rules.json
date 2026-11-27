@@ -1,0 +1,330 @@
+{
+  "version": "guardian-spell-growth-v1",
+  "rules": {
+    "6230": {
+      "item": 6230,
+      "skill": 336,
+      "name": "电光火石",
+      "tier": 1,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {},
+      "tooltip_args": 4,
+      "active": true,
+      "element": "thunder",
+      "native_cast": {
+        "act_on_hit": 1,
+        "double_magic_speed": 0,
+        "res_type": 2,
+        "hit_type": 1,
+        "cast_act": 2,
+        "cast_speed_up": 0,
+        "skill_name": "电光火石",
+        "track_speed": 0,
+        "track_res_id": 0,
+        "is_only_say": 0,
+        "re_dir": 0,
+        "track_path": 0,
+        "shake_on_hit": 0,
+        "speak_msg": "电光火石",
+        "speak_bg": 1001,
+        "sing_res": 0,
+        "res_id": 53,
+        "res_s_priority": 0,
+        "cast_mode": 1,
+        "ani_on_hit": 0
+      }
+    },
+    "6231": {
+      "item": 6231,
+      "skill": 337,
+      "name": "水淹七军",
+      "tier": 1,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {},
+      "tooltip_args": 4,
+      "active": true,
+      "element": "water",
+      "native_cast": {
+        "act_on_hit": 1,
+        "double_magic_speed": 0,
+        "res_type": 2,
+        "hit_type": 1,
+        "cast_act": 2,
+        "cast_speed_up": 0,
+        "skill_name": "水淹七军",
+        "track_speed": 0,
+        "track_res_id": 0,
+        "is_only_say": 0,
+        "re_dir": 0,
+        "track_path": 0,
+        "shake_on_hit": 0,
+        "speak_msg": "水淹七军",
+        "speak_bg": 1001,
+        "sing_res": 0,
+        "res_id": 73,
+        "res_s_priority": 0,
+        "cast_mode": 1,
+        "ani_on_hit": 0
+      }
+    },
+    "6232": {
+      "item": 6232,
+      "skill": 338,
+      "name": "灰飞烟灭",
+      "tier": 1,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {},
+      "tooltip_args": 5,
+      "active": true,
+      "element": "fire",
+      "native_cast": {
+        "act_on_hit": 1,
+        "double_magic_speed": 0,
+        "res_type": 2,
+        "hit_type": 2,
+        "cast_act": 2,
+        "cast_speed_up": 0,
+        "skill_name": "灰飞烟灭",
+        "track_speed": 0,
+        "track_res_id": 0,
+        "is_only_say": 0,
+        "re_dir": 0,
+        "track_path": 0,
+        "shake_on_hit": 0,
+        "speak_msg": "灰飞烟灭",
+        "speak_bg": 1001,
+        "sing_res": 0,
+        "res_id": 43,
+        "res_s_priority": 0,
+        "cast_mode": 1,
+        "ani_on_hit": 0
+      }
+    },
+    "6233": {
+      "item": 6233,
+      "skill": 339,
+      "name": "阴风怒号",
+      "tier": 1,
+      "allowed_kinds": [
+        1,
+        2,
+        3,
+        13,
+        4,
+        5,
+        8
+      ],
+      "coefficients": {},
+      "tooltip_args": 5,
+      "active": true,
+      "element": "wind",
+      "native_cast": {
+        "act_on_hit": 1,
+        "double_magic_speed": 0,
+        "res_type": 2,
+        "hit_type": 2,
+        "cast_act": 2,
+        "cast_speed_up": 0,
+        "skill_name": "阴风怒号",
+        "track_speed": 0,
+        "track_res_id": 0,
+        "is_only_say": 0,
+        "re_dir": 0,
+        "track_path": 0,
+        "shake_on_hit": 0,
+        "speak_msg": "阴风怒号",
+        "speak_bg": 1001,
+        "sing_res": 0,
+        "res_id": 63,
+        "res_s_priority": 0,
+        "cast_mode": 1,
+        "ani_on_hit": 0
+      }
+    },
+    "6599": {
+      "item": 6599,
+      "skill": 365,
+      "name": "云罗护体",
+      "tier": 1,
+      "allowed_kinds": [
+        2,
+        3,
+        13
+      ],
+      "coefficients": {
+        "book_reseal": [
+          333,
+          1000
+        ]
+      },
+      "tooltip_args": 1,
+      "reference_skill": 127
+    },
+    "6600": {
+      "item": 6600,
+      "skill": 366,
+      "name": "白犀灵御",
+      "tier": 1,
+      "allowed_kinds": [
+        2,
+        3,
+        13
+      ],
+      "coefficients": {
+        "book_redisorder": [
+          333,
+          1000
+        ]
+      },
+      "tooltip_args": 1,
+      "reference_skill": 128
+    },
+    "6601": {
+      "item": 6601,
+      "skill": 367,
+      "name": "五溪清源",
+      "tier": 1,
+      "allowed_kinds": [
+        2,
+        3,
+        13
+      ],
+      "coefficients": {
+        "book_refaint": [
+          333,
+          1000
+        ]
+      },
+      "tooltip_args": 1,
+      "reference_skill": 129
+    },
+    "6603": {
+      "item": 6603,
+      "skill": 369,
+      "name": "甘露还灵",
+      "tier": 1,
+      "allowed_kinds": [
+        3,
+        13
+      ],
+      "coefficients": {
+        "book_refaint": [
+          227,
+          1000
+        ],
+        "book_redisorder": [
+          227,
+          1000
+        ]
+      },
+      "tooltip_args": 2,
+      "reference_skill": 149
+    },
+    "6604": {
+      "item": 6604,
+      "skill": 370,
+      "name": "玉山佛甲",
+      "tier": 1,
+      "allowed_kinds": [
+        3,
+        13
+      ],
+      "coefficients": {
+        "book_refaint": [
+          227,
+          1000
+        ],
+        "book_reseal": [
+          227,
+          1000
+        ]
+      },
+      "tooltip_args": 2,
+      "reference_skill": 150
+    },
+    "6605": {
+      "item": 6605,
+      "skill": 371,
+      "name": "百脉疏通",
+      "tier": 1,
+      "allowed_kinds": [
+        3,
+        13
+      ],
+      "coefficients": {
+        "book_refaint": [
+          166,
+          1000
+        ],
+        "book_reseal": [
+          166,
+          1000
+        ],
+        "book_redisorder": [
+          166,
+          1000
+        ]
+      },
+      "tooltip_args": 3,
+      "reference_skill": 151
+    }
+  },
+  "rule_overrides": {
+    "6220": {
+      "book_ignore_counter": [
+        70,
+        102
+      ]
+    }
+  },
+  "override_provenance": "Designed linear counter-ignore curve capped at70% at skill102; native tooltip publishes this field, historical player guide reports70%",
+  "spell": {
+    "proficiency_per_level": 250,
+    "mana_base": 15,
+    "mana_skill_divisor": 2,
+    "mana_pet_divisor": 4,
+    "damage_base": 40,
+    "damage_pet_multiplier": 4,
+    "damage_skill_multiplier": 9,
+    "damage_mp_percent": 2,
+    "multi_percent": 65,
+    "target_thresholds": [
+      0,
+      20,
+      60
+    ],
+    "fire_critical_per_skill_level_tenths": 2,
+    "wind_repeat_per_skill_level_tenths": 2,
+    "provenance": "Designed mana/damage/target/proc values; native 946 IDs and cast resources; supplied-reference passive coefficients"
+  },
+  "sources": {
+    "analysis\\growth-flow-20261126\\info_skill.json": "339a469b24a235f7909612e7eb443bc8e71c696d4c3f6ebcb6f674e18b2cd5c3",
+    "analysis\\growth-flow-20261126\\info_war_skill_cast.json": "a6600d78b94e37e15528a8765ca4003fa4192620cef4fafcb21a384c18abbdf2",
+    "analysis\\remaining-native-rules-20261126\\native\\ed1a9e3e-data.json": "b0519fb4562440f8586dee40983c2cb285aa05a8a17286c7c7c187a0d2674db0",
+    "analysis\\online-gap-rules-20261126\\lua\\0e92bf99.lua": "7521cea7b183fb19a528d57709ed672f887bbd1a37caf5470dd50923fb5bc28c"
+  }
+}
