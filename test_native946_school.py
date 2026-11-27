@@ -289,7 +289,7 @@ class SchoolTests(unittest.TestCase):
         supply = [draw_objective(20,Random(seed),4001) for seed in range(50)]
         self.assertEqual({r[1] for r in supply if r[0]=='supply'},{4000})
 
-    def test_visit_requires_the_assigned_contact_and_preserves_other_dialogue(self):
+    def test_visit_requires_the_assigned_contact_and_closes_when_no_other_dialogue_exists(self):
         self.join()
         self.visit(2030,3101)
         with patch('native946_npc_quests.draw_objective',return_value=('visit',(2001,1053),1)):
@@ -304,7 +304,7 @@ class SchoolTests(unittest.TestCase):
         data=next(p for p in self.request(1986,930000+row['id']) if mid(p)==1971)
         self.assertIn('罗婆婆',data.decode('gb18030',errors='ignore'))
         self.visit(2001,1053)
-        self.assertIn(1025,[mid(p) for p in self.choose_op('visit_other')])
+        self.assertEqual([mid(p) for p in self.choose_op('visit_other')], [1183])
         self.assertIsNotNone(Quests(self.game).active('school'))
         self.visit(2001,1053)
         self.position(2030,366,37)
@@ -593,7 +593,8 @@ class SchoolTests(unittest.TestCase):
         self.assertEqual(self.progression.snapshot()['school'], 18)
 
     def test_unaffiliated_witches_use_their_actual_cloud_palace_masters(self):
-        for role,name,school,master,other in ((711,'流光测试',15,6931,6932),(702,'东岚测试',16,6932,6931)):
+        for role,name,school,master,other_school,other in (
+                (711,'流光测试',15,6931,16,6932),(702,'东岚测试',16,6932,15,6931)):
             with self.subTest(role=role):
                 self.hero=self.characters.create('school_fixture',name,role)
                 self.game=NativeGameplay(self.hero,self.characters,lambda:())
@@ -615,6 +616,27 @@ class SchoolTests(unittest.TestCase):
                 self.visit(2408,master)
                 learned,_=self.read_learn_list(self.choose_op('learn'))
                 self.assertEqual(learned[0]['skill_id'],SKILLS[school][0])
+
+                with self.progression.transaction() as db:
+                    db.execute('UPDATE characters SET level=41 WHERE id=?',(self.hero['id'],))
+                    db.execute('INSERT INTO learned_skills VALUES(?,?,?)',
+                               (self.hero['id'],SKILLS[other_school][0],500))
+                self.game=NativeGameplay(self.hero,self.characters,lambda:())
+                self.progression=self.game.progression
+                panel=next(p for p in self.request(742,prefix=b'\x01') if mid(p)==699)
+                reader=MessageReader(panel[3:])
+                self.assertEqual(reader.integer(),school)
+                for _ in range(reader.take(1)[0]):
+                    for _ in SCHEMAS['fly_stunt_info']:
+                        reader.integer()
+                skills=set()
+                for _ in range(reader.take(1)[0]):
+                    reader.string()
+                    reader.string()
+                    reader.integer()
+                    skills.add(reader.integer())
+                self.assertTrue(set(SKILLS[school]).issubset(skills))
+                self.assertTrue(set(SKILLS[other_school]).isdisjoint(skills))
 
     def test_west_admission_requires_ascension_and_lists_incompatible_learned_skills(self):
         self.join()
@@ -922,6 +944,12 @@ class SchoolTests(unittest.TestCase):
         self.visit(2001,1053)
         replies = self.choose_op('visit')
         self.assertTrue({5,7,100,1978}.issubset({mid(p) for p in replies}))
+        notices = [MessageReader(reply[1:]).string().decode('gb18030')
+                   for reply in replies if mid(reply) == 100]
+        self.assertIn('#G恭喜你完成了一轮任务#n', notices)
+        self.assertIn('#G恭喜你达成殊勋#Y亲传弟子#n', notices)
+        self.assertEqual([notice for notice in notices if '当日师门' in notice],
+                         ['#Y当日师门已全部完成,结束自动师门#n'])
         self.assertIsNone(self.game._auto_school)
         guide = next(r for r in self.progression.task_records()[0] if r['id'] == LIVENESS_GUIDE_ID)
         self.assertEqual(guide['title'], '#G【指引】#Y初入江湖[主线]')

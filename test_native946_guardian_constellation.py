@@ -90,7 +90,7 @@ class GuardianConstellationTests(unittest.TestCase):
             self.assertEqual(db.execute('SELECT count(*) FROM native_encounter_rewards WHERE battle_id=?',
                                         (battle.afei_key,)).fetchone()[0],1)
 
-    def test_guardian_sale_preserves_id_progress_appearance_and_reserves(self):
+    def test_guardian_sale_preserves_id_progress_and_appearance_and_keeps_sellers_reserve(self):
         scene,npc = CHAMBER
         for g in self.games:
             self.buff(g)
@@ -140,7 +140,7 @@ class GuardianConstellationTests(unittest.TestCase):
             self.assertEqual(db.execute('SELECT count(*) FROM native_guardian_shop_sales').fetchone()[0],1)
             self.assertEqual(tuple(db.execute('SELECT skill,level,experience FROM native_guardian_books WHERE summon_id=?',(sid,)).fetchone()),(300,2,15))
             self.assertEqual(db.execute('SELECT character_id FROM cosmetic_guardian_appearance WHERE summon_id=?',(sid,)).fetchone()[0],self.b.progression.cid)
-            self.assertEqual(db.execute('SELECT character_id FROM cosmetic_features WHERE key=?',(f'reserve:{sid}:hp',)).fetchone()[0],self.b.progression.cid)
+            self.assertEqual(db.execute('SELECT character_id FROM cosmetic_features WHERE key=?',(f'reserve:{sid}:hp',)).fetchone()[0],self.a.progression.cid)
             self.assertEqual(db.execute('SELECT marks FROM native_guardian_marks WHERE summon_id=?',(sid,)).fetchone()[0],'["物理","",""]')
             self.assertEqual(tuple(db.execute('SELECT i.character_id,e.summon_id FROM inventory i '
                 'JOIN native_guardian_equipment e ON e.item_id=i.id WHERE i.id=?',(iid,)).fetchone()),
@@ -149,6 +149,63 @@ class GuardianConstellationTests(unittest.TestCase):
             self.a.summons.acquire(3197,'market-fixture')
         self.click(self.a,npc,'取出守护商铺收入',self.click(self.a,npc,'守护商铺'))
         self.assertEqual(self.gold(self.a),1089)
+
+    def test_guardian_shop_rejects_equipped_jade_and_allows_withdrawal(self):
+        scene,npc = CHAMBER
+        seller,buyer = self.a,self.b
+        owner = seller.progression.cid
+        for game in (seller,buyer):
+            self.buff(game)
+            self.near(game,scene,npc)
+        sid = seller.summons.acquire(3197,'market-jade-fixture')
+        seller.summons.status(sid,2)
+        with seller.progression.transaction() as db:
+            db.execute('UPDATE characters SET gold=1000')
+            db.execute('UPDATE characters SET level=120 WHERE id=?',(owner,))
+            db.execute('UPDATE cultivation_state SET sanctification=1 WHERE character_id=?',(owner,))
+            page,slot = seller.progression.free_bag_slot(seller.progression._snapshot(db))
+            iid = db.execute('INSERT INTO inventory(character_id,type,page,slot,amount) VALUES(?,47659,?,?,1)',
+                             (owner,page,slot)).lastrowid
+            db.execute('INSERT INTO native_guardian_jade(item_id,main,bonus) VALUES(?,?,?)',(iid,'[[1,1]]','[]'))
+        self.assertIn(3944,[mid(p) for p in self.call(seller,3947,sid,1,iid)])
+        self.click(seller,npc,'开设守护商铺',self.click(seller,npc,'守护商铺'))
+        selection = self.click(seller,npc,'选择守护上架',self.click(seller,npc,'守护商铺'))
+        notice = '请先卸下宝玉'.encode('gb18030')
+        self.assertIn(notice,next(p for p in self.click(seller,npc,'猴儿精',selection) if mid(p)==98))
+        with seller.progression.transaction() as db:
+            self.assertIsNone(db.execute('SELECT id FROM native_guardian_shop_stock WHERE summon_id=?',(sid,)).fetchone())
+            db.execute('INSERT INTO native_guardian_shop_stock(owner,summon_id,price) VALUES(?,?,100)',(owner,sid))
+
+        seller_gold = self.gold(seller)
+        self.click(buyer,npc,'打开守护商铺列表',self.click(buyer,npc,'守护商铺'))
+        self.assertEqual([mid(p) for p in self.call(buyer,1845,owner,0)],[1810,1819])
+        self.assertIn(notice,next(p for p in self.call(buyer,1839,owner,sid,1,100) if mid(p)==98))
+        self.assertEqual((self.gold(seller),self.gold(buyer)),(seller_gold,1000))
+        with seller.progression.transaction(write=False) as db:
+            self.assertIsNone(db.execute('SELECT listing FROM native_guardian_shop_sales WHERE summon_id=?',(sid,)).fetchone())
+            self.assertEqual(db.execute('SELECT character_id FROM summons WHERE id=?',(sid,)).fetchone()[0],owner)
+            self.assertEqual(tuple(db.execute('SELECT i.character_id,j.summon_id FROM inventory i '
+                'JOIN native_guardian_jade j ON j.item_id=i.id WHERE i.id=?',(iid,)).fetchone()),(owner,sid))
+
+        with seller.progression.transaction() as db:
+            db.execute('UPDATE summons SET level=101,cor=101,mag=101,strength=101,speed=101,points=404 WHERE id=?', (sid,))
+        selection = self.click(seller,npc,'查看或撤回守护',self.click(seller,npc,'守护商铺'))
+        self.click(seller,npc,'取回该守护',self.click(seller,npc,'猴儿精',selection))
+        restored = seller.summons.get(sid)
+        self.assertEqual((restored['level'], restored['experience'], restored['points']), (100, 4000, 400))
+        self.assertIn(3944,[mid(p) for p in self.call(seller,3951,sid,1)])
+        selection = self.click(seller,npc,'选择守护上架',self.click(seller,npc,'守护商铺'))
+        self.click(seller,npc,'100现金',self.click(seller,npc,'猴儿精',selection))
+        self.assertEqual([mid(p) for p in self.call(buyer,1845,owner,0)],[1810,1819])
+        self.assertIn(1819,[mid(p) for p in self.call(buyer,1839,owner,sid,1,100)])
+        self.assertEqual(self.gold(buyer),900)
+        self.assertEqual(buyer.summons.get(sid)['id'],sid)
+        with seller.progression.transaction(write=False) as db:
+            self.assertIsNone(db.execute('SELECT id FROM native_guardian_shop_stock WHERE summon_id=?',(sid,)).fetchone())
+            self.assertEqual(tuple(db.execute('SELECT seller,buyer,price,proceeds FROM native_guardian_shop_sales '
+                'WHERE summon_id=?',(sid,)).fetchone()),(owner,buyer.progression.cid,100,90))
+            self.assertEqual(tuple(db.execute('SELECT i.character_id,j.summon_id FROM inventory i '
+                'JOIN native_guardian_jade j ON j.item_id=i.id WHERE i.id=?',(iid,)).fetchone()),(owner,None))
 
     def test_local_group_chains_rewards_into_native_bags(self):
         from native946_constellations import GROUPS, Constellations, MASTER, unlock

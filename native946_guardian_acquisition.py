@@ -5,7 +5,7 @@ import json
 from native946_codec import packet
 from native946_codec import text_notice
 
-REFERENCE_WIRE_VERSION=7
+REFERENCE_WIRE_VERSION=8
 DATA=json.loads(Path(__file__).with_name('native946_guardian_acquisition_data.json').read_text('utf8'))
 ITEMS=DATA['items']
 from native946_guardian_lottery import ITEMS as LOTTERY_ITEMS
@@ -89,6 +89,7 @@ class GuardianAcquisition:
 
     def random_guardian(self,iid):
         from secrets import choice
+        from native946_guardian_chamber import carried_count
         from native946_wilderness import DATA as WILD,carry_rank
         session=getattr(self.g,'guardian_egg_session',None)
         if not session or session.get('mode')!='random' or session['item_id']!=iid or session['until']<monotonic():
@@ -100,7 +101,7 @@ class GuardianAcquisition:
             rank=carry_rank(self.p._snapshot(db))
             candidates=[kind for kind in rule['guardians'] if rank>=WILD['species'][str(kind)]['take_grade_num']]
             if not candidates:raise ValueError('尚未达到候选守护的携带等级；物品未消耗。')
-            if db.execute('SELECT count(*) FROM summons WHERE character_id=?',(self.p.cid,)).fetchone()[0]>=self.s.carry_limit():
+            if carried_count(db, self.p.cid) >= self.s.carry_limit():
                 raise ValueError('守护携带栏已满；物品未消耗。')
             # Validate all material/capacity constraints before the draw. The
             # eligible pool itself is explicit local policy, avoiding free

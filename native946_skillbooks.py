@@ -55,6 +55,11 @@ def raw_list(db,sid):
     return [dict(r) for r in db.execute('SELECT * FROM native_guardian_books WHERE summon_id=? ORDER BY position',(sid,))]
 
 
+def effective_books(db, pet):
+    cap = level_cap(pet)
+    return [dict(row, level=min(row['level'], cap)) for row in raw_list(db, pet['id'])]
+
+
 def effects(rows):
     bonus={}
     for row in rows:
@@ -87,8 +92,8 @@ def records(rows,pet=None):
                            stuntexp_next=row['expnext'],desc='{'+','.join(map(str,args))+'}',cost=cost))
     return result
 
-def level_cap(pet,row):
-    return min(102,pet['level']) if row['tier']>=pet['rebirth']+1 and not pet['ascension'] else 102
+def level_cap(pet):
+    return min(102,pet['level'])
 
 def experience_to_cap(row,cap):
     if row['level']>=cap:return 0
@@ -112,13 +117,13 @@ class SkillBooks:
         return self.list_state(sid)[0]
 
     def list_state(self,sid):
-        from native946_guardian_innate import STUNT_RANKS, records as innate_records
+        from native946_guardian_innate import STUNT_RANKS, learning_slots, records as innate_records
         from native946_guardian_skill_details import apply_details
         from native946_innate_training import jing_books, trained_records, visible_innate
         with self.p.transaction(write=False) as db:
-            pet=self.s._owned(db,sid);rows=raw_list(db,sid)
+            pet=self.s._owned(db,sid);rows=effective_books(db,pet)
             stats=self.s.stats(pet)
-            pet['innate_training']=trained_records(db,sid)
+            pet['innate_training']=trained_records(db,sid,pet['level'])
             pet['jing_books']=jing_books(db,sid)
             pet['innate_skills']=innate_records(pet,excluded={row['skill'] for row in rows})
             hidden={entry['base'] for entry in pet['jing_books']}
@@ -128,18 +133,16 @@ class SkillBooks:
                 skill=entry['stunt_id']
                 if not entry['desc'].startswith('{') and skill in SKILLS and not SKILLS[skill].get('active'):
                     # A species-born passive may use the same native template as a crafted one.
-                    effect=records([dict(skill=skill,position=entry['position'],level=max(1,entry['grade']),
+                    effect=records([dict(skill=skill,position=entry['position'],level=entry['grade'] if entry['grade']>=0 else 1,
                                          rebirth=entry['rei'],experience=entry['stuntexp'],expnext=entry['stuntexp_next'])])[0]
                     entry['desc']=effect['desc']
             stunts=innate+records([row for row in rows if row['skill'] not in hidden],stats)
             used={row['position'] for row in stunts}
-            native=species(pet['type'])
-            rank=10000 if pet['ascension'] else pet['rebirth']*1000+pet['level']
+            available=learning_slots(stats)
             # The 946 panel renders positions 1–5 as innate slots. It maps wire
             # position 13 to the sixth cell and reads the guardian's jing state there.
-            empty=[dict(position=position,level=0,can_do=int(rank>=required and bool(native.get(key))))
-                   for position,(key,required) in enumerate(STUNT_RANKS.items(),1)
-                   if position<6 and position not in used]
+            empty=[dict(position=position,level=0,can_do=int(bool(available.get(position))))
+                   for position in range(1,len(STUNT_RANKS)+1) if position not in used]
             empty.extend(empty_positions(pet,rows+extra))
             if 12 not in used:
                 empty.append(dict(position=12,level=99,can_do=int(
@@ -153,6 +156,12 @@ class SkillBooks:
         return packet(722,['number',('array','stunt_info'),('array','stunt_pos_empty'),
                            ('array','stunt_info'),('array','newzq_stunt_info'),'number'],
                           [sid,stunts,empty,[],[],0])
+
+    def training_reply(self, sid, skill, notice):
+        row = next((entry for entry in self.records(sid) if entry['stunt_id'] == skill), None)
+        if row is None:
+            raise ValueError('守护没有这个特技。')
+        return (*self.s.info_packets(sid), packet(721, ['number', 'stunt_info'], [sid, row]), text_notice(notice))
 
     def learn(self,sid,iid):
         from native946_inventory_locks import require_unlocked
@@ -183,7 +192,7 @@ class SkillBooks:
         pet=self.s._owned(db,sid)
         for row in raw_list(db,sid):
             if skill is not None and row['skill']!=skill:continue
-            cap=level_cap(pet,row)
+            cap=level_cap(pet)
             if row['level']>=cap:continue
             new=dict(row);new['experience']+=amount
             while new['level']<cap and new['experience']>=new['expnext']:
@@ -204,7 +213,7 @@ class SkillBooks:
                     raise ValueError('该天生技能的培养规则尚未核实，本次未消耗资源。')
                 raise ValueError('守护没有这个已接通的特技。')
             if mid==754:
-                cap=level_cap(pet,row)
+                cap=level_cap(pet)
                 if row['level']>=cap:raise ValueError('特技已经达到守护等级或当前阶段上限。')
                 if pet['experience']<500:raise ValueError('守护当前经验不足500，不能转换。')
                 amount=min(pet['experience']//5,experience_to_cap(row,cap))
@@ -219,6 +228,7 @@ class SkillBooks:
             else:raise ValueError('特技请求无效。')
             # Essential state is built before committing; optional panels do
             # not turn a committed mutation into an apparent failed action.
-            reply=(*self.s.info_packets(sid),self.packet(sid),text_notice(notice))
+            reply=self.training_reply(sid,skill,notice) if mid==754 else (
+                *self.s.info_packets(sid),self.packet(sid),text_notice(notice))
         game.last_event=dict(action='guardian_book_changed',message_id=mid,summon_id=sid,skill=skill)
         return reply

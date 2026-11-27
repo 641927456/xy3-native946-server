@@ -22,7 +22,7 @@ from native946_world import INSTANCE_SCENES
 
 CONTRACTS=json.loads(Path(__file__).with_name('native946_party_data.json').read_text('utf8'))
 REQUESTS={r['id']:r for r in CONTRACTS.values() if r.get('id') and '/s_' in r.get('path','')}
-REFERENCE_WIRE_VERSION=22
+REFERENCE_WIRE_VERSION=29
 # Both native roster renderers use 1 for the away seal. Leader identity
 # comes from the packet's leader_id, independent of the member row's type.
 PRESENT_STATUS, AWAY_STATUS = 0, 1
@@ -61,19 +61,28 @@ class PartyService:
     def attach(self,game):
         with self.lock:
             cid=game.character['id'];self.games[cid]=game
+            getattr(self,'_pending_disconnects',{}).pop(cid,None)
             game.party_service=self;game._party_inbox=deque();game._party_bytes=0;game._party_connected=True
             active=self.battles.get(cid)
             if active:
                 active.games[cid]=game;game._wild_battle=active;active.project()
 
-    def scene_players(self,game):
-        from native946_characters import scene_player,scene_actor_packet
+    def scene_players(self,game,*,relocated=False):
+        from native946_characters import scene_actor_packet
         with self.lock:
             c=game.character
             if c['map_id'] in INSTANCE_SCENES:return ()
-            return tuple(scene_actor_packet(other.character) for other in self.games.values()
-                         if other is not game and getattr(other,'_party_connected',False) and not other.battle
-                         and other.character['map_id']==c['map_id'] and max(abs(other.character[k]-c[k]) for k in ('x','y'))<=96)
+            replies = []
+            for other in self.games.values():
+                o = other.character
+                if other is game or not getattr(other,'_party_connected',False) or o['map_id'] != c['map_id']:
+                    continue
+                if relocated:
+                    # A coordinate jump leaves the previous actor list in the client.
+                    replies.append(numbers(1604,o['id']))
+                if not other.battle and max(abs(o[k]-c[k]) for k in ('x','y')) <= 96:
+                    replies.append(scene_actor_packet(o))
+            return tuple(replies)
 
     def reconnect_packets(self,game):
         with self.lock:return self._reconnect_packets(game)
@@ -96,11 +105,13 @@ class PartyService:
     def _reconnect_packets(self,game):
         team=self.team(game.character['id']);result=[]
         if team:
+            team=self.repair_leader(team)
             cid=game.character['id'];leader=team['leader_id']
             result.append(numbers(2025,leader) if cid==leader else numbers(2026,leader,cid))
             result.extend(self.view(game,team));self.publish(team)
         battle=self.battles.get(game.character['id'])
         if battle:
+            battle.state.get('late_round_ends', {}).pop(game.character['id'], None)
             result.extend(battle.entry(game))
             if battle.state['phase']=='drawing':
                 battle.state['acks'].discard(game.character['id'])
@@ -252,6 +263,23 @@ class PartyService:
             speed_updates = self.refresh_run_speeds(first)
             if speed_updates:self.enqueue(first,*speed_updates)
 
+    def resync_team_scene(self, game, team):
+        leader = team['leader_id']
+        members = []
+        for row in team['members']:
+            cid = row['character_id']
+            actor = self.online(cid)
+            if actor is not None:
+                actor.character['team_leader'] = 0 if row['away'] else leader
+                if not row['away'] and cid != leader:
+                    members.append(numbers(2026, leader, cid))
+        # Restore scene actors at their current coordinates before rebuilding
+        # the native follower relationships and roster.
+        self.enqueue(game, *game.travel_scene_packets(), numbers(2025, leader),
+                     *members, *self.view(game, team))
+        game.last_event = dict(action='team_scene_resynced', character_id=game.character['id'],
+                               team_id=team['id'], leader_id=leader)
+
     def _create(self,db,cid):
         tid=db.execute('INSERT INTO native_teams(leader_id) VALUES(?)',(cid,)).lastrowid
         db.execute('INSERT INTO native_team_members VALUES(?,?,1,0)',(cid,tid))
@@ -264,6 +292,9 @@ class PartyService:
         if self.online(cid) is None:raise ValueError('该角色目前不在线。')
         if self.online(cid).battle:raise ValueError('该角色正在战斗。')
         leader=self.online(team['leader_id']);other=self.online(cid)
+        from native946_mount_spaces import space_kind
+        if space_kind(other.character['map_id']) or (leader and space_kind(leader.character['map_id'])):
+            raise ValueError('请先离开帮派驻地或家园再组队。')
         close=leader and other.character['map_id']==leader.character['map_id'] and max(abs(other.character[k]-leader.character[k]) for k in ('x','y'))<=12
         slot=next((n for n in range(1,6) if n not in {m['position'] for m in team['members']}),max(m['position'] for m in team['members'])+1)
         db.execute('INSERT INTO native_team_members VALUES(?,?,?,?)',(cid,team['id'],slot,int(not close)))
@@ -561,7 +592,7 @@ class PartyService:
             c=g.character
             if c['id'] in refreshed:
                 g._world_visible=set();g._world_bucket=None;g._shown_summon_id=None
-                self.enqueue(g,*g.restore_scene(),*g.scene_objects(),*g.sync_progression())
+                self.enqueue(g,*g.travel_scene_packets())
             else:
                 self.enqueue(g,packet(1608,['number','number','word','word','word','word'],[g.character['id'],g.character.get('run_speed',DEFAULT_RUN_SPEED),old['x'],old['y'],c['x'],c['y']]),*g.sync_world_npcs())
         for g,old,_ in updates:
@@ -586,31 +617,32 @@ class PartyService:
     def detach(self,cid):
         with self.lock:
             game = self.online(cid)
-            if game is not None:
-                from native946_trade import Trade
-                Trade(self,game).close()
-                game._party_connected = False
-                game._auto_ghost_until = 0
-                from native946_temp_inventory import close_session
-                try:
-                    close_session(game.progression)
-                except StorageBusy:
-                    from native946_runtime import METRICS
-                    METRICS.increment('temp_inventory_disconnect_busy')
-                remove = numbers(1604, cid)
-                # Login advertises this actor to the whole scene.
-                for other in tuple(self.games.values()):
-                    if (game.character['map_id'] not in INSTANCE_SCENES and other is not game
-                            and not other.battle and other.character['map_id'] == game.character['map_id']):
-                        self._enqueue(other, remove)
-                from native946_friends import presence_changed
-                presence_changed(game)
+            if game is None:return
+            from native946_trade import Trade
+            Trade(self,game).close()
+            game._party_connected = False
+            game._auto_ghost_until = 0
+            from native946_temp_inventory import close_session
+            try:
+                close_session(game.progression)
+            except StorageBusy:
+                from native946_runtime import METRICS
+                METRICS.increment('temp_inventory_disconnect_busy')
+            from native946_friends import presence_changed
+            presence_changed(game)
+            # Store the scene ID even after the disconnected session is released.
+            self.__dict__.setdefault('_pending_disconnects',{})[cid]=game.character['map_id']
+            self._finish_disconnect(cid)
+
+    def _finish_disconnect(self,cid):
+        try:
             team=self.team(cid)
+            if team:
+                team=self.repair_leader(team)
+                self.publish(team)
             if cid in getattr(self,'match_entries',{}):
                 from native946_team_platform import Platform
                 Platform(self).cancel(cid)
-            if team:
-                self.repair_leader(team);team=self.team(cid);self.publish(team)
             battle=self.battles.get(cid)
             if battle:
                 remaining = [owner for owner in battle.games if self.online(owner)]
@@ -618,6 +650,17 @@ class PartyService:
                 elif battle.leader not in remaining:
                     map_leader = team['leader_id'] if team else None
                     battle.leader = map_leader if map_leader in remaining else remaining[0]
+        except StorageBusy:
+            return  # Retry from the gameplay tick, including during battle.
+
+        # The 946 change-leader callback needs both scene actors (and the old
+        # actor's team). Send 2028 before despawning the disconnected actor.
+        scene=self._pending_disconnects.pop(cid)
+        if scene not in INSTANCE_SCENES:
+            remove=numbers(1604,cid)
+            for other in tuple(self.games.values()):
+                if other.character['id']!=cid and not other.battle and other.character['map_id']==scene:
+                    self._enqueue(other,remove)
 
     def detach_port(self,port):
         with self.lock:
@@ -625,22 +668,25 @@ class PartyService:
                 if getattr(game,'source_port',None)==port:self.detach(cid)
 
     def repair_leader(self,team):
-        if not team or self.online(team['leader_id']):return
+        if self.online(team['leader_id']):return team
         successor=next((m['character_id'] for m in team['members'] if not m['away'] and self.online(m['character_id'])),None)
-        if successor is None:return
+        if successor is None:return team
         old=team['leader_id']
-        try:
-            with transaction(self.database,write=True,batchable=True) as db:
-                changed=db.execute('UPDATE native_teams SET leader_id=? WHERE id=? AND leader_id=?',(successor,team['id'],old)).rowcount
-                if changed:
-                    db.execute('UPDATE native_team_members SET away=1 WHERE character_id=?',(old,))
-                    from native946_lineups import reset_invalid_selection
-                    reset_invalid_selection(db,team['id'],successor)
-        except StorageBusy:return
+        with transaction(self.database,write=True,batchable=True) as db:
+            changed=db.execute('UPDATE native_teams SET leader_id=? WHERE id=? AND leader_id=?',(successor,team['id'],old)).rowcount
+            if changed:
+                db.execute('UPDATE native_team_members SET away=1 WHERE character_id=?',(old,))
+                from native946_lineups import reset_invalid_selection
+                reset_invalid_selection(db,team['id'],successor)
+                team=self.team(successor,db)
         if changed:
             self.invitations={key:expires for key,expires in self.invitations.items() if key[0]!=old}
             self.applications={key:expires for key,expires in self.applications.items() if key[0]!=old}
-            self.publish(self.team(successor),extras=(numbers(2028,successor,old),))
+            change=numbers(2028,successor,old)
+            for row in team['members']:
+                other=self.online(row['character_id'])
+                if other:self.enqueue(other,change)
+        return team
 
     def refresh_battle_scene(self, game):
         if self.online(game.character['id']) is not game:return
@@ -661,6 +707,8 @@ class PartyService:
 
     def tick(self,game,now=None):
         with self.lock:
+            for disconnected in tuple(getattr(self,'_pending_disconnects',{})):
+                self._finish_disconnect(disconnected)
             cid=game.character['id']
             battle=self.battles.get(cid)
             trade=getattr(self,'trades',{}).get(cid)
@@ -680,10 +728,17 @@ class PartyService:
                 else:
                     team=self.team(game.character['id'])
                     if team:
-                        self.repair_leader(team)
+                        repaired=self.repair_leader(team)
+                        if repaired is not team:
+                            self.publish(repaired)
+                            team=repaired
                         if team['id'] in self.pending_follow:
                             relocations=getattr(self,'pending_follow_relocations',set())
                             self.follow_team(team,relocate=team['id'] in relocations)
+                    if getattr(game,'_team_scene_resync_pending',False) and not game.battle:
+                        if team:
+                            self.resync_team_scene(game,team)
+                        game._team_scene_resync_pending=False
                     if (getattr(game,'_party_refresh_pending',False)
                             and (monotonic() if now is None else now)>=getattr(game,'_party_refresh_at',0)):
                         self.refresh_battle_scene(game)
@@ -702,16 +757,22 @@ class PartyService:
         from native946_song_fireworks import SEND_FIREWORK
         if (mid not in REQUESTS and mid not in FRIEND_REQUESTS and mid not in MAIL_REQUESTS and mid not in TRADE_REQUESTS
                 and mid not in GIVE_REQUESTS and mid not in PLATFORM_REQUESTS and mid not in LOTTERY_REQUESTS
-                and mid not in (SEND_FIREWORK,1032,1034,1643,1644,1645,1764,1765,5259,5438)
+                and mid not in (SEND_FIREWORK,1032,1034,1643,1644,1645,1751,1764,1765,2299,5259,5438)
                 and game.character['id'] not in self.battles and game.character['id'] not in getattr(self,'trades',{})):
             return local(mid,reader)
         with self.lock:
+            if mid == 1643 and game.battle is not None:
+                # A world-position correction would move the same character ID
+                # in the client's battle scene. The world path ended at entry.
+                game.last_event = None
+                return self.drain(game) or None
             cid=game.character['id'];team=self.team(cid) if mid in (1643,1644,1645,1764,1765,1032) else None
             if mid in (1643,1644,1645,1764,1765) and team and team['leader_id']!=cid:
                 member=next(m for m in team['members'] if m['character_id']==cid)
                 if not member['away']:
                     return (notice('正在跟随队长，请先暂离队伍再单独行动。'),packet(1606,['number','word','word'],[cid,game.character['x'],game.character['y']]))
             try:
+                scene_inbox_boundary = None
                 if mid in REQUESTS:result=self.receive(game,mid,reader)
                 elif mid in MAIL_REQUESTS:result=Mail(self,game).receive(mid,reader)
                 elif mid in TRADE_REQUESTS:result=Trade(self,game).receive(mid,reader)
@@ -727,7 +788,9 @@ class PartyService:
                     if before!=after:
                         transition=getattr(game,'_last_transition',None)
                         relocate=before[0]!=after[0] or (transition is not None and transition!=previous_transition)
-                        if relocate:self.publish_relocation(game,before)
+                        if relocate:
+                            scene_inbox_boundary = len(game._party_inbox)
+                            self.publish_relocation(game,before)
                         try:self.follow_team(team,relocate=relocate)
                         except StorageBusy:
                             if team:
@@ -745,6 +808,10 @@ class PartyService:
                             extra=moved(game,before,after)
                             if extra:result=(*packets(result),*packets(extra))
                 pending=self.drain(game)
+                if scene_inbox_boundary is not None:
+                    # Keep old-scene updates ahead of the scene reset, and
+                    # follower arrivals after the new scene is established.
+                    return (*pending[:scene_inbox_boundary], *packets(result), *pending[scene_inbox_boundary:])
                 return (*pending,*packets(result)) if pending else result
             except (ValueError,StorageBusy) as error:
                 game.last_event={'action':'action_rejected','reason':str(error)}

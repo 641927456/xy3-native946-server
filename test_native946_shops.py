@@ -328,6 +328,27 @@ class ShopTests(unittest.TestCase):
             self.assertEqual([row['type'] for row in records], [55228, 55358, 55580])
             self.assertTrue(all(row['expires'] for row in records))
 
+    def test_classified_catalog_refresh_removes_stale_cart_item_before_checkout(self):
+        p = self.game.progression
+        with p.transaction() as db:
+            db.execute('INSERT INTO mall_account_wallet(owner,yubo) VALUES(?,1000)', (p.owner,))
+        self.send(1390, 83)
+        self.send(3406, 55228)
+        self.send(3408)
+        self.game.classified_mall_cart = (55413, 55228)
+
+        refreshed = self.send(3413)
+        self.assertEqual([mid(reply) for reply in refreshed], [3405, 98])
+        cart = MessageReader(refreshed[0][3:])
+        self.assertEqual(cart.take(1)[0], 1)
+        self.assertEqual([cart.integer(), cart.integer()], [55228, 200])
+        cart.finish()
+        self.assertEqual(mid(self.send(3413)), 98)
+        with p.transaction(write=False) as db:
+            self.assertEqual(db.execute('SELECT yubo FROM mall_account_wallet WHERE owner=?',
+                                        (p.owner,)).fetchone()[0], 1000)
+            self.assertEqual(db.execute('SELECT count(*) FROM cosmetic_orders').fetchone()[0], 0)
+
     def test_special_wrong_quantity_distance_battle_and_balance_do_not_charge(self):
         self.enable_special();before=self.state()
         self.send(3703,1)

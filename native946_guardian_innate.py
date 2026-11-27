@@ -3,13 +3,15 @@ import json
 from pathlib import Path
 
 from native946_growth import species
-REFERENCE_WIRE_VERSION=6
+REFERENCE_WIRE_VERSION=7
 
 DATA = json.loads(Path(__file__).with_name('native946_guardian_innate_data.json').read_text('utf8'))
 SKILLS = {int(skill):meta for skill,meta in DATA['skills'].items()}
+NATIVE_SKILLS = {**SKILLS, **{int(skill): meta for skill, meta in DATA['staged_skills'].items()}}
 ZHONGLING_YUXIU = 4762
 CANSHENG_YIJIU = 4046
-STUNT_RANKS = {'sk0': 0, 'sk50': 50, 'sk100': 100, 'sk1100': 1100, 'sk2120': 2120, 'sk3140': 3140}
+# The original panel has five innate slots. Its sixth cell belongs to jing skills.
+STUNT_RANKS = {'sk0': 0, 'sk50': 50, 'sk100': 100, 'sk1100': 1100, 'sk2120': 2120}
 LEARNABLE = {
     ZHONGLING_YUXIU: dict(name='境·钟灵毓秀',
         intro='仙法伤害和常规治疗效果提升20%。境·水火无情的伤害目标数、残生忆旧的复活目标数各增加1。'),
@@ -41,17 +43,29 @@ LEARNABLE = {
 }
 
 
-def can_learn(pet, skill):
+def stunt_rank(pet):
+    return 10000 if pet.get('ascension') else pet.get('rebirth', 0) * 1000 + pet.get('level', 0)
+
+
+def known_skills(pet):
+    return ({row['stunt_id'] for row in pet.get('innate_skills', ())}
+            | {row['skill'] for row in pet.get('learned_books', ())}
+            | {row['base'] for row in pet.get('jing_books', ()) if row['base'] > 0})
+
+
+def learning_slots(pet):
     native = species(pet['type'])
-    if skill in native['sk0']:
-        return True
-    rank = 10000 if pet.get('ascension') else pet.get('rebirth', 0) * 1000 + pet.get('level', 0)
-    return skill in LEARNABLE and any(rank >= required and skill in native.get(key, ())
-                                     for key, required in STUNT_RANKS.items())
+    rank = stunt_rank(pet)
+    known = known_skills(pet)
+    occupied = {row['position'] for row in pet.get('innate_skills', ())}
+    return {position: tuple(skill for skill in native[key] if skill in NATIVE_SKILLS and skill not in known)
+            for position, (key, required) in enumerate(STUNT_RANKS.items(), 1)
+            if rank >= required and position not in occupied}
 
 
 def records(pet, excluded=()):
     from native946_guardian_passives import RULES as BATTLE_RULES
+    from native946_neidan import threshold
 
     result = []
     training = pet.get('innate_training', {})
@@ -59,12 +73,25 @@ def records(pet, excluded=()):
     entries = [(position, skill, SKILLS[skill])
                for position, skill in enumerate(native['sk0'], start=1)]
     assigned = set(native['sk0'])
-    for position, key in enumerate(STUNT_RANKS, start=1):
-        if key == 'sk0':
+    # Read old saves using their former slot mapping. New learns record the
+    # selected slot, since some skills occur in several stages of one species.
+    rank = stunt_rank(pet)
+    for position, (key, required) in enumerate((*STUNT_RANKS.items(), ('sk3140', 3140)), 1):
+        if position == 1 or rank < required:
             continue
-        for skill in native.get(key, ()):
-            if skill not in assigned and skill in LEARNABLE and skill in training and can_learn(pet, skill):
-                entries.append((position, skill, LEARNABLE[skill]))
+        for skill in native[key]:
+            trained = training.get(skill)
+            if trained is None or skill in assigned:
+                continue
+            saved_position = trained.get('position')
+            if saved_position == position:
+                meta = NATIVE_SKILLS.get(skill)
+            elif saved_position is None:
+                meta = LEARNABLE.get(skill)
+            else:
+                continue
+            if meta is not None:
+                entries.append((position, skill, meta))
                 assigned.add(skill)
     upgrades=pet.get('jing_books',())
     entries.extend((row['position'],row['skill'],LEARNABLE[row['skill']]) for row in upgrades
@@ -79,7 +106,8 @@ def records(pet, excluded=()):
         result.append(dict(stunt_id=skill, position=position, name=meta['name'],
                            grade=trained['level'] if trained else -1, rei=trained['rebirth'] if trained else -1,
                            fly=trained['ascension'] if trained else 0, feng=trained['sanctification'] if trained else 0,
-                           stuntexp=trained['experience'] if trained else -1, stuntexp_next=100 if trained else -1,
+                           stuntexp=trained['experience'] if trained else -1,
+                           stuntexp_next=threshold(trained['level'], trained['rebirth']) if trained else -1,
                            qianhuiused=0, trans_stunt=0, cost='',
                            desc=description))
     return result

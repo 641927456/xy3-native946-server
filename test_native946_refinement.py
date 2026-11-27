@@ -162,6 +162,44 @@ class RefinementTests(unittest.TestCase):
         self.assertIn(5023,ids(self.request(2770,iid,b'\x01\x01')))
         self.assertIn(2765,ids(self.request(2770,iid,b'\x01\x00')))
 
+    def test_exact_fairy_help_profile_applies_native_element_ticks_after_upgrade(self):
+        from native946_equipment import DATA as EQUIPMENT, bonuses
+        from native946_progression import Progression
+
+        self.cash(50000)
+        source=next(profile for profile in EQUIPMENT['rare_equipment'].values() if profile['native_type']==10384)
+        iid=self.add(10384,profile=source)
+        self.add(46544,3)
+        self.visit(2039,1141)
+        self.choose(1141,'fairy_list')
+        self.assertNotIn(888,ids(self.choose(1141,'fairy_upgrade')))
+        stored=Progression(self.path,'npc_owner',self.p.cid).snapshot()['equipment'][iid]
+        self.assertEqual(stored['requirements']['native_help'],132187)
+        self.assertEqual(stored['grade'],3)
+        _, direct, battle=bonuses([{'page':1,'id':iid}],{iid:stored})
+        self.assertEqual(direct['attack'],300)
+        self.assertEqual(battle['AddFire'],188)
+        self.assertEqual(battle['AddThunder'],240)
+        self.assertEqual(battle['IgFire'],100)
+        self.assertEqual(battle['IgThunder'],120)
+
+    def test_fairy_native_panels_and_requests_never_spend_pending_recipes(self):
+        self.cash(200000)
+        before=self.p.snapshot()
+        for op, expected in (('fairy_compose',3),('fairy_recast',4)):
+            with self.subTest(op=op):
+                self.visit(2039,1141)
+                reply=self.choose(1141,op)
+                opening=next(payload for payload in reply if 203 in ids(payload))
+                self.assertEqual(MessageReader(opening[1:]).integer(),expected)
+                for mid in (287,288):
+                    reply=self.request(mid,expected,1,2)
+                    self.assertIn(98,ids(reply))
+                    self.assertIn('暂未开放结算',MessageReader(reply[1:]).string().decode('gb18030'))
+        after=self.p.snapshot()
+        self.assertEqual((after['gold'],after['items'],after['equipment']),
+                         (before['gold'],before['items'],before['equipment']))
+
     def test_jing_lucky_upgrade_and_pending_restore_packet_data(self):
         from native946_progression import DATA as PROGRESS
         from native946_refinement import save

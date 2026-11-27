@@ -39,6 +39,8 @@ def spend_cash(db, cid, amount):
 def chamber_menu(game, npc):
     if (npc['scene_id'], npc['npc_id']) != CHAMBER:
         return None
+    if (getattr(game,'npc_service_session',None) or {}).get('remote_chamber'):
+        game.npc_service_session = None
     return Chamber(game).root()
 
 
@@ -56,9 +58,48 @@ class Chamber:
 
     def menu(self, message, choices):
         self.g.dialog_actions = [dict(kind='afei_shop', **action) for _, action in choices]
-        return self.g.menu(message, [label for label, _ in choices], CHAMBER[1])
+        return self.g.menu(message, [label for label, _ in choices], self.dialog_actor())
+
+    def dialog_actor(self):
+        return self.p.cid if self.is_remote() else CHAMBER[1]
+
+    def open_remote(self):
+        from time import monotonic
+
+        self.g.npc_service_session = dict(kind='mount_chamber', npc=CHAMBER[1],
+                                          scene=self.g.character['map_id'],
+                                          expires=monotonic()+300, remote_chamber=True)
+        return self.root()
+
+    def is_remote(self):
+        return bool((getattr(self.g,'npc_service_session',None) or {}).get('remote_chamber'))
+
+    def validate_remote(self, session):
+        from time import monotonic
+        from native946_mall_mounts import known_skills
+        from native946_mall_uses import features
+
+        if (self.g.battle or session['npc'] != CHAMBER[1] or session['expires'] <= monotonic()
+                or session['scene'] != self.g.character['map_id']):
+            raise ValueError('远程商会窗口已失效，请重新打开。')
+        with self.p.transaction(write=False) as db:
+            if 327 not in known_skills(features(db,self.p.cid)):
+                raise ValueError('远程商会的坐骑技能已失效。')
+
+    def validate_access(self, nid, operation, remote_operations):
+        from native946_npc_services import NpcServices
+
+        if self.is_remote():
+            if nid not in (self.p.cid, CHAMBER[1]) or operation not in remote_operations:
+                raise ValueError('远程商会仅可浏览或购买。')
+            self.validate_remote(self.g.npc_service_session)
+        elif (NpcServices(self.g).validate(nid)['scene_id'], nid) != CHAMBER:
+            raise ValueError('请在章嘉处办理商会。')
 
     def root(self):
+        if self.is_remote():
+            return self.menu('远程商会', [('查看在售物品', dict(op='browse', page=0)),
+                                           ('守护商铺', dict(op='guardian'))])
         with self.p.transaction(write=False) as db:
             shop = db.execute('SELECT * FROM native_afei_shops WHERE owner=?', (self.p.cid,)).fetchone()
         choices = [('查看在售物品', dict(op='browse', page=0))]
@@ -120,14 +161,11 @@ class Chamber:
 
     def execute(self, nid, action):
         from native946_inventory_features import consume, owned
-        from native946_npc_services import NpcServices
         from native946_temp_inventory import bag_capacity, place
         from native946_trade import Trade
 
-        npc = NpcServices(self.g).validate(nid)
-        if (npc['scene_id'], nid) != CHAMBER:
-            raise ValueError('请在章嘉处办理商会。')
         op = action['op']
+        self.validate_access(nid, op, {'root','browse','buy','guardian'})
         if op == 'guardian':
             from native946_guardian_chamber import GuardianChamber
             return GuardianChamber(self.g).root()

@@ -229,9 +229,257 @@ class MallUseTests(CosmeticTests):
         self.assertEqual(mid(self.send(2300,19)),98)
         self.assertNotIn('mount_shape',self.colors())
         regular=MessageReader(self.send(2302)[3:])
-        self.assertEqual((regular.integer(),regular.take(1),regular.integer()),(0,b'\x00',0))
+        self.assertEqual((regular.integer(),regular.take(1),regular.integer()),(1,b'\x00',0))
         short=MessageReader(self.send(2296)[3:])
         self.assertEqual((short.take(1),short.integer()),(b'\x00',0));short.finish()
+
+    def test_mount_purchase_activation_and_existing_permanent_ownership(self):
+        from native946_cosmetics import numeric_table
+        from native946_game_login import message_id
+
+        def owned(reply):
+            payload = next(p for p in reply if mid(p) == 3676)
+            reader = MessageReader(payload[len(message_id(3676)):])
+            for _ in range(4):
+                reader.integer()
+            return set(numeric_table(reader.string().decode('gb18030')).values())
+
+        def skill_rows():
+            reader = MessageReader(self.send(3672, 7, 0)[len(message_id(3681)):])
+            return {row[0]: row[1:] for row in
+                    (tuple(reader.integer() for _ in range(5)) for _ in range(reader.take(1)[0]))}
+
+        self.kit()
+        self.assertEqual(skill_rows()[44], (-1, 0, 0, 0))
+        self.assertNotIn(55888, owned(self.buy(55888)))
+        item = next(r for r in self.rows() if r['type'] == 55888)
+        self.assertIn(55888, owned(self.send(807, 0, item['id'])))
+        self.assertEqual(self.balance(), 98000)
+        with self.game.progression.transaction() as db:
+            db.execute('INSERT INTO cosmetic_features VALUES(?,?,?,0)',
+                       (self.game.progression.cid, 'mount_skill:44', 82))
+        self.assertEqual(skill_rows()[44], (0, 1, 82, 0))
+        self.assertTrue({55888, 65888} <= owned((self.cs().mall(refresh=True),)))
+
+        item = self.add(55143)
+        self.assertIn(55143, owned(self.send(807, 0, item['id'])))
+        self.assertGreater(skill_rows()[19][0], time())
+        self.assertNotIn(55140, owned((self.cs().mall(refresh=True),)))
+        with self.game.progression.transaction() as db:
+            db.execute("UPDATE cosmetic_features SET expires=1 WHERE key='mount:19'")
+        self.assertEqual(skill_rows()[19], (-1, 0, 0, 0))
+        self.assertNotIn(55143, owned((self.cs().mall(refresh=True),)))
+
+    def test_composite_routes_use_their_own_panels_and_keep_existing_entries(self):
+        from native946_nice_ids import PRICES
+
+        def reply_ids(reply):
+            return {mid(msg) for msg in (reply if isinstance(reply, tuple) else (reply,))}
+
+        for group, expected in ((2,3700), (3,3472), (4,2980), (5,3308), (6,1857), (7,3681)):
+            with self.subTest(group=group):
+                self.assertIn(expected, reply_ids(self.send(3672,group,0)))
+        self.assertIn(4822,reply_ids(self.send(3672,4824,0)))
+        self.assertIn(3993,reply_ids(self.send(3672,1,0)))
+        self.send(3672,6,0)
+        self.assertEqual(mid(self.send(1859,next(iter(PRICES)))),1856)
+        self.game.character['map_id']+=1
+        self.assertEqual(mid(self.send(1859,next(iter(PRICES)))),98)
+
+    def test_composite_mount_skill_purchase_and_use(self):
+        from native946_codec import packet
+        from native946_shops import change_liuguang, liuguang_balance
+
+        p=self.game.progression
+        with p.transaction() as db:
+            change_liuguang(db,p.cid,1000)
+            db.executemany('INSERT INTO cosmetic_features VALUES(?,?,?,0)',
+                           [(p.cid,'mount:19',55140),(p.cid,'mount:20',55141),(p.cid,'mount:21',55142)])
+        self.assertEqual(mid(self.send(2299,301)),98)
+        self.assertEqual(mid(self.send(3682,19,999)),98)
+        self.assertIn(3230,[mid(msg) for msg in self.send(3682,19,301)])
+        self.assertEqual(mid(self.send(3682,19,301)),98)
+        self.assertEqual(mid(self.send(3682,20,301)),98)
+        self.assertIn(839,[mid(msg) for msg in self.send(2299,301)])
+        self.assertIn(3681,[mid(msg) for msg in self.send(3682,20,82)])
+        self.assertIn(694,[mid(msg) for msg in self.send(2299,82)])
+        self.assertIn(3230,[mid(msg) for msg in self.send(3682,21,347)])
+        self.assertEqual(self.send(2299,347),packet(1303,['number','number'],[60,0]))
+        with p.transaction(write=False) as db:
+            self.assertEqual(liuguang_balance(db,p.cid),100)
+
+    def test_random_mount_dye_validates_ownership_cost_colors_and_expiry(self):
+        from native946_mall_mounts import DYE_MATERIAL, DYE_SHORTCUT, RANDOM_DYES, expire_dye
+
+        self.kit()
+        self.assertEqual(mid(self.send(3672,2,DYE_SHORTCUT)),3661)
+        self.send(3665,DYE_MATERIAL,1,0,0)
+        self.assertEqual(self.balance(),99990)
+        self.assertEqual(mid(self.send(3566,19)),98)
+        self.assertEqual(mid(self.send(3566,37)),98)
+        material = next(item for item in self.rows() if item['type']==DYE_MATERIAL)
+        p = self.game.progression
+        with p.transaction() as db:
+            db.execute('INSERT INTO cosmetic_features VALUES(?,?,?,0)',(p.cid,'mount:19',55140))
+        self.assertEqual(mid(self.send(3565,19)),3564)
+        self.assertIn(3564,[mid(m) for m in self.send(3566,19)])
+        self.assertFalse(any(r['id']==material['id'] for r in self.rows()))
+        self.send(2300,19)
+        result = self.colors()
+        self.assertIn([result[f'hcolor{i}'] for i in (1,2,3)],RANDOM_DYES[19]['palette'])
+        expires = self.saved()['mount_random_dye:19']['expires']
+        self.assertAlmostEqual(expires-int(time()),3*86400,delta=3)
+        self.assertEqual(mid(self.send(3566,19)),98)
+        with p.transaction() as db:
+            db.execute('UPDATE cosmetic_features SET expires=1 WHERE character_id=? AND key=?',
+                       (p.cid,'mount_random_dye:19'))
+        self.game.character['appearance']['_mount_dye_expires']=1
+        self.assertIn(1592,[mid(m) for m in expire_dye(self.game)])
+        self.assertEqual([self.colors()[f'hcolor{i}'] for i in (1,2,3)],[0,0,0])
+
+    def test_mount_repel_persists_and_only_blocks_walking_encounters(self):
+        from native946_mall_mounts import repel_active
+        from native946_shops import change_liuguang
+        from native946_wilderness import moved
+
+        p=self.game.progression
+        with p.transaction() as db:
+            change_liuguang(db,p.cid,300)
+            db.execute('INSERT INTO cosmetic_features VALUES(?,?,?,0)',(p.cid,'mount:19',55140))
+        self.assertFalse(repel_active(self.game))
+        self.assertIn(3230,[mid(m) for m in self.send(3682,19,77)])
+        self.send(2299,77)
+        self.assertTrue(repel_active(self.game))
+        self.assertAlmostEqual(self.saved()['mount_repel']['expires']-int(time()),3600,delta=2)
+        del self.game._mount_repel_until
+        self.assertTrue(repel_active(self.game))
+        self.game._encounter_steps=99
+        with patch('native946_wilderness.zone_at',return_value={}), patch.object(self.game.party_service,'participants') as participants:
+            self.assertEqual(moved(self.game,(2001,18,19),(2001,20,19)),())
+            participants.assert_not_called()
+        self.assertEqual(self.game._encounter_steps,0)
+
+    def test_mount_remote_chamber_uses_existing_stock_and_scoped_access(self):
+        from native946_codec import number
+        from native946_shops import change_liuguang
+
+        p=self.game.progression
+        other=self.sibling().progression
+        with p.transaction() as db:
+            db.execute('UPDATE characters SET gold=500 WHERE id=?',(p.cid,))
+            db.execute('INSERT INTO native_afei_shops(owner,open) VALUES(?,1)',(other.cid,))
+            db.execute('INSERT INTO native_afei_shop_goods(owner,kind,quantity,price) VALUES(?,?,?,?)',(other.cid,6007,2,100))
+            change_liuguang(db,p.cid,300)
+            db.execute('INSERT INTO cosmetic_features VALUES(?,?,?,0)',(p.cid,'mount:19',55140))
+        self.assertEqual(mid(self.send(1831)),98)
+        self.send(3682,19,327)
+        self.send(1831)
+        open_dialog=lambda choice:self.game.receive(1032,MessageReader(bytes([choice])+number(p.cid)))
+        open_dialog(1)
+        self.assertIn(789,[mid(m) for m in open_dialog(1)])
+        with p.transaction(write=False) as db:
+            self.assertEqual(db.execute('SELECT proceeds FROM native_afei_shops WHERE owner=?',(other.cid,)).fetchone()[0],100)
+            self.assertEqual(db.execute('SELECT gold FROM characters WHERE id=?',(p.cid,)).fetchone()[0],400)
+        self.send(2299,327)
+        with p.transaction() as db:
+            db.execute('DELETE FROM cosmetic_features WHERE character_id=? AND key=?',(p.cid,'mount:19'))
+        self.assertEqual(mid(open_dialog(1)),98)
+
+    def test_mount_shortcuts_enter_private_spaces_and_return(self):
+        from struct import pack
+        from native946_guilds import _create_guild
+        from native946_mount_spaces import SPACES, check_guild_access, check_login, space_kind
+        from native946_shops import change_liuguang
+
+        self.approach(2001,5657)
+        character=self.game.character
+        origin=tuple(character[field] for field in ('map_id','x','y'))
+        p=self.game.progression
+        sibling=self.sibling()
+        with p.transaction() as db:
+            change_liuguang(db,p.cid,600)
+            db.executemany('INSERT INTO cosmetic_features VALUES(?,?,?,0)',
+                           [(p.cid,'mount:19',55140),(p.cid,'mount:20',55141)])
+        self.send(3682,19,73)
+        self.send(3682,20,213)
+        def replies(value):
+            return {mid(m) for m in (value if isinstance(value,tuple) else (value,))}
+        self.assertIn(98,replies(self.send(2299,73)))
+        with p.transaction() as db:_create_guild(db,80001,'测试驻地','隔离测试',p.cid,int(time()))
+        self.assertIn(1597,[mid(m) for m in self.send(2299,73)])
+        self.assertEqual(space_kind(character['map_id']),'guild')
+        self.assertIn(98,replies(self.send(1751,sibling.progression.cid)))
+        self.assertIn(1597,[mid(m) for m in self.send(1751,p.cid)])
+        home=character['map_id']
+        self.assertEqual(space_kind(home),'home')
+        saved=self.characters.enter(p.owner,p.cid)
+        check_login(self.characters,saved)
+        self.assertEqual(saved['map_id'],home)
+        foreign=sibling.character
+        self.characters.change_scene(foreign['owner'],foreign['id'],foreign['map_id'],home,25,30)
+        saved_foreign=self.characters.enter(foreign['owner'],foreign['id'])
+        check_login(self.characters,saved_foreign)
+        self.assertNotEqual(saved_foreign['map_id'],home)
+        x,y=SPACES['home']['exit']
+        request=pack('<HHH',home,x,y)
+        self.assertIn(98,replies(self.game.receive(1644,MessageReader(request))))
+        self.characters.move(p.owner,p.cid,home,x,y)
+        character.update(x=x,y=y)
+        self.assertIn(1597,[mid(m) for m in self.game.receive(1644,MessageReader(request))])
+        self.assertEqual(tuple(character[field] for field in ('map_id','x','y')),origin)
+        self.assertIn(1597,replies(self.send(2299,73)))
+        with p.transaction() as db:
+            db.execute('DELETE FROM native_guild_members WHERE character_id=?',(p.cid,))
+        self.assertIn(1597,replies(check_guild_access(self.game)))
+        self.assertEqual(tuple(character[field] for field in ('map_id','x','y')),origin)
+
+    def test_mount_shop_uses_existing_prices_and_requires_an_active_skill(self):
+        from native946_shops import change_liuguang, liuguang_balance
+
+        p=self.game.progression
+        with p.transaction() as db:
+            db.execute('UPDATE characters SET gold=1000 WHERE id=?',(p.cid,))
+            change_liuguang(db,p.cid,600)
+            db.executemany('INSERT INTO cosmetic_features VALUES(?,?,?,0)',
+                           [(p.cid,'mount:19',55140),(p.cid,'mount:20',55141)])
+        self.assertEqual(mid(self.send(2299,957)),98)
+        self.assertEqual(mid(self.send(1716,3407,3249,1)),98)
+        self.assertIn(3230,[mid(msg) for msg in self.send(3682,19,957)])
+        self.assertIn(1697,[mid(msg) for msg in self.send(2299,957)])
+        self.assertEqual(mid(self.send(1716,1270,6007,1)),98)
+        self.assertIn(789,[mid(msg) for msg in self.send(1716,3407,3249,1)])
+        self.assertIn(3230,[mid(msg) for msg in self.send(3682,20,958)])
+        self.assertIn(1697,[mid(msg) for msg in self.send(2299,958)])
+        self.assertIn(789,[mid(msg) for msg in self.send(1716,1270,6007,1)])
+        with p.transaction() as db:
+            db.execute("DELETE FROM cosmetic_features WHERE character_id=? AND key='mount:20'", (p.cid,))
+        self.assertEqual(mid(self.send(1716,1270,6007,1)),98)
+        with p.transaction(write=False) as db:
+            self.assertEqual(liuguang_balance(db,p.cid),0)
+            self.assertEqual(db.execute('SELECT gold FROM characters WHERE id=?',(p.cid,)).fetchone()[0],695)
+            self.assertEqual(db.execute('SELECT count(*) FROM native_shop_orders').fetchone()[0],2)
+
+    def test_fixed_mount_dye_unlocks_spends_once_and_restores_original(self):
+        p=self.game.progression
+        item=self.add(47700)
+        before=self.rows()
+        self.assertEqual(mid(self.send(4003,37,47700)),98)
+        self.assertEqual(mid(self.send(4002,37,47700)),98)
+        self.assertEqual(self.rows(),before)
+        with p.transaction() as db:
+            db.execute('INSERT INTO cosmetic_features VALUES(?,?,?,0)',(p.cid,'mount:37',55675))
+        self.assertEqual(mid(self.send(3565,37)),4000)
+        self.assertIn(4000,[mid(msg) for msg in self.send(807,0,item['id'])])
+        self.assertFalse(any(r['id']==item['id'] for r in self.rows()))
+        self.send(2300,37)
+        self.assertEqual([self.colors()[f'hcolor{i}'] for i in (1,2,3)],[10,10,0])
+        item=self.add(47700)
+        self.assertEqual(mid(self.send(4002,37,47700)),98)
+        self.assertTrue(any(r['id']==item['id'] for r in self.rows()))
+        self.send(4003,37,0)
+        self.assertEqual([self.colors()[f'hcolor{i}'] for i in (1,2,3)],[0,0,0])
+        self.send(4003,37,47700)
+        self.assertEqual([self.colors()[f'hcolor{i}'] for i in (1,2,3)],[10,10,0])
     def test_namecard_activation_switch_ownership_and_expiry(self):
         item=self.add(56029);reply=self.send(807,0,item['id'])
         self.assertIn(4473,[mid(p) for p in reply]);self.assertIn('namecard:1',self.saved())
@@ -518,6 +766,16 @@ class MallUseTests(CosmeticTests):
         self.assertNotIn(item,{row['id'] for row in self.rows()})
         self.assertEqual(mid(self.send(807,sid,item)),98)
         self.assertEqual(self.game.summons.get(sid),pet)
+
+        with p.transaction() as db:
+            db.execute('UPDATE characters SET level=100 WHERE id=?', (p.cid,))
+            db.execute('UPDATE summons SET level=99,experience=0 WHERE id=?', (sid,))
+            item=db.execute('INSERT INTO inventory(character_id,type,page,slot,amount) VALUES(?,?,?,?,1)',
+                            (p.cid,EXPERIENCE_ITEM,page,slot)).lastrowid
+        reply=self.send(807,sid,item)
+        pet=self.game.summons.get(sid)
+        self.assertEqual((pet['level'],pet['experience']),(100,499996040))
+        self.assertIn(packet(706,['number','summon'],[sid,self.game.summons.info_record(pet)]),reply)
 
     def test_local_beast_box_persists_charges_and_grants_real_equipment(self):
         from native946_mall_event_boxes import BEAST_BOX_WEIGHTS, remaining_uses

@@ -196,8 +196,11 @@ def use(game, target, iid):
                            now+rule['lifetime'], json.dumps([g.progression.cid for g in members]))).lastrowid
     game.progression._cached_snapshot = None
     npc = BASE + sid%ID_RANGE
+    notice = '星符已使用，星宿已出现。'
+    if kind in GROUPS:
+        notice += '群星阵容未核实的部分、战斗机制和掉落采用本服规则。'
     return game.defer_packets(lambda: (*game.progression.item_packets(), *Constellations(game).scene_packets(),
-                         npc_auto_trace(rule['map'],x,y,npc,rule['star_name']),text_notice('星符已使用，星宿已出现。')))
+                         npc_auto_trace(rule['map'],x,y,npc,rule['star_name']),text_notice(notice)))
 
 
 class Constellations:
@@ -284,7 +287,8 @@ class Constellations:
             if npc == 4285:
                 choices.append(('购买低级星符（本服）',dict(kind='constellation',op='sigil_shop',page=0)))
             return NpcServices(self.g)._menu(npc,'星宿称谓按击败记录解锁，祖老天师负责领奖。'
-                '#r星符从野外星宿掉落，20%为本机概率。使用前往道具所示地图。',choices)
+                '#r本服规则。野外星宿掉落单体星符的概率为20%，群星符另有掉落条件。'
+                '#r使用前请前往道具所示地图。',choices)
         with self.p.transaction(write=False) as db:
             finished = completed(db,self.p.cid)
         titles = list(DATA['titles'].items())[page*PAGE_SIZE:(page+1)*PAGE_SIZE]

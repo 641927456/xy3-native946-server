@@ -112,8 +112,88 @@ class SummonTests(unittest.TestCase):
         self.s.status(sid,4);self.assertEqual(self.s.get(sid)['show'],0)
         with self.assertRaises(ValueError):self.s.status(sid,5)
 
+    def test_native_release_removes_active_guardian_and_frees_slot(self):
+        from native946_guardian_chamber import carried_count
+        from native946_reserve_food import sync as reserve_packet
+
+        sid = self.s.acquire(3197, 'release:target', level=10)
+        self.s.settle(sid, 'before-release', 99, 20, True)
+        self.s.status(sid, 3)
+        self.game.sync_summon_scene()
+        pet = self.s.list_record(self.s.get(sid))
+        keep = [self.s.acquire(3197, f'release:keep:{i}') for i in range(self.s.carry_limit() - 1)]
+        p = self.game.progression
+        with self.assertRaisesRegex(ValueError, '携带栏已满'):
+            self.s.acquire(3197, 'release:replacement')
+        self.assertEqual(p.attribute_values()['SummonScore'], self.s.get(sid)['score'])
+
+        reply = self.call(750, sid, 5)
+        self.assertEqual(self.game.last_event['action'], 'summon_released')
+        self.assertEqual(reply[:3], (packet(718, ['number', 'number'], [sid, 0]),
+                                    packet(719, ['number', 'number'], [sid, 0]),
+                                    packet(714, ['summon_list', 'number'], [pet, 2])))
+        self.assertIn(packet(1604, ['number'], [sid]), reply)
+        self.assertIn(reserve_packet(self.game, None), reply)
+        self.assertIn(packet(695, ['number', 'number'], [88, max(self.s.get(i)['score'] for i in keep)]), reply)
+        self.assertIsNone(self.s.active())
+        with self.assertRaisesRegex(ValueError, '不属于'):
+            self.s.get(sid)
+        self.call(750, sid, 5)
+        self.assertEqual(self.game.last_event['action'], 'action_rejected')
+
+        loaded = Summons(Progression(self.path, 'owner946', p.cid))
+        self.assertEqual([row['id'] for row in loaded.snapshot()], keep)
+        self.assertEqual(loaded.acquire(3197, 'release:target'), sid)
+        replacement = loaded.acquire(3197, 'release:replacement')
+        self.assertNotEqual(replacement, sid)
+        with p.transaction(write=False) as db:
+            self.assertEqual(carried_count(db, p.cid), loaded.carry_limit())
+            self.assertEqual(db.execute('SELECT count(*) FROM native_guardian_releases').fetchone()[0], 1)
+            self.assertEqual(db.execute('SELECT summon_id FROM summon_battle_rewards').fetchone()[0], sid)
+            self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(), [])
+
+    def test_native_release_rejects_unavailable_guardians_without_changes(self):
+        from native946_guardian_equipment import equipment_page
+
+        sid = self.s.claim_starter()
+        protected = self.s.acquire(3405, 'release:protected')
+        p = self.game.progression
+        other = self.characters.create('owner946', '他人守护', 702)
+        foreign = Summons(Progression(self.path, 'owner946', other['id'])).claim_starter()
+        with p.transaction() as db:
+            db.execute("INSERT INTO native_object_locks VALUES(?,'summon',?,1,0)", (p.cid, sid))
+        for target, reason in ((sid, '加锁'), (foreign, '不属于'), (protected, '无法放生')):
+            self.call(750, target, 5)
+            self.assertIn(reason, self.game.last_event['reason'])
+
+        with p.transaction() as db:
+            db.execute("DELETE FROM native_object_locks WHERE kind='summon' AND object_id=?", (sid,))
+            item_id = db.execute('INSERT INTO inventory(character_id,type,page,slot,amount) VALUES(?,?,?,?,1)',
+                                 (p.cid, 42050, equipment_page(sid), 1)).lastrowid
+            db.execute("INSERT INTO native_guardian_equipment VALUES(?,?,'artifact:1')", (item_id, sid))
+        self.call(750, sid, 5)
+        self.assertIn('先卸下', self.game.last_event['reason'])
+        with p.transaction() as db:
+            self.assertIsNotNone(db.execute('SELECT 1 FROM inventory WHERE id=?', (item_id,)).fetchone())
+            db.execute('DELETE FROM native_guardian_equipment WHERE item_id=?', (item_id,))
+            page, slot = p.free_bag_slot()
+            db.execute('UPDATE inventory SET page=?,slot=? WHERE id=?', (page, slot, item_id))
+            db.execute('INSERT INTO native_guardian_shops VALUES(?,1,0)', (p.cid,))
+            db.execute('INSERT INTO native_guardian_shop_stock(owner,summon_id,price) VALUES(?,?,1)', (p.cid, sid))
+        self.call(750, sid, 5)
+        self.assertIn('不属于', self.game.last_event['reason'])
+        with p.transaction() as db:
+            db.execute('DELETE FROM native_guardian_shop_stock WHERE summon_id=?', (sid,))
+            db.execute("INSERT INTO native_guardian_shop_sales VALUES(1,?,?,?,'sale:history',1,1)", (other['id'], p.cid, sid))
+        self.call(750, sid, 5)
+        self.assertEqual(self.game.last_event['action'], 'summon_released')
+        self.assertEqual([row['id'] for row in self.s.snapshot()], [protected])
+        with p.transaction(write=False) as db:
+            self.assertEqual(db.execute('SELECT summon_id FROM native_guardian_shop_sales').fetchone()[0], sid)
+
     def test_guardian_rating_uses_highest_carried_and_refreshes_with_skill_training(self):
         from native946_innate_training import schema
+        from native946_neidan import threshold
 
         p = self.game.progression
         self.assertEqual(p.attribute_values()['SummonScore'], 0)
@@ -128,7 +208,8 @@ class SummonTests(unittest.TestCase):
         with p.transaction() as db:
             schema(db)
             db.execute('UPDATE summons SET experience=500 WHERE id=?', (higher,))
-            db.execute('INSERT INTO native_innate_training(summon_id,skill,level) VALUES(?,?,?)', (higher, 307, 9))
+            db.execute('INSERT INTO native_innate_training(summon_id,skill,level,experience) VALUES(?,?,?,?)',
+                       (higher, 307, 9, threshold(9, 0) - 100))
         reply = self.call(754, higher, 307)
         after = before + 65
         self.assertEqual(self.s.get(higher)['score'], after)
@@ -171,9 +252,11 @@ class SummonTests(unittest.TestCase):
         self.s.rest();self.assertEqual(self.s.get(sid)['mp'],s['mpmax'])
 
     def test_saved_experience_waits_at_the_cap_until_the_hero_levels(self):
+        from native946_progression import level_up_cost
+
         p=self.game.progression
         with p.transaction() as db:
-            db.execute('UPDATE characters SET level=31,experience=3100 WHERE id=?',(p.cid,))
+            db.execute('UPDATE characters SET level=31,experience=? WHERE id=?',(level_up_cost(31,32),p.cid))
         with self.assertRaisesRegex(ValueError,'上限'):
             self.s.acquire(3374,'over-the-cap',level=42)
         sid=self.s.acquire(3374,'stored-experience',level=41)
@@ -213,6 +296,44 @@ class SummonTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'41级'):
                     self.s.level_up(sid)
                 self.assertEqual(self.s.get(sid),pet)
+
+    def test_guardian_battle_and_manual_leveling_stop_at_each_stage_cap(self):
+        sid = self.s.claim_starter()
+        p = self.game.progression
+        with p.transaction() as db:
+            db.execute('UPDATE characters SET level=180 WHERE id=?', (p.cid,))
+        with self.assertRaisesRegex(ValueError, '上限'):
+            self.s.acquire(3374, 'over-stage-cap', level=101)
+        for rebirth, ascension, sanctification, cap in (
+                (0, 0, 0, 100), (1, 0, 0, 120), (2, 0, 0, 140), (2, 1, 0, 180), (2, 1, 1, 185)):
+            with self.subTest(cap=cap):
+                with p.transaction() as db:
+                    db.execute('UPDATE summons SET level=?,rebirth=?,ascension=?,sanctification=?,experience=0 WHERE id=?',
+                               (cap - 1, rebirth, ascension, sanctification, sid))
+                self.s.settle(sid, f'stage-cap-{cap}', 1, 1, True, experience=20000)
+                pet = self.s.get(sid)
+                self.assertEqual((pet['level'], pet['experience']), (cap, 20000 - 40 * (cap - 1)))
+                with self.assertRaisesRegex(ValueError, f'{cap}级'):
+                    self.s.level_up(sid)
+                self.assertFalse(self.s.reconcile_levels())
+                self.assertEqual(self.s.get(sid), pet)
+
+    def test_legacy_overleveled_guardian_is_repaired_on_load_once(self):
+        sid = self.s.claim_starter()
+        p = self.game.progression
+        with p.transaction() as db:
+            db.execute('UPDATE characters SET level=100 WHERE id=?', (p.cid,))
+            db.execute('UPDATE summons SET level=110,experience=70,cor=545,mag=110,strength=110,speed=110,'
+                       'points=5,hp=9999,mp=9999 WHERE id=?', (sid,))
+        loaded = NativeGameplay(self.character, self.characters, lambda:()).summons
+        with p.transaction(write=False) as db:
+            saved = db.execute('SELECT level,experience,cor,mag,strength,speed,points,hp,mp '
+                               'FROM summons WHERE id=?', (sid,)).fetchone()
+        self.assertEqual(tuple(saved[:7]), (100, 41870, 100, 100, 100, 100, 400))
+        pet = loaded.get(sid)
+        self.assertEqual(tuple(saved[7:]), (pet['hpmax'], pet['mpmax']))
+        self.assertFalse(loaded.reconcile_levels())
+        self.assertEqual(loaded.get(sid), pet)
 
     def test_native_fighter_and_pet_binding_are_emitted(self):
         sid=self.s.claim_starter();packets=self.game.begin_battle()
@@ -266,6 +387,9 @@ class SummonTests(unittest.TestCase):
         self.game.begin_battle();self.call(750,sid,2)
         self.assertEqual(self.s.active()['id'],sid)
         self.assertEqual(self.game.last_event['action'],'action_rejected')
+        self.call(750,sid,5)
+        self.assertIn('战斗中',self.game.last_event['reason'])
+        self.assertEqual(self.s.active()['id'],sid)
 
     def test_dead_or_resting_pet_does_not_block_hero(self):
         sid=self.s.claim_starter();self.s.set_vitals(sid,0,0)

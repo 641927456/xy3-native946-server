@@ -102,13 +102,32 @@ class BasicBookTests(unittest.TestCase):
         self.send(807,self.sid+100,iid);self.assertEqual(self.p.snapshot(),before)
 
     def test_native_conversion_500_boundary_and_cold_load(self):
-        self.send(807,self.sid,self.item(6217));self.send(754,self.sid,303)
+        self.send(807,self.sid,self.item(6217))
+        replies=self.send(754,self.sid,303)
+        updates=[part for part in replies if part[:3]==b'\x00\xd1\x02']
+        self.assertEqual(len(updates),1)
+        self.assertFalse(any(part[:3]==b'\x00\xd2\x02' for part in replies))
+        reader=MessageReader(updates[0][3:])
+        self.assertEqual(reader.integer(),self.sid)
+        self.assertEqual(decode_record(reader,'stunt_info')['stunt_id'],303)
+        reader.finish()
         pet=self.s.get(self.sid);self.assertEqual(pet['experience'],400)
         self.assertEqual(pet['learned_books'][0]['experience'],23)
         self.assertEqual(pet['learned_books'][0]['level'],2)
         cold=Summons(Progression(self.path,'book_owner',self.p.cid))
         self.assertEqual(cold.get(self.sid),pet)
         before=pet;self.send(754,self.sid,303);self.assertEqual(self.s.get(self.sid),before)
+
+    def test_zero_tier_book_cannot_exceed_guardian_level(self):
+        self.send(807,self.sid,self.item(6217))
+        with self.p.transaction() as db:
+            db.execute('UPDATE native_guardian_books SET level=49,experience=95,expnext=100 WHERE summon_id=?',
+                       (self.sid,))
+        self.send(754,self.sid,303)
+        pet=self.s.get(self.sid)
+        self.assertEqual((pet['experience'],pet['learned_books'][0]['level']), (495,50))
+        self.s.settle(self.sid,'book-at-cap',1,1,True,120,stunt_experience=10000)
+        self.assertEqual(self.s.get(self.sid)['learned_books'][0]['level'],50)
 
     def test_drop_clamps_saved_vitals_and_frees_original_slot(self):
         self.send(807,self.sid,self.item(6218));self.send(754,self.sid,304)

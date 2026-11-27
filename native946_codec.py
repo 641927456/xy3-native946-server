@@ -87,3 +87,16 @@ def text_notice(text):
 def screen_notice(text, *, optimize_display=False):
     """Show native rich text on screen. MessageBox logs it when dismissed."""
     return packet(100, ['string', 'number'], [text, int(optimize_display)])
+
+
+def experience_notice_lines(experience, guardian_awards=(), *, highlighted=False):
+    """Format the experience lines of a native MessageBox reward."""
+    if highlighted:
+        lines = [f'您获得#G{experience}#n经验'] if experience else []
+        lines.extend(f'您的#G{name}#n获得#G{amount}#n经验'
+                     for name, amount in guardian_awards if amount)
+    else:
+        lines = [f'你得到了{experience}点经验'] if experience else []
+        lines.extend(f'你的守护{name}得到了{amount}经验'
+                     for name, amount in guardian_awards if amount)
+    return lines

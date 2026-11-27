@@ -8,6 +8,7 @@ from native946_codec import packet, text_notice
 
 
 NPC = (2001, 4775)
+REFERENCE_WIRE_VERSION = 1
 REQUESTS = frozenset(range(1859, 1867))
 WRITES = frozenset({1860, 1861, 1862})
 PAGE_SIZE = 9
@@ -81,14 +82,15 @@ class NiceIds:
         self.game = game
         self.progression = game.progression
 
-    def open(self):
+    def open(self, *, from_mall=False):
         if self.game.characters.trial_server:
             raise ValueError('试玩服可右键使用对应的靓号购买券兑换通宝。')
         self.game.npc_service_session = dict(
-            kind='nice_id', npc=NPC[1], scene=NPC[0], expires=monotonic() + 600
+            kind='nice_id', npc=None if from_mall else NPC[1],
+            scene=self.game.character['map_id'] if from_mall else NPC[0], expires=monotonic() + 600
         )
         return (
-            packet(1183, ['string'], ['dlg_npc_chat']),
+            *((packet(1183, ['string'], ['dlg_npc_chat']),) if not from_mall else ()),
             self.list_packet(1, 0, 1),
             text_notice(CATALOG_NOTICE),
         )
@@ -267,7 +269,12 @@ class NiceIds:
     def receive(self, mid, reader):
         from native946_npc_services import NpcServices
 
-        session = NpcServices(self.game)._session('nice_id', NPC[1])
+        session = getattr(self.game, 'npc_service_session', None)
+        if session and session['kind'] == 'nice_id' and session['npc'] is None:
+            if session['scene'] != self.game.character['map_id'] or session['expires'] < monotonic():
+                raise ValueError('靓号窗口已失效，请重新打开。')
+        else:
+            session = NpcServices(self.game)._session('nice_id', NPC[1])
         if mid == 1863:
             tab, theme, page = (reader.integer() for _ in range(3))
             reader.finish()

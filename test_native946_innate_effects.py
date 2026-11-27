@@ -226,6 +226,8 @@ class InnateEffectTests(unittest.TestCase):
         from native946_innate_training import schema
 
         sid = self.s.acquire(3307, 'innate:ascended-champion')
+        with self.p.transaction() as db:
+            db.execute('UPDATE summons SET level=180,rebirth=2,ascension=1 WHERE id=?', (sid,))
         untrained = self.s.get(sid)
         with self.p.transaction() as db:
             schema(db)
@@ -266,6 +268,112 @@ class InnateEffectTests(unittest.TestCase):
             runtime.pet_passives(attacker, defender)
         self.assertEqual(defender['role_last_damage_family'], 'water')
         self.assertEqual((defender['hp'], defender['hp_limit']), (9600, 9860))
+
+    def test_elemental_pills_use_only_the_matching_resist_and_respect_spell_shields(self):
+        from native946_role_battle import Runtime
+
+        for pill, element, resist in ((211,'wind',37),(212,'thunder',81),(213,'water',103),(214,'fire',149)):
+            with self.subTest(pill=pill):
+                attacker,defender=fighter(1,3),fighter(2,4)
+                attacker.update(hp=5000,neidan=[dict(kind=pill,energy=1)],new_neidan_power={282:1000})
+                defender.update(ReWind=37,ReThunder=81,ReWater=103,ReFire=149)
+                runtime=Runtime({1:attacker,2:defender},{},1,AlwaysProc(),{})
+                defender['role_shields']['element']=1
+                with patch('native946_neidan_legacy.effect',return_value=dict(enabled=True,chance=100,damage=500)):
+                    runtime.pet_passives(attacker,defender)
+                    self.assertEqual((defender['hp'],attacker['hp']),(10000,5000))
+                    runtime.pet_passives(attacker,defender)
+                hit=500-resist
+                self.assertEqual(defender['role_last_damage_family'],element)
+                self.assertEqual((defender['hp'],attacker['hp']),(10000-hit,5000+hit//10))
+
+    def test_pill_water_bonuses_and_fire_critical_use_equipped_guardian_skills(self):
+        from native946_role_battle import Runtime
+
+        for pill,skills,protection,roll,expected in (
+                (213,(4629,),0,0,10500), (213,(4629,4720),0,0,20500),
+                (214,(4720,),0,0,500), (211,(4721,),0,0,500),
+                (214,(4721,),0,299,620), (214,(4721,),1500,299,527),
+                (214,(4721,),1500,300,500)):
+            with self.subTest(pill=pill,skills=skills,roll=roll,protection=protection):
+                attacker,defender=fighter(1,3,skills),fighter(2,4)
+                attacker['neidan']=[dict(kind=pill,energy=1)]
+                defender.update(hp=1_000_000,hpmax=1_000_000,new_neidan_power={280:protection})
+                rng=AlwaysProc()
+                rng.randrange=lambda stop:roll
+                runtime=Runtime({1:attacker,2:defender},{},1,rng,{})
+                with patch('native946_neidan_legacy.effect',return_value=dict(enabled=True,chance=100,damage=500)):
+                    runtime.pet_passives(attacker,defender)
+                self.assertEqual(1_000_000-defender['hp'],expected)
+
+    def test_blood_flower_slow_expires_after_two_rounds_including_extra_target(self):
+        from native946_guardian_skill_details import local_detail
+        from native946_role_battle import Runtime
+
+        for pill_chance, expected in ((0,3),(10000,4)):
+            caster=fighter(1,3,(4615,))
+            caster['new_neidan_power']={278:pill_chance}
+            enemies=[fighter(i,4) for i in range(2,7)]
+            for enemy in enemies:enemy.update(initiative=750,hp=100000,hpmax=100000)
+            runtime=Runtime({f['id']:f for f in [caster,*enemies]},{},1,AlwaysProc(),{})
+            runtime.guardian_cast(None,caster,2,4615)
+            self.assertIn('持续2回合',local_detail(caster,4615))
+            self.assertEqual([e['initiative'] for e in enemies],[550]*expected+[750]*(5-expected))
+            runtime.round=2
+            runtime.begin_round()
+            self.assertEqual(sum(e['initiative']==550 for e in enemies),expected)
+            runtime.round=3
+            runtime.begin_round()
+            self.assertTrue(all(e['initiative']==750 for e in enemies))
+
+    def test_fire_critical_protection_keeps_the_normal_hit(self):
+        from native946_guardian_magic import cast as book_cast
+        from native946_role_battle import Runtime
+
+        for skill in (214,338):
+            for protected, reduction, expected in ((False,0,620 if skill==214 else 750),
+                                                   (False,1500,527 if skill==214 else 637),
+                                                   (True,1500,500)):
+                attacker=fighter(1,3,(4721,) if skill==214 else ())
+                target=fighter(2,4,(4746,) if protected else ())
+                target['new_neidan_power']={280:reduction}
+                rng=AlwaysProc()
+                # Skip the separate 30% incoming damage reduction on 4746.
+                rng.randrange=lambda scale: 305
+                rt=Runtime({1:attacker,2:target},{},1,rng,{})
+                if skill==214:
+                    attacker['mag']=200 if protected else 100
+                    rng.randrange=lambda scale: 305 if protected else 299
+                    attacker['neidan']=[dict(kind=214,energy=1)]
+                    with patch('native946_neidan_legacy.effect',return_value=dict(enabled=True,chance=100,damage=500)):
+                        rt.pet_passives(attacker,target)
+                else:
+                    params=dict(targets=1, damage=500, mana=1, element='fire', proc_per_mille=900)
+                    with patch('native946_guardian_magic.prepared',return_value=params):
+                        rt.guardian_cast(None,attacker,2,338)
+                        self.assertEqual(10000-target['hp'],expected)
+                        target['hp']=10000
+                        book_cast(None,attacker,[target],2,338,rng)
+                self.assertEqual(10000-target['hp'],expected)
+
+    def test_ordinary_fire_domain_checks_immunity_on_each_target(self):
+        from native946_innate_effects import elemental
+        from native946_role_battle import Runtime
+
+        caster, vulnerable, immune = fighter(1,3,(4627,)), fighter(2,4), fighter(3,4,(4746,))
+        rng = AlwaysProc()
+        rng.randrange = lambda scale: 305
+        rt = Runtime({actor['id']:actor for actor in (caster,vulnerable,immune)}, {}, 1, rng, {})
+        with patch('native946_innate_effects.elemental_base', return_value=500):
+            elemental(rt,caster,[vulnerable,immune],0,'fire')
+        self.assertEqual((vulnerable['hp'],immune['hp']), (9250,9500))
+
+    def test_jing_fire_tooltip_reports_the_bonus_used_in_combat(self):
+        from native946_guardian_skill_details import apply_details
+        for spirit,expected in ((0,'{25.0,20.0}'),(100,'{30.0,24.0}'),(2000,'{50.0,40.0}')):
+            pet = fighter(1,3,(4721,))
+            pet['mag'] = spirit
+            self.assertEqual(apply_details(pet,[dict(stunt_id=4721)])[0]['desc'],expected)
 
     def test_physical_trigger_passives_execute_in_damage_pipeline(self):
         from native946_role_battle import Runtime

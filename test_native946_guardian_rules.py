@@ -47,10 +47,7 @@ class GuardianOriginalRuleTests(unittest.TestCase):
         self.assertEqual(reader.integer(),sid)
         skills=[reader.integer() for _ in range(reader.take(1)[0])]
         reader.finish()
-        names={int(key):row.get('name') for key,row in DATA['skills'].items()}
-        self.assertIn(next(skill for skill,name in names.items() if name=='太岁震铃'),skills)
-        self.assertIn(next(skill for skill,name in names.items() if name=='紫金护体'),skills)
-        self.assertIn(4904,skills)
+        self.assertEqual(skills, [302, 366, 4140, 4908])
         self.assertEqual(self.game.summons.get(sid),before)
         self.assertEqual(self.game.summons.stunt_packet(sid),learned_before)
 

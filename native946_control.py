@@ -1,6 +1,5 @@
 """Opt-in loopback test controls. All actions run on the game socket's thread."""
 from dataclasses import dataclass, field
-from importlib import reload
 from pathlib import Path
 from queue import Full
 from secrets import compare_digest, token_urlsafe
@@ -243,103 +242,9 @@ def execute(login, request):
         if game.battle is not None:raise ValueError('请先结束当前战斗，再更新原生验收版本。')
         if getattr(game,'party_service',None) is not None and game.party_service.battles:
             raise ValueError('仍有共享战斗正在使用当前规则，稍后再更新。')
-        import native946_equipment
-        reload(native946_equipment)
-        import native946_shops
-        reload(native946_shops)
-        import native946_fashion_shop
-        reload(native946_fashion_shop)
-        import native946_gameplay, native946_progression, native946_codec, native946_summons,native946_game_login,native946_map
-        reload(native946_codec)
-        import native946_classified_mall
-        reload(native946_classified_mall)
-        import native946_refinement
-        reload(native946_refinement)
-        import native946_mall_uses,native946_cosmetics,native946_characters,native946_acceptance,native946_tasks,native946_activities,native946_campaign,native946_premium_items
-        import native946_role_growth
-        reload(native946_role_growth)
-        import native946_school
-        reload(native946_school)
-        reload(native946_premium_items)
-        reload(native946_campaign)
-        import native946_mall_guardians,native946_mall_bags,native946_mall_checkout,native946_mall_carving,native946_mall_portraits
-        for module in (native946_mall_guardians,native946_mall_bags,native946_mall_checkout,native946_mall_carving,native946_mall_portraits,native946_mall_uses,native946_cosmetics,native946_characters,native946_acceptance,native946_tasks,native946_activities):reload(module)
-        import native946_friends, native946_mail, native946_trade
-        reload(native946_friends)
-        reload(native946_mail)
-        reload(native946_trade)
-        with game.progression.transaction() as db:
-            native946_friends.schema(db)
-            native946_mail.schema(db)
-        import native946_skill6
-        reload(native946_skill6)
-        import native946_growth_battle
-        reload(native946_growth_battle)
-        # Long-lived party services retain their registries across reloads.
-        # Refresh imported encoder references without replacing those services.
-        import sys
-        for name,module in tuple(sys.modules.items()):
-            encoder=getattr(module,'packet',None) if name.startswith('native946') else None
-            if getattr(encoder,'__module__',None)=='native946_codec':module.packet=native946_codec.packet
-        import native946_inventory,native946_inventory_locks
-        import native946_inventory_features,native946_lua_values,native946_equipment_plans,native946_transform,native946_fishing,native946_quick_glyphs
-        import native946_hero_page,native946_hero_extra_points,native946_hero_resistance,native946_hero_titles
-        import native946_lineups,native946_role_battle,native946_role_artifacts,native946_role_systems,native946_role_growth,native946_role_arts,native946_role_society,native946_role_city_war,native946_role_baby_tools,native946_role_honors
-        for module in (native946_role_battle,native946_role_systems,native946_lineups,native946_role_artifacts,native946_role_growth,native946_role_arts,native946_role_society,native946_role_city_war,native946_role_baby_tools,native946_role_honors):reload(module)
-        import native946_combat_control
-        reload(native946_combat_control)
-        import native946_battle_actions,native946_guardian_rules,native946_presentation_acceptance
-        for module in (native946_battle_actions,native946_guardian_rules,native946_presentation_acceptance):reload(module)
-        import native946_innate_effects,native946_guardian_passives,native946_guardian_innate,native946_innate_training,native946_book_combat
-        for module in (native946_innate_effects,native946_guardian_passives,native946_guardian_innate,native946_innate_training,native946_book_combat):reload(module)
-        import native946_guardian_magic
-        reload(native946_guardian_magic)
-        import native946_guardian_jade,native946_guardian_skill_details,native946_neidan,native946_skillbooks
-        for module in (native946_guardian_jade,native946_guardian_skill_details,native946_neidan,native946_skillbooks):
-            reload(module)
-        for module in (native946_hero_page,native946_hero_extra_points,native946_hero_resistance,native946_hero_titles):reload(module)
-        import native946_daily_content
-        reload(native946_daily_content)
-        import native946_star_rewards, native946_achievements, native946_constellations
-        reload(native946_star_rewards)
-        reload(native946_constellations)
-        reload(native946_achievements)
-        for module in (native946_inventory_features,native946_lua_values,native946_equipment_plans,native946_transform,native946_fishing,native946_quick_glyphs):reload(module)
-        from sys import modules
-        reload(native946_inventory_locks);reload(native946_inventory)
-        reload(native946_progression)
-        reload(native946_summons)
-        reload(native946_game_login)
-        reload(native946_map)
-        import native946_temp_inventory,native946_wilderness
-        reload(native946_temp_inventory)
-        reload(native946_wilderness)
-        reload(native946_campaign)
-        login.__class__=native946_game_login.NativeGameLogin
-        reload(native946_gameplay)
-        for name in ('native946_afei_expansion', 'native946_ordinary_treasure', 'native946_star_challenge',
-                     'native946_local_dungeons', 'native946_dungeon_routes'):
-            if name in modules:reload(modules[name])
-        import native946_afei_society
-        reload(native946_afei_society)
-        import native946_guardian_chamber
-        reload(native946_guardian_chamber)
-        with game.progression.transaction() as db:
-            native946_afei_society.schema(db)
-            from native946_guardian_chamber import schema as guardian_shop_schema
-            guardian_shop_schema(db)
-            native946_constellations.schema(db)
-        game.__class__ = native946_gameplay.NativeGameplay
-        game.ensure_progression()
-        # Run the ordinary idempotent schema migration for features added
-        # since this connection entered, preserving its item visibility set.
-        known_items=game.progression.known_items
-        game.progression=native946_progression.Progression(game.characters.database,game.character['owner'],game.character['id'])
-        game.progression.known_items=known_items
-        game.progression._cache_enabled=bool(getattr(game.characters,'runtime_caching',False))
-        game.summons.progression=game.progression
-        game.summons.__class__ = native946_summons.Summons
-        game.restore_scene=login.scene_packets
+        from importlib import reload
+        from native946_hot_reload import reload_gameplay
+        reload_gameplay(game.characters.database, (login,))
         from native946_runtime import install_live_adapter
         import server
         reload(server)

@@ -42,6 +42,54 @@ class GuardianCultivationTests(unittest.TestCase):
             self.assertEqual(installed(db,self.sid),[])
             self.assertEqual(db.execute('SELECT sum(amount) FROM inventory WHERE character_id=? AND type=91001',(self.p.cid,)).fetchone()[0],1)
 
+    def test_pill_bag_and_installed_skill_names_follow_separate_946_tables(self):
+        from native946_login import MessageReader
+        from test_native946_skillbooks import decode_record
+
+        with self.p.transaction() as db:
+            db.execute('UPDATE summons SET ascension=1 WHERE id=?',(self.sid,))
+        for item,kind,bag_name,skill_name in ((91009,244,'低级内丹·定神思','守灵台'),
+                                             (91010,245,'低级内丹·守灵台','定神思'),
+                                             (91508,283,'高级内丹·潜形匿迹','潜龙在渊')):
+            with self.subTest(item=item):
+                iid=self.item(item,1)
+                self.assertTrue(any(bag_name.encode('gb18030') in msg for msg in self.p.item_packets(item_ids={iid})))
+                replies=self.send(807,self.sid,iid)
+                reader=MessageReader(next(msg[3:] for msg in replies if msg[1:3]==(716).to_bytes(2,'little')))
+                self.assertEqual(reader.integer(),self.sid)
+                self.assertEqual(reader.take(1),b'\x01')
+                record=decode_record(reader,'neidan_info')
+                reader.finish()
+                self.assertEqual((record['neidan_id'],record['name']),(kind,skill_name))
+                self.assertIn(716,message_ids(self.send(755,self.sid,kind)))
+
+    def test_new_neidan_stops_at_corrected_caps_and_uses_them_for_stage_changes(self):
+        from native946_neidan import grow, threshold
+
+        self.send(807, self.sid, self.item(91001, 1))
+        with self.p.transaction() as db:
+            db.execute('UPDATE summons SET rebirth=2,ascension=1 WHERE id=?', (self.sid,))
+        for stage, cap in enumerate((100, 120, 140, 180)):
+            with self.subTest(stage=stage):
+                self.assertEqual(grow(dict(stage=stage, level=cap-1, experience=0),
+                                      threshold(cap-1, stage)+1)['level'], cap)
+                with self.p.transaction() as db:
+                    db.execute('UPDATE native_new_neidan SET stage=?,level=? WHERE summon_id=?',
+                               (stage, cap-1, self.sid))
+                request = 767 if stage < 2 else 766
+                if stage < 3:
+                    self.send(request, self.sid, 236)
+                    self.assertIn('阶段', self.g.last_event['reason'])
+                with self.p.transaction() as db:
+                    db.execute('UPDATE native_new_neidan SET level=? WHERE summon_id=?', (cap, self.sid))
+                self.send(753, self.sid, 236)
+                self.assertIn('上限', self.g.last_event['reason'])
+                if stage < 3:
+                    self.assertIn(716, message_ids(self.send(request, self.sid, 236)))
+                    with self.p.transaction(write=False) as db:
+                        row = installed(db, self.sid)[0]
+                    self.assertEqual((row['stage'], row['level'], row['experience']), (stage+1, 1, 0))
+
     def test_resonance_preview_and_confirmation_charge_once(self):
         with self.p.transaction() as db:
             db.execute('UPDATE summons SET ascension=1,experience=800000000 WHERE id=?',(self.sid,))
@@ -148,7 +196,7 @@ class GuardianCultivationTests(unittest.TestCase):
         sid=self.s.acquire(3374,'cultivation:description')
         with self.p.transaction() as db:
             schema(db)
-            db.execute('UPDATE summons SET strength=1429 WHERE id=?',(sid,))
+            db.execute('UPDATE summons SET strength=1429,level=180,cor=1 WHERE id=?',(sid,))
             db.execute('INSERT INTO native_innate_training '
                        '(summon_id,skill,level,rebirth,ascension,sanctification,experience) VALUES(?,?,?,?,?,?,?)',
                        (sid,4906,180,2,1,0,0))

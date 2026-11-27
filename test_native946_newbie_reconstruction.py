@@ -65,19 +65,39 @@ class NewbieReconstructionTests(unittest.TestCase):
                     self.assertIn('小馋猴', text)
                     self.assertIn('捕捉', text)
                     dragon=next(e for e in battle.enemies() if e.get('capture_training'))
+                    monkey=next(e for e in battle.enemies() if e['type']==2364)
+                    rejected=self.send(2177,['number','number'],[5,monkey['id']])
+                    self.assertFalse(any(p.startswith(message_id(2136)) for p in rejected))
+                    self.assertEqual(battle.state['phase'],'input')
                     replies=self.send(2177,['number','number'],[5,dragon['id']])
                     self.assertIn(numbers(3817,self.p.cid,5,0),replies)
+                    self.assertLess(replies.index(numbers(2136,self.p.cid,dragon['id'],1)),
+                                    replies.index(numbers(2167)))
                     pet=self.g.summons.active()
                     self.assertEqual(pet['type'],3200)
                     self.assertEqual(battle.current_pet(self.p.cid)['id'],pet['id'])
-                self.battle_to_end()
-                if index == 4:
+                    self.assertIn(monkey,battle.enemies())
+                    self.assertTrue(battle.state['victory'])
+                    self.assertEqual(battle.state['phase'],'drawing')
+                    self.assertNotIn(numbers(2146),replies)
+                    exit_packets=self.send(2184)
+                    self.assertIn(numbers(2146),exit_packets)
+                    self.assertFalse(any(p.startswith(message_id(2151)) for p in exit_packets))
+                    self.assertEqual(battle.state['round'],1)
+                    self.assertEqual(battle.state['phase'],'finished')
+                    self.assertIsNone(self.g._wild_battle)
+                    self.assertNotIn(numbers(2146),self.send(2184) or ())
                     notice = battle.state['campaign_messages'][self.p.cid]
-                    self.assertEqual(notice, '获得 2100 点经验。#r守护小龙人获得 2100 点经验。')
+                    self.assertEqual(notice, '你得到了2100点经验#r你的守护小龙人得到了2100经验')
                     with self.p.transaction(write=False) as db:
-                        self.assertIsNotNone(db.execute('SELECT 1 FROM summon_battle_rewards '
-                                                       'WHERE battle_id=? AND summon_id=?',
-                                                       (battle.id, pet['id'])).fetchone())
+                        self.assertEqual(db.execute('SELECT count(*) FROM summon_battle_rewards '
+                                                    'WHERE battle_id=? AND summon_id=?',
+                                                    (battle.id, pet['id'])).fetchone()[0],1)
+                        self.assertEqual(db.execute('SELECT count(*) FROM summons WHERE character_id=? '
+                                                    'AND grant_key=?',
+                                                    (self.p.cid,'campaign:newbie:capture')).fetchone()[0],1)
+                else:
+                    self.battle_to_end()
                 if node.get('travel_after'):
                     self.assertEqual(self.g.character['map_id'],2008)
             elif node['action'] == 'give':
@@ -166,7 +186,7 @@ class NewbieReconstructionTests(unittest.TestCase):
         reply = self.choose('complete')
         notice, = [row for row in reply if row.startswith(message_id(100))]
         reader = MessageReader(notice[1:])
-        self.assertEqual(reader.string().decode('gb18030'), '获得 200 点经验。')
+        self.assertEqual(reader.string().decode('gb18030'), '你得到了200点经验')
         self.assertEqual(reader.integer(), 0)
         reader.finish()
         duplicate = self.send(1032, ['byte', 'number'], [1, npc]) or ()

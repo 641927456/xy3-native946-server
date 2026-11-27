@@ -1,5 +1,6 @@
 from collections import defaultdict
 from contextlib import closing
+from datetime import datetime, timezone
 from pathlib import Path
 from struct import pack,unpack
 from tempfile import TemporaryDirectory
@@ -14,13 +15,38 @@ from native946_login import MessageReader
 from native946_map import MapGrid,load_map
 from native946_sessions import LEASES
 from native946_storage import transaction
-from native946_world import PORTAL_APPROACH_CELLS,world
+from native946_world import EVENT_TIMEZONE,PORTAL_APPROACH_CELLS,world
 
 
 def mid(data):return int.from_bytes(data[1:3],'little') if data[0]==0 else data[0]
 
 
+def scene_header(packet):
+    reader = MessageReader(packet[3:])
+    scene, x, y = unpack('<HHH', reader.take(6))
+    name = reader.string().decode('gb18030')
+    terrain, = unpack('<H', reader.take(2))
+    reader.integer()
+    reader.take(1)
+    phase = reader.integer()
+    reader.finish()
+    return scene, x, y, name, terrain, phase
+
+
 class CatalogTests(unittest.TestCase):
+    def test_scene_day_effect_uses_resource_and_utc8_boundaries(self):
+        catalog = world()
+        for hour, minute, second, phase in (
+            (5, 59, 59, 1), (6, 0, 0, 0), (17, 59, 59, 0), (18, 0, 0, 1),
+        ):
+            now = datetime(2026, 11, 27, hour, minute, second, tzinfo=EVENT_TIMEZONE)
+            for scene in (2001, 2002, 2003, 2007, 2457, 2004, 2462):
+                with self.subTest(scene=scene, now=now):
+                    self.assertEqual(catalog.scene_day_effect(scene, now.astimezone(timezone.utc)), phase)
+            # New 花果山 uses 2415. Several instances reuse a supported terrain.
+            self.assertEqual(catalog.scene_day_effect(2011, now), 8)
+            self.assertEqual(catalog.scene_day_effect(2287, now), 8)
+
     def test_all_enabled_scenes_are_reachable_through_validated_routes(self):
         w=world();graph=defaultdict(list)
         for row in w.data['portals']+w.data['npc_transports']:graph[row['from']].append(row['to'])
@@ -36,6 +62,15 @@ class CatalogTests(unittest.TestCase):
         grid=load_map(2034)
         self.assertEqual((grid.width,grid.height),(52,39))
         self.assertEqual(len(grid.cells),52*39)
+
+    def test_native_cloud_floor_twelve_reads_inline_collision_data(self):
+        path = Path(__file__).with_name('client-946') / 'map' / '2351.map'
+        grid = MapGrid(path)
+        self.assertEqual((grid.width, grid.height), (160, 97))
+        self.assertEqual(len(grid.cells), 160 * 97)
+        self.assertTrue(grid.walkable(20, 25))
+        self.assertFalse(grid.walkable(5, 25))
+        self.assertEqual(grid.route((20, 25), (21, 25)), [(20, 25), (21, 25)])
 
     def test_all_route_arrivals_are_legal_and_all_npcs_encode(self):
         w=world();w.warm()
@@ -90,6 +125,65 @@ class WorldGameplayTests(unittest.TestCase):
 
     def stored(self):return self.characters.list('town_owner')[0]
 
+    def test_native_day_night_tick_does_not_reenter_scene_or_write_position(self):
+        with patch('native946_world.datetime', wraps=datetime) as clock:
+            clock.now.return_value = datetime(2026, 11, 27, 17, 59, 59, tzinfo=EVENT_TIMEZONE)
+            self.assertEqual(scene_header(self.login.scene_packets()[0]), (2001, 300, 210, '长安', 2443, 0))
+            before = self.stored()
+            self.assertFalse(any(mid(p) == 452 for p in self.game.tick() or ()))
+
+            clock.now.return_value = datetime(2026, 11, 27, 18, 0, tzinfo=EVENT_TIMEZONE)
+            self.game._cinematic_pending = {'script': 1}
+            self.assertFalse(any(mid(p) == 452 for p in self.game.tick() or ()))
+            self.game._cinematic_pending = None
+            updates = self.game.tick()
+            self.assertNotIn(1597, [mid(p) for p in updates])
+            reader = MessageReader(next(p for p in updates if mid(p) == 452)[3:])
+            self.assertEqual(reader.integer(), 1)
+            self.assertTrue(reader.string())
+            reader.finish()
+            self.assertFalse(any(mid(p) == 452 for p in self.game.tick() or ()))
+            self.assertEqual(self.stored(), before)
+
+            clock.now.return_value = datetime(2026, 11, 28, 6, 0, tzinfo=EVENT_TIMEZONE)
+            # A normal scene restore (including battle exit) sends the new phase
+            # itself, so the following timer must not repeat the update.
+            self.assertEqual(scene_header(self.game.restore_scene()[0])[-1], 0)
+            self.assertFalse(any(mid(p) == 452 for p in self.game.tick() or ()))
+
+    def test_night_portal_keeps_native_scene_and_day_terrain_ids(self):
+        route = next(row for row in world().data['portals'] if row['from'] == 2001 and row['to'] == 2002)
+        self.place(2001, load_map(2001).nearest_walkable(*route['source']))
+        with patch('native946_world.datetime', wraps=datetime) as clock:
+            clock.now.return_value = datetime(2026, 11, 27, 18, 0, tzinfo=EVENT_TIMEZONE)
+            replies = self.game.receive(1644, MessageReader(pack('<HHH', 2001, *route['source'])))
+            header = scene_header(next(p for p in replies if mid(p) == 1597))
+            self.assertEqual(header, (2002, *route['arrival'], '皇城', 2002, 1))
+            self.assertEqual(self.stored()['map_id'], 2002)
+            self.assertFalse(any(mid(p) == 452 for p in self.game.tick() or ()))
+
+    def test_movement_on_a_night_only_cell_and_departure_at_dawn(self):
+        ordinary, night_only = (172, 23), (173, 24)
+        self.place(2002, ordinary)
+        self.assertFalse(load_map(2002).walkable(*night_only))
+        with patch('native946_world.datetime', wraps=datetime) as clock:
+            clock.now.return_value = datetime(2026, 11, 27, 17, 59, tzinfo=EVENT_TIMEZONE)
+            self.login.scene_packets()
+            step = packet(1643, ['number', 'word', 'word', 'string'], [8, *ordinary, '0'])[3:]
+            self.assertEqual(mid(self.game.receive(1643, MessageReader(step))), 1606)
+            self.assertEqual((self.stored()['x'], self.stored()['y']), ordinary)
+
+            clock.now.return_value = datetime(2026, 11, 27, 18, tzinfo=EVENT_TIMEZONE)
+            self.assertEqual(mid(self.game.sync_scene_day_effect()[0]), 452)
+            self.game.receive(1643, MessageReader(step))
+            self.assertEqual((self.stored()['x'], self.stored()['y']), night_only)
+
+            clock.now.return_value = datetime(2026, 11, 28, 6, tzinfo=EVENT_TIMEZONE)
+            self.assertEqual(mid(self.game.sync_scene_day_effect()[0]), 452)
+            back = packet(1643, ['number', 'word', 'word', 'string'], [8, *night_only, '4'])[3:]
+            self.game.receive(1643, MessageReader(back))
+            self.assertEqual((self.stored()['x'], self.stored()['y']), ordinary)
+
     def test_water_curtain_monkey_dialogue_enters_and_returns(self):
         self.place(2011,(11,53))
         before=self.game.progression.snapshot()
@@ -101,7 +195,7 @@ class WorldGameplayTests(unittest.TestCase):
             reader.integer()
         choices=[reader.string().decode('gb18030') for _ in range(reader.take(1)[0])]
         self.assertEqual(choices[0],'水帘洞')
-        self.assertIn('原版活动说明与接入状态',choices)
+        self.assertNotIn('原版活动说明与接入状态',choices)
         self.assertEqual(reader.integer(),5718)
         reader.integer()
         reader.finish()
@@ -124,6 +218,32 @@ class WorldGameplayTests(unittest.TestCase):
         self.assertEqual(after.pop('position_revision'),before.pop('position_revision')+2)
         self.assertEqual(after,before)
 
+    def test_water_curtain_floor_guards_offer_bidirectional_transport(self):
+        from test_native946_npc_services import menu
+
+        for start, point, forward, target, arrival, resource, label, reverse, reverse_label in (
+            (2266, (10, 25), 5702, 2267, (70, 14), 8053, '灵泉洞', 5704, '水帘洞'),
+            (2267, (5, 44), 5705, 2268, (56, 70), 8038, '云霄径', 5709, '灵泉洞'),
+            (2268, (22, 12), 5707, 2269, (20, 56), 8035, '翠石峰', 5710, '云霄径'),
+        ):
+            with self.subTest(npc=forward):
+                self.place(start, point)
+                offered = self.game.receive(1034, MessageReader(number(forward)))
+                self.assertEqual(menu(offered)[1:3], ([label], forward))
+                replies = self.game.receive(1032, MessageReader(b'\x01' + number(forward)))
+                reader = MessageReader(next(p for p in replies if mid(p) == 1597)[3:])
+                self.assertEqual(unpack('<HHH', reader.take(6)), (target, *arrival))
+                self.assertEqual(reader.string().decode('gb18030'), label)
+                self.assertEqual(unpack('<H', reader.take(2))[0], resource)
+                self.assertEqual(self.stored()['map_id'], target)
+                self.assertIsNone(self.game.battle)
+
+                offered = self.game.receive(1034, MessageReader(number(reverse)))
+                self.assertEqual(menu(offered)[1:3], ([reverse_label], reverse))
+                self.game.receive(1032, MessageReader(b'\x01' + number(reverse)))
+                saved = self.stored()
+                self.assertEqual((saved['map_id'], saved['x'], saved['y']), (start, *point))
+
     def test_login_sends_native_town_name_resource_and_portal_definitions(self):
         packets=self.login.world_packets(self.game.character)
         data=next(p for p in packets if mid(p)==1597)
@@ -139,7 +259,16 @@ class WorldGameplayTests(unittest.TestCase):
                 self.place(route['from'],start)
                 replies=self.game.receive(1644,MessageReader(pack('<HHH',route['from'],*route['source'])))
                 self.assertIsInstance(replies,tuple)
-                self.assertIn(1597,[mid(p) for p in replies])
+                ids = [mid(p) for p in replies]
+                if route['from'] == route['to']:
+                    self.assertIn(1606, ids)
+                    self.assertNotIn(1597, ids)
+                    reader=MessageReader(replies[ids.index(1606)][3:])
+                    self.assertEqual(reader.integer(),self.game.character['id'])
+                    self.assertEqual(unpack('<HH',reader.take(4)),tuple(route['arrival']))
+                    reader.finish()
+                else:
+                    self.assertIn(1597, ids)
                 self.assertEqual(self.game.character['map_id'],route['to'])
                 self.assertEqual([self.stored()['x'],self.stored()['y']],route['arrival'])
 
@@ -207,7 +336,7 @@ class WorldGameplayTests(unittest.TestCase):
         route=world().portals[2001][0]
         self.place(2001,load_map(2001).nearest_walkable(*route['source']))
         before=self.stored();grid=self.game.grid;visible=set(self.game._world_visible)
-        with patch.object(self.game,'sync_progression',side_effect=ValueError('reject')):
+        with patch.object(self.game,'travel_scene_packets',side_effect=ValueError('reject')):
             result=self.game.receive(1644,MessageReader(pack('<HHH',2001,*route['source'])))
         self.assertEqual(mid(result),98)
         self.assertEqual(self.stored(),before);self.assertIs(self.game.grid,grid)

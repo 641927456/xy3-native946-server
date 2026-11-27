@@ -11,7 +11,7 @@ from native946_codec import number
 from native946_combat_control import blocked
 from native946_map import load_map
 from native946_npc_quests import ACTIVITIES
-from native946_ordinary_treasure import ADVANCED, ITEM, destination
+from native946_ordinary_treasure import ADVANCED, destination
 from native946_world import world
 import test_native946_daily_content as base
 from test_native946_npc_services import menu, mid
@@ -135,17 +135,11 @@ class AfeiExpansionTests(unittest.TestCase):
         self.assertEqual(AfeiWorld(self.a).spots(scene), [])
         self.assertEqual(AfeiWorld(self.b).spots(scene)[0]['key'], right['key'])
 
-    def test_advanced_map_exchange_hints_and_digs_one_native_stone(self):
-        scene, nid = ADVANCED['giver']
-        self.near(self.a, scene, nid)
+    def test_owned_advanced_map_hints_and_digs_one_native_stone(self):
         with self.a.progression.transaction() as db:
-            for _ in range(ADVANCED['ordinary_cost']):
-                give(db, self.a.progression, ITEM)
-        choice = self.label(self.a, nid, '兑换高级藏宝图')
-        self.choose(self.a, nid, choice)
-        self.choose(self.a, nid, choice)
+            give(db,self.a.progression,ADVANCED['item'])
         iid, amount = self.items(self.a, ADVANCED['item'])[0]
-        self.assertEqual((self.items(self.a, ITEM), amount), ([], 1))
+        self.assertEqual(amount,1)
         self.call(self.a, 807, self.a.progression.cid, iid)
         self.assertEqual(self.items(self.a, ADVANCED['item']), [(iid, 1)])
         self.position(self.a, *destination(iid))

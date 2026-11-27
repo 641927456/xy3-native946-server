@@ -73,6 +73,31 @@ class PremiumItemTests(unittest.TestCase):
         self.assertIn(message_id(685) + b''.join(number(n) for n in (20000, 0, 0, 0)),
                       self.a.sync_progression())
 
+    def test_guardian_slot_combines_old_balances_and_recovers_the_replacement(self):
+        from native946_codec import packet
+
+        game = self.a
+        original = game.summons.claim_starter()
+        replacement = game.summons.acquire(3197, 'reserve:replacement')
+        game.summons.status(original, 1)
+        with game.progression.transaction() as db:
+            db.executemany('INSERT INTO cosmetic_features VALUES(?,?,?,0)', [
+                (game.progression.cid, f'reserve:{original}:hp', 20000),
+                (game.progression.cid, f'reserve:{replacement}:hp', 300),
+                (game.progression.cid, f'reserve:{original}:mp', 20000),
+            ])
+        self.send(game, 807, original, self.add_reserve_food(game, 6782))
+        pet = game.summons.get(replacement)
+        game.summons.set_vitals(replacement, pet['hpmax'] - 7, pet['mpmax'] - 9)
+        for sid in (replacement, original, replacement):
+            reply = self.send(game, 750, sid, 1)
+            self.assertIn(packet(685, ['buff_info'] * 2, [{'Hp': 0, 'Mp': 0}, {'Hp': 40293, 'Mp': 19991}]), reply)
+        self.assert_full(game)
+        with game.progression.transaction(write=False) as db:
+            balances = dict(db.execute('SELECT key,value FROM cosmetic_features WHERE character_id=? '
+                                       "AND key GLOB 'reserve:*'", (game.progression.cid,)).fetchall())
+        self.assertEqual(balances, {'reserve:guardian:hp': 40293, 'reserve:guardian:mp': 19991})
+
     def test_reserve_debits_only_the_vitals_restored_during_settlement(self):
         from native946_game_login import message_id
         from native946_wilderness import POLICY
@@ -293,12 +318,22 @@ class PremiumItemTests(unittest.TestCase):
                        (self.b.progression.cid, AUTO_MEDICAL_KEY))
         self.assertEqual(self.service.member_record(record)['autoheal_validity'], 0)
 
-    def test_training_medical_requires_completed_battle_and_cannot_be_replayed(self):
+    def test_training_medical_includes_escape_and_cannot_be_replayed(self):
         self.use(self.a, 70491)
+        sid = self.a.summons.claim_starter()
+        self.a.summons.status(sid, 1)
+        for request in (2178, 2182):
+            self.damage()
+            before = self.a.progression.snapshot()['gold']
+            self.a.begin_battle()
+            self.send(self.a, request, 2)
+            self.assertIsNone(self.a.battle)
+            self.assert_full(self.a)
+            self.assertEqual(self.a.progression.snapshot()['gold'], before - 3)
+            self.send(self.a, request, 2)
+            self.assertEqual(self.a.progression.snapshot()['gold'], before - 3)
+        self.a.summons.status(sid, 2)
         self.damage()
-        self.a.begin_battle()
-        self.send(self.a, 2178, 2)
-        self.assertEqual(self.a.progression.snapshot()['hp'], 1)
         for victory in (True, False):
             before = self.a.progression.snapshot()['gold']
             self.a.begin_battle()
@@ -317,6 +352,41 @@ class PremiumItemTests(unittest.TestCase):
         self.a.battle.update(phase='drawing', victory=True, hp=1, mp=0)
         self.send(self.a, 2184)
         self.assertLess(self.a.progression.snapshot()['hp'], self.a.progression.snapshot()['hpmax'])
+
+    def test_team_retreat_restores_premium_and_uses_reserve_if_cash_is_short(self):
+        from native946_codec import packet
+        from test_native946_wilderness_party import mid
+
+        self.use(self.a, 70491)
+        self.use(self.b, 55580)
+        for game in (self.a, self.b):
+            self.fixture.buff(game)
+            sid = game.summons.claim_starter()
+            game.summons.status(sid, 1)
+            for target, kind in ((game.progression.cid, 6782), (sid, 6783)):
+                self.send(game, 807, target, self.add_reserve_food(game, kind))
+        with self.b.progression.transaction() as db:
+            db.execute('UPDATE characters SET gold=2 WHERE id=?', (self.b.progression.cid,))
+        battle = self.fixture.battle(pet=True)
+        before = [game.progression.snapshot() for game in (self.a, self.b)]
+        for cid in battle.games:
+            fighter = battle.state['fighters'][cid]
+            fighter['hp'] = fighter['hpmax'] - 17
+            pet = battle.current_pet(cid)
+            pet['mp'] = pet['mpmax'] - 19
+        replies = (self.send(self.a, 2178, 2), self.service.drain(self.b))
+        for game, previous, used, reply in zip((self.a, self.b), before, (False, True), replies):
+            self.assertIsNone(game.battle)
+            self.assert_full(game)
+            self.assertIn(2146, [mid(p) for p in reply])
+            expected = packet(685, ['buff_info'] * 2, [{'Hp': 20000 - 17 * used, 'Mp': 0},
+                                                       {'Hp': 0, 'Mp': 20000 - 19 * used}])
+            self.assertIn(expected, reply)
+            self.send(game, 2184)
+            self.assertIn(expected, game.sync_progression())
+            after = game.progression.snapshot()
+            self.assertEqual(after['experience'], previous['experience'])
+            self.assertEqual(after['gold'], previous['gold'] - (0 if used else 3))
 
     def test_auto_medical_insufficient_funds_does_not_roll_back_battle(self):
         self.use(self.a, 70491)

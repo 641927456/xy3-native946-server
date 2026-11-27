@@ -178,9 +178,21 @@ class Shops:
 
     def open_ordinary(self,nid,*,medicine=False):
         from native946_npc_services import NpcServices
-        npc=NpcServices(self.g).validate(nid,'medicine' if medicine else None);m=merchant(npc)
+        npc=NpcServices(self.g).validate(nid,'medicine' if medicine else None)
+        return self.ordinary_window(npc, 'medicine' if medicine else 'merchant')
+
+    def open_mount_shop(self,skill):
+        from native946_mall_mounts import MOUNT_SHOPS
+        scene,nid=MOUNT_SHOPS[skill]
+        return self.ordinary_window(dict(scene_id=scene,npc_id=nid), 'merchant', mount_skill=skill)
+
+    def ordinary_window(self,npc,shop_kind,*,mount_skill=None):
+        m=merchant(npc)
         if not m or not m['goods']:raise ValueError('这个商店暂无可购买商品。')
-        self.g.npc_service_session=dict(kind='medicine' if medicine else 'merchant',npc=nid,scene=npc['scene_id'],expires=monotonic()+120)
+        nid=npc['npc_id']
+        self.g.npc_service_session=dict(kind=shop_kind,npc=nid,scene=self.g.character['map_id'],expires=monotonic()+120)
+        if mount_skill is not None:
+            self.g.npc_service_session['mount_skill']=mount_skill
         return (packet(1183,['string'],['dlg_npc_chat']),packet(1697,['number','number',('array','seller_item')],
             [nid,1,[dict(type=r['type'],price=r['price']) for r in m['goods'].values()]]))
 
@@ -213,12 +225,22 @@ class Shops:
         raise ValueError('背包空间不足，本次没有扣款。')
 
     def buy_medicine(self,nid,kind,amount):
+        from native946_mall_mounts import MOUNT_SHOPS, known_skills
+        from native946_mall_uses import features
         from native946_npc_services import NpcServices
         s=getattr(self.g,'npc_service_session',None)
         if not s or s['kind'] not in ('medicine','merchant') or s['npc']!=nid or s['scene']!=self.g.character['map_id'] or s['expires']<monotonic():
             raise ValueError('商店窗口已失效，请与对应 NPC 重新交谈。')
-        npc=NpcServices(self.g).validate(nid,'medicine' if s['kind']=='medicine' else None)
+        shop_skill=s.get('mount_skill')
+        if shop_skill is None:
+            npc=NpcServices(self.g).validate(nid,'medicine' if s['kind']=='medicine' else None)
+        else:
+            scene,shop_nid=MOUNT_SHOPS[shop_skill]
+            if nid!=shop_nid or self.g.battle:raise ValueError('当前无法使用坐骑商店。')
+            npc=dict(scene_id=scene,npc_id=nid)
         with self.p.transaction() as db:
+            if shop_skill is not None and shop_skill not in known_skills(features(db,self.p.cid)):
+                raise ValueError('尚未拥有启用该技能的灵兽。')
             self.purchase_ordinary(db,npc,s['kind'],kind,amount)
         return self.g.defer_packets(lambda:(*self.p.attribute_packets(),*self.p.item_packets(),text_notice('商品购买成功。')))
 
@@ -286,18 +308,31 @@ class Shops:
         choices.append(('返回商品目录',dict(kind='cosmetic',op='shop_catalog',page=0)))
         return NpcServices(self.g)._menu(nid,text,choices)
 
-    def open_special(self,nid):
-        from native946_npc_services import NpcServices
-        NpcServices(self.g).validate(nid,'cosmetic')
+    def open_special(self,nid=None,*,item=0):
+        if nid is not None:
+            from native946_npc_services import NpcServices
+            NpcServices(self.g).validate(nid,'cosmetic')
         self.g.shop_session=dict(npc=nid,scene=self.g.character['map_id'],expires=monotonic()+120)
         self.g.shop_quote=None
-        return (packet(1183,['string'],['dlg_npc_chat']),self.special_packet())
+        opened = self.special_packet()
+        if nid is not None:
+            return (packet(1183,['string'],['dlg_npc_chat']), opened)
+        if item:
+            for index, offer in enumerate(SPEC['item_list'], 1):
+                if offer['ItemType'] != item:
+                    continue
+                try:
+                    return opened, self.try_special(index)
+                except ValueError:
+                    continue
+        return opened
 
     def session(self):
         from native946_npc_services import NpcServices
         s=getattr(self.g,'shop_session',None)
         if not s or s['expires']<monotonic() or s['scene']!=self.g.character['map_id']:raise ValueError('特卖会窗口已失效，请重新打开。')
-        NpcServices(self.g).validate(s['npc'],'cosmetic')
+        if s['npc'] is not None:
+            NpcServices(self.g).validate(s['npc'],'cosmetic')
         return s
 
     def wallet(self,db):

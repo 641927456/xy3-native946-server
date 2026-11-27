@@ -85,7 +85,21 @@ class DungeonRoute:
         key = SCENE_KEYS.get(self.g.character['map_id'])
         if key is not None and GUIDE[key] == nid:
             return self.show(key,nid)
-        return None
+
+    def resume(self, nid):
+        key = ENTRY_KEYS.get((self.g.character['map_id'],nid))
+        if key is not None:
+            with self.p.transaction(write=False) as db:
+                run = read_run(db,self.p.cid,key)
+            if run and run['state'] == 'entered':
+                return self.show(key,nid)
+
+    def attach_entry(self, nid, reply):
+        key = ENTRY_KEYS.get((self.g.character['map_id'], nid))
+        if key is None:
+            return reply
+        return self.g.append_npc_menu_option(nid, reply, RECORDS[key]['Name']+'（本机战斗流程）',
+                                             dict(kind='dungeon_route', op='show', key=key))
 
     def puzzle(self, db, run):
         if run['dungeon_id']==26 and run['stage']==1:

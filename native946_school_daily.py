@@ -1,5 +1,5 @@
 """Daily school milestone and the stock achievement and activity UI entries."""
-from native946_codec import packet, screen_notice, text_notice
+from native946_codec import experience_notice_lines, packet, screen_notice, text_notice
 
 
 DAILY_LIMIT = 20
@@ -34,19 +34,15 @@ def record_completion(db, cid, day):
 def completion_packets(value):
     replies = []
     if value.get('school_round_done'):
-        replies.append(screen_notice('#G恭喜你完成了一轮师门任务。#n'))
+        replies.append(screen_notice('#G恭喜你完成了一轮任务#n'))
     if value.get('school_achievement_earned'):
         replies.extend((packet(5, ['number'], [ACHIEVEMENT_ID]), packet(7, ['number'], [1]),
-                        screen_notice('#G恭喜你达成殊勋「亲传弟子」。#n')))
-    if value.get('school_day_done'):
-        replies.append(screen_notice('当日师门任务已全部完成（20/20）。#r打开任务 → 今日活跃，查看活跃目标和奖励。'))
+                        screen_notice('#G恭喜你达成殊勋#Y亲传弟子#n')))
     return tuple(replies)
 
 def reward_packets(objective, value, guardian_names=()):
-    lines = [f'您获得#G{value["experience"]}#n经验']
-    if value['guardian_experience']:
-        lines.extend(f'您的#G{name}#n获得#G{value["guardian_experience"]}#n经验'
-                     for name in guardian_names)
+    guardians = ((name, value['guardian_experience']) for name in guardian_names)
+    lines = experience_notice_lines(value['experience'], guardians, highlighted=True)
     return (screen_notice('#r'.join(lines)),
             text_notice(f'师门{objective}完成。金钱+{value["gold"]}，师门贡献+10。'))
 

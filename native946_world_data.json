@@ -1,12 +1,13 @@
 {
   "schema_version": 1,
   "client_revision": 946,
+  "route_revision": 1,
   "source_sha256": {
     "client-946\\xymain.bin": "93e958c243c611535ffde000b480a4fa2d1c1945aca321a7988cae382de15cbb",
     "client-946\\resource\\configs.wdf": "eb5fc4235e8c27cefdf18e084c2ae211b2f9251471b9af9491cc77e3e5342fcb",
     "client-946\\bin_script.wdf": "ed2238b4833ecdbb67c72298aef94ea118c3c79e7d8d7629125a686c96cd1b51"
   },
-  "scope": "Public routes connected to scene 2001; static NPC catalog also covers verified disconnected maps without adding activity entrances.",
+  "scope": "Public routes connected to scene 2001; includes local NPC transport between Flower Fruit Mountain and all four Water Curtain Cave scenes (2266–2269) using the native NPC destinations. Static NPC data also covers disconnected maps.",
   "trigger_policy": "Server half extent at least 1 cell, expanded only to include a walkable cell; native routes supply centers, not extents.",
   "travel_cost_policy": "No price is encoded in these native routes. Local town transport currently charges no fee.",
   "scene_catalog": {
@@ -6747,6 +6748,98 @@
       "extra_smaps": {},
       "mobile_x": -1
     },
+    "2266": {
+      "music_i": 0,
+      "scene_name": "水帘洞",
+      "envmusic_i": 8056,
+      "640x480_y": -1,
+      "is_smap": 1,
+      "800x600_y": -1,
+      "640x480_x": -1,
+      "map_id": 8056,
+      "smap": 8056,
+      "mic_delay": 0,
+      "width": 1600,
+      "waimap_id": 0,
+      "height": 1200,
+      "mobile_y": -1,
+      "auto_walk": 1,
+      "800x600_x": -1,
+      "show_in_worldmap": 0,
+      "extra_smaps": [
+        "8056_2.jpg"
+      ],
+      "mobile_x": -1
+    },
+    "2267": {
+      "music_i": 0,
+      "scene_name": "灵泉洞",
+      "envmusic_i": 8053,
+      "640x480_y": -1,
+      "is_smap": 1,
+      "800x600_y": -1,
+      "640x480_x": -1,
+      "map_id": 8053,
+      "smap": 8053,
+      "mic_delay": 0,
+      "width": 1600,
+      "waimap_id": 0,
+      "height": 1200,
+      "mobile_y": -1,
+      "auto_walk": 1,
+      "800x600_x": -1,
+      "show_in_worldmap": 0,
+      "extra_smaps": [
+        "8053_2.jpg"
+      ],
+      "mobile_x": -1
+    },
+    "2268": {
+      "music_i": 8030,
+      "scene_name": "云霄径",
+      "envmusic_i": 8030,
+      "640x480_y": -1,
+      "is_smap": 1,
+      "800x600_y": -1,
+      "640x480_x": -1,
+      "map_id": 8038,
+      "smap": 8038,
+      "mic_delay": 0,
+      "width": 1390,
+      "waimap_id": 0,
+      "height": 1679,
+      "mobile_y": -1,
+      "auto_walk": 1,
+      "800x600_x": -1,
+      "show_in_worldmap": 0,
+      "extra_smaps": [
+        "8038_3.jpg"
+      ],
+      "mobile_x": -1
+    },
+    "2269": {
+      "music_i": 8030,
+      "scene_name": "翠石峰",
+      "envmusic_i": 8030,
+      "640x480_y": -1,
+      "is_smap": 1,
+      "800x600_y": -1,
+      "640x480_x": -1,
+      "map_id": 8035,
+      "smap": 8035,
+      "mic_delay": 0,
+      "width": 1279,
+      "waimap_id": 0,
+      "height": 1275,
+      "mobile_y": -1,
+      "auto_walk": 1,
+      "800x600_x": -1,
+      "show_in_worldmap": 0,
+      "extra_smaps": [
+        "8035_2.jpg"
+      ],
+      "mobile_x": -1
+    },
     "2357": {
       "music_i": 2357,
       "scene_name": "御天岭",
@@ -9667,6 +9760,8 @@
         "title": "三界令兑换使",
         "scene_id": 2001,
         "npc_id": 4101,
+        "dir": 1,
+        "title_style": 7,
         "npc_type": 1,
         "head_ani": -1,
         "desc": ""
@@ -9681,6 +9776,8 @@
         "title": "三界令任务使",
         "scene_id": 2001,
         "npc_id": 4102,
+        "dir": 1,
+        "title_style": 7,
         "npc_type": 1,
         "head_ani": 7,
         "desc": ""
@@ -10999,6 +11096,8 @@
         "title": "三界令高级兑换使",
         "scene_id": 2001,
         "npc_id": 5500,
+        "dir": 1,
+        "title_style": 7,
         "npc_type": 1,
         "head_ani": -1,
         "desc": ""
@@ -84785,6 +84884,206 @@
       "source_route_ids": [
         20023
       ],
+      "alternative_arrivals": []
+    },
+    {
+      "id": 30001,
+      "from": 2011,
+      "npc_id": 5718,
+      "trans_index": 1,
+      "from_pos": [228, 1064],
+      "source": [11, 53],
+      "to": 2266,
+      "to_npc": 5703,
+      "to_pos": [1481, 469],
+      "arrival": [68, 26],
+      "eligibility": [],
+      "arrival_adjustment": 6,
+      "source_route_ids": [],
+      "alternative_arrivals": []
+    },
+    {
+      "id": 30002,
+      "from": 2266,
+      "npc_id": 5703,
+      "trans_index": 1,
+      "from_pos": [1481, 469],
+      "source": [74, 23],
+      "to": 2011,
+      "to_npc": 5718,
+      "to_pos": [228, 1064],
+      "arrival": [11, 53],
+      "eligibility": [],
+      "arrival_adjustment": 0,
+      "source_route_ids": [],
+      "alternative_arrivals": []
+    },
+    {
+      "id": 30003,
+      "from": 2266,
+      "npc_id": 5702,
+      "trans_index": 1,
+      "from_pos": [
+        215,
+        500
+      ],
+      "source": [
+        10,
+        25
+      ],
+      "to": 2267,
+      "to_npc": 5704,
+      "to_pos": [
+        1418,
+        283
+      ],
+      "arrival": [
+        70,
+        14
+      ],
+      "eligibility": [],
+      "arrival_adjustment": 0,
+      "source_route_ids": [],
+      "alternative_arrivals": []
+    },
+    {
+      "id": 30004,
+      "from": 2267,
+      "npc_id": 5704,
+      "trans_index": 1,
+      "from_pos": [
+        1418,
+        283
+      ],
+      "source": [
+        70,
+        14
+      ],
+      "to": 2266,
+      "to_npc": 5702,
+      "to_pos": [
+        215,
+        500
+      ],
+      "arrival": [
+        10,
+        25
+      ],
+      "eligibility": [],
+      "arrival_adjustment": 0,
+      "source_route_ids": [],
+      "alternative_arrivals": []
+    },
+    {
+      "id": 30005,
+      "from": 2267,
+      "npc_id": 5705,
+      "trans_index": 1,
+      "from_pos": [
+        100,
+        880
+      ],
+      "source": [
+        5,
+        44
+      ],
+      "to": 2268,
+      "to_npc": 5709,
+      "to_pos": [
+        1122,
+        1412
+      ],
+      "arrival": [
+        56,
+        70
+      ],
+      "eligibility": [],
+      "arrival_adjustment": 0,
+      "source_route_ids": [],
+      "alternative_arrivals": []
+    },
+    {
+      "id": 30006,
+      "from": 2268,
+      "npc_id": 5709,
+      "trans_index": 1,
+      "from_pos": [
+        1122,
+        1412
+      ],
+      "source": [
+        56,
+        70
+      ],
+      "to": 2267,
+      "to_npc": 5705,
+      "to_pos": [
+        100,
+        880
+      ],
+      "arrival": [
+        5,
+        44
+      ],
+      "eligibility": [],
+      "arrival_adjustment": 0,
+      "source_route_ids": [],
+      "alternative_arrivals": []
+    },
+    {
+      "id": 30007,
+      "from": 2268,
+      "npc_id": 5707,
+      "trans_index": 1,
+      "from_pos": [
+        445,
+        241
+      ],
+      "source": [
+        22,
+        12
+      ],
+      "to": 2269,
+      "to_npc": 5710,
+      "to_pos": [
+        404,
+        1125
+      ],
+      "arrival": [
+        20,
+        56
+      ],
+      "eligibility": [],
+      "arrival_adjustment": 0,
+      "source_route_ids": [],
+      "alternative_arrivals": []
+    },
+    {
+      "id": 30008,
+      "from": 2269,
+      "npc_id": 5710,
+      "trans_index": 1,
+      "from_pos": [
+        404,
+        1125
+      ],
+      "source": [
+        20,
+        56
+      ],
+      "to": 2268,
+      "to_npc": 5707,
+      "to_pos": [
+        445,
+        241
+      ],
+      "arrival": [
+        22,
+        12
+      ],
+      "eligibility": [],
+      "arrival_adjustment": 0,
+      "source_route_ids": [],
       "alternative_arrivals": []
     }
   ]

@@ -3,11 +3,11 @@
 from time import monotonic
 
 from native946_codec import packet, text_notice
-from native946_equipment import COMPLETION, persist, records
+from native946_equipment import COMPLETION, CROWN_HELP, crown_stats, persist, records
 from native946_refinement import Refinement, debit, state
 
 
-REFERENCE_WIRE_VERSION=1
+REFERENCE_WIRE_VERSION=2
 BENCHES={(2039,1276):'smith',(2092,4755):'jewels',(2221,4545):'guardian',(2436,7630):'realm_gems'}
 RING_BOX=47580
 
@@ -118,8 +118,15 @@ def transition(game,action):
         if category=='境装备':requirements['sanctification']=max(1,requirements.get('sanctification',0))
         import json
         db.execute('UPDATE inventory SET type=? WHERE character_id=? AND id=?',(new,p.cid,iid))
-        db.execute('UPDATE native_equipment SET grade=?,requirements=? WHERE item_id=?',
-                   (grade,json.dumps(requirements,ensure_ascii=False),iid))
+        if category=='神兵' and new in CROWN_HELP:
+            role,requirements,properties=crown_stats(new,grade)
+            db.execute('UPDATE native_equipment SET reference_id=?,grade=?,role=?,requirements=?,properties=? '
+                       'WHERE item_id=? AND character_id=?',
+                       (new,grade,role,json.dumps(requirements,ensure_ascii=False),
+                        json.dumps(properties,ensure_ascii=False),iid,p.cid))
+        else:
+            db.execute('UPDATE native_equipment SET grade=?,requirements=? WHERE item_id=?',
+                       (grade,json.dumps(requirements,ensure_ascii=False),iid))
     return game.defer_packets(lambda:(*p.item_packets(),*p.attribute_packets(),p.item_description(iid),
                                       text_notice('本机装备升阶已完成。')))
 

@@ -5,6 +5,8 @@ from datetime import datetime, timedelta, timezone
 from native946_role_systems import save, state
 
 
+WIRE_VERSION = 1
+
 # Local scoring. Completing the full school daily unlocks the first tier.
 ACTIVITY_POINTS = {
     'school': (3, 60), 'sanjie': (2, 20), 'heaven': (1, 30),

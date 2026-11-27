@@ -63,19 +63,311 @@ class BattlePresentationTests(unittest.TestCase):
         runtime.out.clear()
         skill = 6100
         cost = mana_cost(hero,profile(skill))
-        before = hero['mp']
+        before, before_anger = hero['mp'], hero['role_anger']
         runtime.cast(hero,skill,enemy['id'])
         self.assertLess(hero['mp'],before)
         self.assertEqual(hero['mp'],before-cost)
-        self.assertIn(nums(2158,hero['id'],4,hero['mp']),runtime.out)
+        mana = nums(2158,hero['id'],4,hero['mp'])
+        self.assertEqual(runtime.out.count(mana), 1)
+        self.assertLess(runtime.out.index(mana),runtime.out.index(nums(2126,1)))
+        self.assertGreater(hero['role_anger'], before_anger)
+        self.assertEqual([p for p in runtime.out if p.startswith(nums(2158,hero['id'],8))],
+                         [nums(2158,hero['id'],8,hero['role_anger'])])
+        self.assertLess(runtime.out.index(nums(2126,2)),
+                        runtime.out.index(nums(2158,hero['id'],8,hero['role_anger'])))
         self.assertNotIn(nums(2158,hero['id'],1,hero['hp']),runtime.out)
         self.assertFalse({2148,3458} & {actions.mid(p) for p in runtime.out})
 
+    def test_wrath_starts_at_250_and_scales_with_actual_damage(self):
+        entry = self.g.begin_battle()
+        self.assertIn(nums(3458, self.p.cid, 250, 1000), entry)
+        fighters = solo_fighters(self.g)
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        hero.update(hp=1000, hpmax=1000, hp_limit=1000)
+        runtime = Runtime(fighters, {self.p.cid: self.g}, 1, Random(1), self.g.battle)
+
+        runtime.damage(hero, enemy, 5)
+        runtime.damage(hero, hero, 5)
+        runtime.damage(enemy, hero, 0)
+        self.assertEqual(hero['role_wrath'], 250)
+        self.assertFalse(any(p.startswith(nums(2158, hero['id'], 7)) for p in runtime.out))
+
+        runtime.defending.add(hero['id'])
+        self.assertEqual(runtime.damage(enemy, hero, 80), 40)
+        self.assertIn(nums(2158, hero['id'], 7, 290), runtime.out)
+        self.assertEqual(runtime.damage(enemy, hero, 120, 'fire', primary=False), 120)
+        self.assertEqual(hero['role_wrath'], 410)
+        self.assertIn(nums(2158, hero['id'], 7, 410), runtime.out)
+
+        hero['hpmax'] = 2000
+        self.assertEqual(runtime.damage(enemy, hero, 120, 'fire'), 120)
+        self.assertEqual(hero['role_wrath'], 470)
+        runtime.out.clear()
+        self.assertEqual(runtime.damage(enemy, hero, 1, 'fire'), 1)
+        self.assertFalse(any(p.startswith(nums(2158, hero['id'], 7)) for p in runtime.out))
+
+        hero['role_wrath'] = 999
+        runtime.damage(enemy, hero, 5)
+        self.assertEqual(hero['role_wrath'], 1000)
+        self.assertIn(nums(2158, hero['id'], 7, 1000), runtime.out)
+        self.g.battle = None
+        self.assertIn(nums(3458, self.p.cid, 250, 1000), self.g.begin_battle())
+
+    def test_wrath_includes_counterattacks_gushu_and_poison_ticks(self):
+        runtime, fighters = self.runtime()
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        hero.update(hp=1000, hpmax=1000, hp_limit=1000)
+        hero['role_dots'] = [dict(source=enemy['id'], skill=1, kind='poison', damage=25, until=2)]
+        runtime.begin_round()
+        self.assertEqual(hero['role_wrath'], 275)
+        hero['role_gushu'] = dict(source=enemy['id'], cast_damage=40, attack_damage=20, until=2)
+        runtime.action_gushu(hero, True)
+        self.assertEqual(hero['role_wrath'], 315)
+        with patch('native946_book_combat.roll', return_value={'miss': False, 'damage': 60, 'effect': 0}):
+            runtime.attack(enemy, hero, active=False)
+        self.assertEqual(hero['role_wrath'], 375)
+        self.assertIn(nums(2158, hero['id'], 7, 375), runtime.out)
+
+    def test_liuli_lamp_native_equip_cast_and_next_two_order_resolutions(self):
+        from native946_role_systems import save
+        from test_native946_guardian_passives import cast_ids
+        from test_native946_skillbooks import decode_record
+
+        cid = self.p.cid
+        def call(mid,*values):
+            return self.g.receive(mid, MessageReader(b''.join(number(value) for value in values)))
+
+        with self.p.transaction() as db:
+            iid = db.execute('INSERT INTO inventory(character_id,type,page,slot,amount) VALUES(?,47800,1700,1,1)',
+                             (cid,)).lastrowid
+            save(db,cid,'artifacts',dict(item_progress={str(iid):dict(grade=50,generation=3)}))
+        self.assertNotIn(4709, self.p.snapshot()['skills'])
+        reply = call(313,iid)
+        detail = next(p for p in reply if actions.mid(p)==3007)
+        reader = MessageReader(detail[3:])
+        self.assertEqual(reader.integer(), iid)
+        info = decode_record(reader,'fabao_new_info')
+        reader.finish()
+        self.assertEqual((info['level'], info['grade']), (3, 50))
+        self.assertIn('100点怨气',info['desc'])
+
+        call(803,1700,1,34,4)
+        self.assertEqual(self.p.snapshot()['skills'][4709], 50)
+        entry = self.g.begin_battle()
+        self.assertIn(self.p.combat_skills_packet(),entry)
+        self.assertIn(dict(skill_id=4709,cost='无消耗',des=info['desc']),self.p.combat_skills())
+        actors = solo_fighters(self.g)
+        hero = actors[cid]
+        actors[ENEMY_ID]['controls'] = {'seal': 6}
+        hero['role_wrath'] = 0
+        reply = call(2185,9,4709,ENEMY_ID)
+        self.assertIn(98,[actions.mid(p) for p in reply])
+        self.assertNotIn(cid,self.g.battle['orders'])
+        call(2185,9,4709,cid)
+        resolved = call(2182,1)
+        self.assertIn((cid,cid,4709),cast_ids(resolved))
+        self.assertEqual(solo_fighters(self.g)[cid]['role_wrath'], 0)
+        for round_number, expected in ((2,100),(3,200),(4,200)):
+            call(2184)
+            self.assertEqual(self.g.battle['round'],round_number)
+            before = solo_fighters(self.g)[cid]['role_wrath']
+            call(2178,1)
+            self.assertEqual(solo_fighters(self.g)[cid]['role_wrath'],before)
+            resolved = call(2182,1)
+            self.assertEqual(solo_fighters(self.g)[cid]['role_wrath'],expected)
+            self.assertEqual(resolved.count(nums(2158,cid,7,expected)), int(round_number<4))
+        self.g.finish_battle(False)
+        call(803,34,4,1700,-1)
+        self.assertNotIn(4709,self.p.snapshot()['skills'])
+        self.g.begin_battle()
+        reply = call(2185,9,4709,cid)
+        self.assertIn(98,[actions.mid(p) for p in reply])
+        self.assertNotIn(cid,self.g.battle['orders'])
+
+    def test_max_rank_focus_cost_and_pvp_round_recovery(self):
+        runtime, fighters = self.runtime()
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        skill = profile(6100)
+        base = mana_cost(hero, skill)
+        hero.update(mp=20, mpmax=1000, role_talents={'7033': 10})
+        self.assertEqual(mana_cost(hero, skill), base * 80 // 100)
+        self.assertEqual(validate_order(hero, 6100, enemy['id'], fighters)['mana'], base * 80 // 100)
+        runtime.begin_round()
+        self.assertEqual(hero['mp'], 20)
+        enemy.update(owner=998, invisible=True)
+        runtime.round += 1
+        runtime.begin_round()
+        runtime.begin_round()
+        self.assertEqual(hero['mp'], 70)
+        self.assertIn(nums(2158, hero['id'], 4, 70), runtime.out)
+
+    def test_max_rank_shock_talents_use_current_hp_actual_damage_and_heal_cap(self):
+        runtime, fighters = self.runtime()
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        enemy.update(hp=1000, hpmax=2000, hp_limit=2000, ReMpAbsorb=1000)
+        hero['role_talents'] = {'7341': 10}
+        self.assertEqual(runtime.shock(hero, enemy), 0)
+        enemy.update(owner=998, role_all_reduction=700)
+        self.assertEqual(runtime.shock(hero, enemy), 100)
+
+        hero.update(hp=30, hpmax=300, hp_limit=300, role_talents={'7342': 10})
+        enemy.update(hp=1000, ReMpAbsorb=0, role_all_reduction=0)
+        self.assertEqual(runtime.shock(hero, enemy, primary=False), 200)
+        self.assertEqual(hero['hp'], 30)
+        enemy.update(hp=1000)
+        self.assertEqual(runtime.shock(hero, enemy), 200)
+        self.assertEqual(hero['hp'], 60)
+        enemy.update(hp=4000, hpmax=4000, hp_limit=4000)
+        self.assertEqual(runtime.shock(hero, enemy), 800)
+        self.assertEqual(hero['hp'], 150)
+
+    def test_max_rank_deep_sleep_checks_final_damage_against_target_max_hp(self):
+        runtime, fighters = self.runtime()
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        hero['role_talents'] = {'7122': 10}
+        enemy.update(owner=998, hp=2000, hpmax=2000, hp_limit=2000)
+        self.assertTrue(runtime.control(hero, enemy, 'faint'))
+        self.assertEqual(runtime.damage(hero, enemy, 199, 'fire'), 199)
+        self.assertIn('faint', enemy['controls'])
+        self.assertEqual(runtime.damage(hero, enemy, 200, 'fire'), 200)
+        self.assertNotIn('faint', enemy['controls'])
+
+    def test_max_rank_sleep_damage_modifiers_use_their_own_durations(self):
+        for skill, key, amount, rounds in ((7123, 'role_damage_percent', -300, 2),
+                                            (7124, 'role_taken_percent', 450, 1)):
+            with self.subTest(skill=skill):
+                runtime, fighters = self.runtime()
+                hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+                hero['role_talents'] = {str(skill): 10}
+                self.assertTrue(runtime.control(hero, enemy, 'faint', duration=4))
+                self.assertEqual(enemy[key], amount)
+                runtime.round += rounds
+                runtime.begin_round()
+                self.assertEqual(enemy[key], 0)
+                self.g.battle = None
+
+    def test_max_rank_battle_staff_capacity_has_no_probability_roll(self):
+        from native946_role_battle import fighter_entry
+
+        runtime, fighters = self.runtime()
+        hero = fighters[self.p.cid]
+        hero.update(role_school=719, role_talents={'7503': 10}, role_initialized=0)
+        with patch.object(Random, 'randrange', side_effect=AssertionError('满级斗战应必定触发')):
+            fighter_entry(hero, '斗战')
+            self.assertEqual(hero['role_stick_max'], 3)
+            hero['role_initialized'] = 0
+            runtime.prepare(hero)
+        self.assertEqual(hero['role_stick_max'], 3)
+
+    def test_equipment_talents_calculate_each_native_attribute_separately(self):
+        from native946_role_growth import boost_equipment
+
+        for talent, expected_core, expected_direct in (
+                (7010, [120, 120, 110, 110], [120, 120, 110, 110, 100]),
+                (7013, [110, 110, 120, 115], [110, 110, 120, 115, 100])):
+            with self.subTest(talent=talent):
+                core = dict.fromkeys(('cor', 'mag', 'strength', 'speed'), 100)
+                direct = dict.fromkeys(('hpmax', 'mpmax', 'attack', 'initiative', 'defense'), 100)
+                with patch('native946_role_growth.talent_levels', return_value={talent: 10}):
+                    boost_equipment(None, self.p.cid, core, direct, {})
+                self.assertEqual(list(core.values()), expected_core)
+                self.assertEqual(list(direct.values()), expected_direct)
+
+    def test_xinyi_follow_up_uses_trained_skill_and_original_speed(self):
+        from native946_skillbooks import SkillBooks
+        from test_native946_guardian_passives import cast_ids
+
+        with self.p.transaction() as db:
+            db.execute('UPDATE summons SET type=3371,level=50 WHERE id=?', (self.sid,))
+        self.g.receive(763, MessageReader(number(self.sid) + number(4749)))
+        skill = next(row for row in SkillBooks(self.s).records(self.sid) if row['stunt_id'] == 4749)
+        self.assertEqual(skill['desc'], '{5,900,250}')
+        runtime, fighters = self.runtime()
+        hero, pet, enemy = fighters[self.p.cid], fighters[self.sid], fighters[ENEMY_ID]
+        enemy.update(owner=998, hp=10000, hpmax=10000, hp_limit=10000)
+        speed = pet['role_initial_speed']
+        self.assertGreater(speed, 0)
+        pet['initiative'] += 500
+        for offset in range(1, 6):
+            victim = deepcopy(enemy)
+            victim['id'] = enemy['id'] + offset
+            fighters[victim['id']] = victim
+            runtime.prepare(victim)
+        pet.update(mp=1000, mpmax=1000)
+        with patch('native946_book_combat.roll', return_value={'miss': True, 'damage': 0, 'effect': 0}):
+            runtime.attack(pet, enemy)
+            self.assertEqual(enemy['hp'], 10000 - speed * 9)
+            self.assertEqual(sum(f['hp'] < 10000 for f in runtime.enemies(pet)), 5)
+            self.assertEqual(hero['role_wrath'], 500)
+            runtime.attack(pet, enemy)
+            self.assertEqual(enemy['hp'], 10000 - speed * 9 - (speed * 9 // 2))
+            self.assertEqual(hero['role_wrath'], 750)
+            pet['controls']['disorder'] = runtime.round
+            runtime.attack(pet, enemy)
+            self.assertEqual(hero['role_wrath'], 750)
+            pet['controls'].clear()
+            runtime.attack(pet, enemy, active=False)
+            self.assertEqual(hero['role_wrath'], 750)
+        runtime.round += 1
+        before = enemy['hp']
+        pet['innate_skills'].append(dict(stunt_id=321))
+        runtime.guardian_cast(self.g, pet, hero['id'], 321)
+        self.assertEqual(before - enemy['hp'], speed * 9)
+        self.assertEqual(hero['role_wrath'], 1000)
+        self.assertEqual([skill for a, t, skill in cast_ids(runtime.out) if a == pet['id']].count(4749), 3)
+        for bound in (500, 750, 1000):
+            idx = runtime.out.index(nums(2158, hero['id'], 7, bound))
+            self.assertEqual(runtime.out[idx-1], nums(2126, 2))
+
+    def test_guardian_book_and_innate_costs_sync_before_the_cast_group(self):
+        from native946_guardian_magic import prepared
+
+        for skill, innate in ((338, False), (317, True), (321, True)):
+            with self.subTest(skill=skill):
+                runtime, fighters = self.runtime()
+                guardian = fighters[self.sid]
+                hero = fighters[self.p.cid]
+                guardian.update(mp=1000, mpmax=1000, learned_books=[], innate_skills=[])
+                if innate:
+                    guardian['innate_skills'].append(dict(stunt_id=skill))
+                else:
+                    guardian['learned_books'].append(dict(skill=skill, level=20))
+                restoring = skill == 321
+                if restoring:
+                    hero['mp'] = max(0, hero['mpmax'] - 100)
+                cost = prepared(guardian, skill)['mana']
+                transferred = min(100, hero['mpmax'] - hero['mp']) if restoring else 0
+                runtime.guardian_cast(self.g, guardian, hero['id'] if restoring else ENEMY_ID, skill)
+                self.assertEqual(guardian['mp'], 1000 - cost - transferred)
+                sync = nums(2158, guardian['id'], 4, guardian['mp'])
+                self.assertEqual(runtime.out.count(sync), 1)
+                self.assertLess(runtime.out.index(sync), runtime.out.index(nums(2126, 1)))
+                if restoring:
+                    self.assertIn(nums(2164, hero['id'], transferred, 2, 0), runtime.out)
+                else:
+                    self.assertTrue(any(actions.mid(p) == 2164 for p in runtime.out))
+
+    def test_target_mana_drain_stays_in_the_effect_group(self):
+        runtime, fighters = self.runtime()
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        runtime.group(enemy, [hero], 12)
+        lost = min(5, hero['mp'])
+        runtime.mana(hero, -lost)
+        runtime.end()
+        self.assertGreater(lost, 0)
+        self.assertEqual(runtime.out[-3:], [nums(2164, hero['id'], -lost, 2, 0),
+                         nums(2158, hero['id'], 4, hero['mp']), nums(2126, 2)])
+
     def test_demon_defense_and_attack_spells_apply_their_own_effects(self):
+        from native946_role_battle import value
+        from native946_spell_preview import guard_human_resistance
+
         runtime, fighters = self.runtime()
         hero = fighters[self.p.cid]
         hero.update(race=2, sex=2, skills={81: 1500, 91: 1500}, mp=100, mpmax=100)
         original_attack, original_defense = hero['attack'], hero['defense']
+        resistances={key:value(hero,key) for key in ('ReSeal','ReDisorder','ReFaint')}
+        expected_resist=guard_human_resistance(hero,81)
 
         self.assertTrue(all(profile(sid)['family'] == 'guard_buff' for sid in range(81, 86)))
         self.assertTrue(all(profile(sid)['family'] == 'attack_buff' for sid in range(91, 96)))
@@ -84,6 +376,9 @@ class BattlePresentationTests(unittest.TestCase):
         self.assertEqual(hero['attack'], original_attack)
         self.assertGreater(hero['defense'], original_defense)
         self.assertEqual(hero.get('role_attack_buff', 0), 0)
+        self.assertIn(f'各提高#G{expected_resist}#n点',description(81,hero))
+        for key,previous in resistances.items():
+            self.assertEqual(value(hero,key),previous+expected_resist)
 
         buffed_defense = hero['defense']
         hero['sex'] = 1
@@ -129,6 +424,55 @@ class BattlePresentationTests(unittest.TestCase):
         self.assertEqual({fid: before[fid] - f['hp'] for fid, f in fighters.items()},
                          {fid: 1937 if fid in hit else 0 for fid in fighters})
 
+    def test_yuying_cast_modifies_the_absorption_used_by_damage_and_expires(self):
+        from native946_role_battle import value
+
+        runtime,fighters=self.runtime()
+        hero,target=fighters[self.p.cid],fighters[ENEMY_ID]
+        skill=6127
+        hero.update(race=7,school=17,skills={skill:1},mp=200,mpmax=200)
+        target.update(hp=5000,hpmax=5000,hp_limit=5000,PhyAbsorbDegree=800)
+        defense=target['defense']
+        with self.assertRaisesRegex(ValueError,'对应门派'):
+            validate_order(hero,skill,ENEMY_ID,fighters)
+        hero['school']=18
+        validate_order(hero,skill,ENEMY_ID,fighters)
+        self.assertEqual(runtime.damage(hero,target,1000),200)
+        for _ in range(2):
+            runtime.cast(hero,skill,ENEMY_ID)
+            self.assertEqual(value(target,'PhyAbsorbDegree'),450)
+            self.assertEqual(target['defense'],defense+700)
+            self.assertEqual(target['role_heal_reduce'],250)
+        self.assertEqual(runtime.damage(hero,target,1000),550)
+        runtime.round=4
+        runtime.begin_round()
+        self.assertEqual(value(target,'PhyAbsorbDegree'),800)
+        self.assertEqual(target['defense'],defense)
+        self.assertEqual(target['role_heal_reduce'],0)
+        tip=description(skill,hero)
+        self.assertIn('本机结算预览',tip)
+        self.assertIn('最多降低#G35#n个百分点',tip)
+
+    def test_school_catalog_tooltips_use_available_values_or_explain_dynamic_effects(self):
+        from native946_school import SCHOOL_SKILLS
+
+        for sid in SCHOOL_SKILLS:
+            with self.subTest(skill=sid):
+                tip=description(sid,dict(level=71,attack=781,skills={sid:1},hpmax=400,mpmax=200,hp=200))
+                self.assertTrue(tip.strip())
+                self.assertNotIn('表示该数值待核实',tip)
+
+    def test_xuelong_heal_respects_client_cap_after_advanced_modifiers(self):
+        runtime,fighters=self.runtime()
+        hero=fighters[self.p.cid]
+        skill=6124
+        hero.update(race=7,sex=1,school=15,skills={skill:1},mp=200,mpmax=200,
+                    hp=100,hpmax=200000,hp_limit=200000,role_feng={skill:dict(power=100)})
+        validate_order(hero,skill,hero['id'],fighters)
+        runtime.cast(hero,skill,hero['id'])
+        self.assertEqual(hero['hp'],20100)
+        self.assertIn('单次回血最多#R20000#n',description(skill,hero))
+
     def test_newbie_spell_panel_and_battle_match_947_tianjie_samples(self):
         runtime, fighters = self.runtime()
         hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
@@ -154,10 +498,11 @@ class BattlePresentationTests(unittest.TestCase):
     def test_verified_school_target_thresholds_are_shared_by_preview_and_cast(self):
         runtime, fighters = self.runtime()
         hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
-        for sid in range(900010, 900015):
+        for sid in range(900010, 900016):
             fighters[sid] = dict(enemy, id=sid)
 
         for sid, samples in (
+            (35, ((999, 4), (1000, 5), (4999, 5), (5000, 6), (11000, 7))),
             (6102, ((2999, 3), (3000, 4), (10499, 4), (10500, 5))),
             (6104, ((0, 4), (2999, 4), (3000, 5))),
             (6109, ((999, 2), (1000, 3), (8999, 3), (9000, 4))),
@@ -170,7 +515,114 @@ class BattlePresentationTests(unittest.TestCase):
                     self.assertEqual(nominal, expected)
                     self.assertEqual(len(selected), expected)
                     self.assertEqual(selected[0]['id'], enemy['id'])
-                    self.assertIn(f'最多目标：#G{expected}#n', description(sid, hero))
+                    self.assertIn(f'{expected}人', description(sid, hero))
+
+    def test_witch_preview_uses_the_cast_healing_cap_and_two_gushu_values(self):
+        from native946_role_battle import gushu_damage
+
+        runtime, fighters = self.runtime()
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        hero.update(level=71, race=7, sex=1, school=15, hp=5000, hpmax=100000, hp_limit=100000,
+                    mp=5000, mpmax=5000, skills={6120:0}, XQAddCureHpP=1000)
+        self.assertIn('回复队友#G19.26％#n的血量', description(6120, hero))
+        runtime.cast(hero, 6120, hero['id'])
+        self.assertEqual(hero['hp'], 25000)
+
+        hero.update(school=0, sex=2, skills={6129:0})
+        attack, cast = gushu_damage(hero, enemy, 6129)
+        preview = description(6129, hero)
+        for amount in gushu_damage(hero, {}, 6129):
+            self.assertIn(f'#G{amount}#n点伤害', preview)
+        runtime.cast(hero, 6129, enemy['id'])
+        self.assertEqual((enemy['role_gushu']['attack_damage'], enemy['role_gushu']['cast_damage']),
+                         (attack, cast))
+        self.assertEqual(enemy['role_gushu']['until'], runtime.round + 1)
+
+    def test_feixue_wuhen_uses_native_chance_targets_and_cooldown(self):
+        runtime, fighters = self.runtime()
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        hero.update(mp=5000, mpmax=5000)
+        rivals = []
+        for actor_id in range(900010, 900014):
+            rival = dict(enemy, id=actor_id, kind='hero', owner=actor_id, role_last_spell=41)
+            fighters[actor_id] = rival
+            rivals.append(rival)
+        skill = 6139
+        text = description(skill, hero)
+        for expected in ('#G60.00％#n', '#G2#n个单位', '持续#G2#n回合', '需#Y3#n回合'):
+            self.assertIn(expected, text)
+        self.assertEqual(runtime.targets(hero, profile(skill), rivals[0]['id']), (rivals[:2], 2))
+        with patch.object(runtime.rng, 'randrange', side_effect=(599, 600)):
+            runtime.cast(hero, skill, rivals[0]['id'])
+        self.assertEqual(rivals[0]['role_forbidden'], {'41': 3})
+        self.assertNotIn('41', rivals[1].get('role_forbidden', {}))
+        self.assertNotIn('41', enemy.get('role_forbidden', {}))
+        self.assertEqual(hero['role_cooldowns']['skill:6139'], 4)
+        mana = hero['mp']
+        runtime.round = 3
+        runtime.cast(hero, skill, rivals[0]['id'])
+        self.assertEqual(hero['mp'], mana)
+        hero['role_talents'] = {'7423': 10}
+        self.assertIn('#G3#n个单位', description(skill, hero))
+        self.assertEqual(runtime.targets(hero, profile(skill), rivals[0]['id']), (rivals[:3], 3))
+        runtime.round = 4
+        with patch.object(runtime.rng, 'randrange', return_value=999):
+            runtime.cast(hero, skill, rivals[0]['id'])
+        self.assertLess(hero['mp'], mana)
+        self.assertEqual(hero['role_cooldowns']['skill:6139'], 7)
+
+    def test_gushu_rounds_each_action_damage_and_skips_cleanse(self):
+        from native946_role_battle import gushu_damage
+
+        source = {'level': 1, 'mag': 221, 'skills': {}}
+        self.assertEqual(gushu_damage(source, {'XQSubHurtHpP': 125}, 6129), (481, 687))
+        source['role_talents'] = {'7421': 10}
+        self.assertEqual(gushu_damage(source, {}, 6129), (715, 1021))
+        self.assertEqual(gushu_damage(source, {}, 6129, pvp=True), (632, 902))
+
+        runtime, fighters = self.runtime()
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        hero.update(hp=100, hpmax=100, mp=500, mpmax=500)
+        effect = dict(source=enemy['id'], attack_damage=50, cast_damage=90, until=2)
+        hero['role_gushu'] = effect.copy()
+        with patch.object(runtime.rng, 'randrange', return_value=0):
+            runtime.cast(hero, 6107, hero['id'])
+        self.assertEqual(hero['hp'], 100)
+        self.assertNotIn('role_gushu', hero)
+        hero['role_gushu'] = effect.copy()
+        runtime.cast(hero, 6038, hero['id'])
+        self.assertEqual(hero['hp'], 10)
+        self.assertEqual(hero['role_last_spell'], 6038)
+
+    def test_published_max_rank_witch_talents_use_their_cast_conditions(self):
+        runtime, fighters = self.runtime()
+        hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+        hero.update(hp=100, hpmax=1000, hp_limit=1000, mp=5000, mpmax=5000,
+                    race=7, school=17, AddXiaorongRate=20, role_talents={'7414': 10})
+        with patch.object(runtime.rng, 'randrange', return_value=0):
+            runtime.cast(hero, 6107, hero['id'])
+        self.assertEqual(hero['hp'], 700)
+        hero.update(AddXiaorongRate=300, role_talents={'7412': 10, '7431': 10})
+        with patch.object(runtime.rng, 'randrange', return_value=999):
+            runtime.cast(hero, 6038, hero['id'])
+        self.assertEqual(hero['role_element_power'], 240)
+        self.assertTrue(hero['role_reveal'])
+
+        hero['role_talents'] = {'7411': 10}
+        runtime.cast(hero, 6140, hero['id'])
+        self.assertEqual(hero['role_anti_books'], 300)
+        self.assertEqual(hero['role_reveal'], 200)
+        hero['role_talents'] = {'7432': 10}
+        with patch.object(runtime.rng, 'randrange', return_value=999):
+            runtime.cast(hero, 6120, hero['id'])
+        self.assertEqual(hero['role_shields']['endure'], 1)
+
+        hero['role_talents'] = {'7422': 10}
+        with patch.object(runtime.rng, 'randrange', return_value=0):
+            runtime.cast(hero, 6129, enemy['id'])
+        self.assertEqual(enemy['role_element_taken'], 150)
+        self.assertFalse(enemy.get('role_spell_taken'))
+        self.assertEqual(next(b['until'] for b in enemy['role_buffs'] if b['source'] == 7422), 2)
 
     def test_defence_applies_to_each_physical_hit_and_water_limit_uses_final_damage(self):
         runtime,fighters=self.runtime()

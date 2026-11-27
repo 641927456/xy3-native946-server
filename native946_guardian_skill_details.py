@@ -1,7 +1,8 @@
 """Numerical arguments for the 946 guardian panel's native skill templates."""
 from native946_innate_effects import (
-    ACTIVE, ASCENDED_180_STATS, STATS, ascended_180, cold_values, dragon_round_bonus,
-    echo_chance, elemental_base, intimacy_heal, physical_per_mille, residual_recovery,
+    ACTIVE, ASCENDED_180_STATS, STATS, XINYI_FOLLOW_UP, XINYI_SPEED_PERCENT, XINYI_TARGETS, XINYI_WRATH,
+    ascended_180, cold_values, dragon_round_bonus,
+    echo_chance, elemental_base, intimacy_heal, jing_fire_bonuses, physical_per_mille, residual_recovery,
     resistance_pierce, revive_target_count,
     spell_strengthening, stunt_scale, tai_sui_values, target_count, water_fire_damage,
 )
@@ -47,6 +48,7 @@ def arguments(pet,entry):
     scale=stunt_scale(pet,kind)
     mag=pet.get('mag',0)
     if kind in FIXED_ARGUMENTS:return FIXED_ARGUMENTS[kind]
+    if kind==XINYI_FOLLOW_UP:return XINYI_TARGETS,XINYI_SPEED_PERCENT,XINYI_WRATH
     if kind in (316,4576):return ACTIVE[kind]['targets'],0
     if kind==317:return ACTIVE[kind]['hits'],0
     if kind==4618:return (echo_chance(pet)//100,)
@@ -65,7 +67,7 @@ def arguments(pet,entry):
                 residual_recovery(pet,rule)/100,pet.get('guardian_4046_bonus',0)//10)
     if kind==4043:
         slow,cap=cold_values(pet)
-        return target_count(pet,kind,ACTIVE[kind]),slow//100,3,pet.get('guardian_cold_bonus',0)//10,cap//100
+        return target_count(pet,kind,ACTIVE[kind]),slow//100,ACTIVE[kind]['slow_rounds'],pet.get('guardian_cold_bonus',0)//10,cap//100
     if kind==4539:
         water,fire=water_fire_damage(pet)
         return target_count(pet,kind,ACTIVE[kind]),water,fire,0,pet.get('guardian_4539_bonus',0)//10
@@ -102,6 +104,9 @@ def arguments(pet,entry):
     if kind==4720:
         from native946_innate_effects import spirit_factor
         return (750*spirit_factor(pet)//1000/100,)
+    if kind==4721:
+        chance, extra_damage = jing_fire_bonuses(pet)
+        return chance/10, extra_damage/10
     if kind==4732:return (180,)
     if kind==4735:return 320,70
     if kind==4736:return (50000,)
@@ -139,7 +144,7 @@ def local_detail(pet,kind):
     if kind==348:detail+='施放时回复施法者最大气血的25%。'
     if kind==4042:detail+='使目标雷、火、风和水抗各降低1500点，持续3回合。'
     if 'poison' in family:detail+='存活目标之后还会受到持续毒伤。'
-    if kind==4615:detail+='本机同时降低200点速度，持续3回合，高级内丹可使目标数额外加1。'
+    if kind==4615:detail+=f"本机同时降低200点速度，持续{rule['slow_rounds']}回合。内丹「无中生有」有几率额外作用1个目标。"
     return detail
 
 

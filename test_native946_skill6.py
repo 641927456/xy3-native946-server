@@ -9,7 +9,7 @@ from unittest.mock import patch
 from native946_game_login import message_id
 from native946_role_battle import profile, mana_cost, snapshot as battle_effects
 from native946_role_systems import save
-from native946_skill6 import ARGUMENTS, MANUAL, REQUESTS, saved
+from native946_skill6 import ARGUMENTS, MANUAL, REQUESTS, saved, school_skills, skill_row
 import test_native946_campaign as fixtures
 
 
@@ -62,6 +62,37 @@ class Skill6Tests(unittest.TestCase):
             actor = battle_effects(db, self.p.cid)
         self.assertEqual(actor['role_feng'][self.skill], dict(mana=25, power=65))
         self.assertLess(mana_cost(actor, profile(self.skill)), mana_cost({}, profile(self.skill)))
+        self.assertEqual(skill_row(self.skill, row, actor)['cost'],
+                         '法力：' + str(mana_cost(actor, profile(self.skill))))
+
+    def test_legacy_native_feng_spells_and_extra_learning_follow_the_native_jing_gate(self):
+        from native946_codec import SCHEMAS
+        from native946_login import MessageReader
+
+        self.seed()
+        self.action(1874)
+        self.assertEqual({school: skill for school, skill in
+                          [(15,6124), (16,6133), (17,6112), (18,6105), (719,1710)]
+                          if skill in school_skills(school)},
+                         {15:6124,16:6133,17:6112,18:6105,719:1710})
+        for stage in (1, 2):
+            with self.p.transaction() as db:
+                save(db, self.p.cid, 'jing', {'level':stage, 'exp':0})
+            reply = next(p for p in self.p.skill_packets() if p.startswith(message_id(686)))
+            reader = MessageReader(reply[3:])
+            for _ in range(reader.take(1)[0]):
+                for _, field in SCHEMAS['feng_skill_info']:
+                    (reader.string if field == 'string' else reader.integer)()
+            self.assertEqual(reader.take(1)[0], 0)
+            self.assertEqual(reader.integer(), int(stage == 2))
+            self.assertEqual(reader.integer(), 0)
+            self.assertIn(6105, [reader.integer() for _ in range(reader.take(1)[0])])
+            reader.finish()
+            if stage == 1:
+                self.assertTrue(self.action(2817, 6105).startswith(message_id(98)))
+                self.assertNotIn('6105', self.state()['skills'])
+        self.contains(self.action(2817, 6105), 686)
+        self.assertIn(6105, self.p.snapshot()['skills'])
 
     def test_stage_and_resource_gates_leave_state_unchanged(self):
         self.seed(sanctified=0)
@@ -73,6 +104,45 @@ class Skill6Tests(unittest.TestCase):
         for req in ((1875, self.skill), (1878, self.skill, MANUAL, 1), (1880, self.skill, MANUAL)):
             self.assertTrue(self.action(*req).startswith(message_id(98)))
         self.assertEqual(self.state(), before)
+
+    def test_native_passive_catalog_matches_race_training_and_second_slot(self):
+        from native946_codec import SCHEMAS
+        from native946_login import MessageReader
+
+        self.seed()
+        for race,school,active,first in ((1,2,6002,6051),(2,9,6010,6056),(3,5,6016,6061)):
+            with self.subTest(race=race):
+                with self.p.transaction() as db:
+                    db.execute('UPDATE characters SET race=? WHERE id=?',(race,self.p.cid))
+                    save(db,self.p.cid,'school',dict(school=school))
+                    save(db,self.p.cid,'jing',dict(level=5,exp=0))
+                    self.assertIn(active,school_skills(school))
+                    row=saved(db,self.p.cid)
+                    row['skills'][str(active)]=dict(level=5,exp=0,wash={})
+                    save(db,self.p.cid,'skill6',row)
+                reply=next(p for p in self.p.skill_packets() if p.startswith(message_id(686)))
+                reader=MessageReader(reply[3:])
+                def records(schema):
+                    return [{name:(reader.string().decode('gb18030') if kind=='string' else reader.integer())
+                             for name,kind in SCHEMAS[schema]} for _ in range(reader.take(1)[0])]
+                records('feng_skill_info')
+                rows=records('passive_skill_info')
+                self.assertEqual([r['skill_id'] for r in rows],list(range(first,first+5)))
+                self.assertEqual([r['skill_status'] for r in rows],[1,1,1,0,0])
+                self.assertIn('激活及洗髓待接通',rows[0]['desc'])
+                self.assertIn('7级',rows[-1]['desc'])
+                if race==2:
+                    self.assertIn('#R50000#n',rows[1]['desc'])
+                reader.integer()
+                self.assertEqual(reader.integer(),1)
+                for _ in range(reader.take(1)[0]):
+                    reader.integer()
+                reader.finish()
+                before=self.p.snapshot()
+                for request in ((1880,first,MANUAL),(1881,first),(1877,first,0)):
+                    self.assertTrue(self.action(*request).startswith(message_id(98)))
+                self.assertTrue(self.send(1882,['number','byte'],[first,1]).startswith(message_id(98)))
+                self.assertEqual(self.p.snapshot(),before)
 
     def test_protocol_schemas_match_original_pto(self):
         import sys

@@ -2,7 +2,6 @@
 import json,re
 from pathlib import Path
 from native946_codec import packet
-from native946_guardian_innate import STUNT_RANKS
 from native946_guardian_jade import REQUESTS as CULTIVATION_REQUESTS
 REFERENCE_WIRE_VERSION=13
 
@@ -122,11 +121,9 @@ class GuardianUI:
             ('array','stunt_pos_empty'),'string','string','string'],[sid,data,pills,stunts,empty,'{}','{}',''])
 
     def stunt_catalogue(self,sid):
-        from native946_growth import species
-        with self.p.transaction(write=False) as db:pet=self.s._owned(db,sid)
-        native=species(pet['type'])
-        rank=10000 if pet['ascension'] else pet['rebirth']*1000+pet['level']
-        skills=[skill for key,required in STUNT_RANKS.items() if rank>=required for skill in native.get(key,())]
+        from native946_guardian_innate import learning_slots
+        slots=learning_slots(self.s.get(sid))
+        skills=list(dict.fromkeys(skill for choices in slots.values() for skill in choices))
         return packet(720,['number',('array','number')],[sid,skills])
 
     def receive(self,mid,r):
@@ -159,7 +156,10 @@ class GuardianUI:
                 if name:db.execute('INSERT INTO native_guardian_mark_names VALUES(?,?,?,?) ON CONFLICT(character_id,category,slot) DO UPDATE SET name=excluded.name',(self.p.cid,category,slot,name))
                 else:db.execute('DELETE FROM native_guardian_mark_names WHERE character_id=? AND category=? AND slot=?',(self.p.cid,category,slot))
                 if old and old!=name:
-                    for row in db.execute('SELECT m.summon_id,m.marks FROM native_guardian_marks m JOIN summons s ON s.id=m.summon_id WHERE s.character_id=? AND NOT EXISTS (SELECT 1 FROM native_guardian_shop_stock WHERE summon_id=s.id)',(self.p.cid,)).fetchall():
+                    from native946_guardian_chamber import AVAILABLE
+                    for row in db.execute('SELECT m.summon_id,m.marks FROM native_guardian_marks m '
+                                          'JOIN summons ON summons.id=m.summon_id WHERE summons.character_id=? AND '
+                                          + AVAILABLE, (self.p.cid,)).fetchall():
                         values=json.loads(row['marks'])
                         if values[category-1]==old:
                             values[category-1]=name

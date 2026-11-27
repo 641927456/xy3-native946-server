@@ -9,6 +9,8 @@ from native946_hero_page import REQUESTS as HERO_REQUESTS,WRITES as HERO_WRITES,
 from native946_hero_extra_points import ITEM_TYPES as EXTRA_POINT_ITEMS
 from native946_daily_content import ITEMS as DAILY_CONTENT_ITEMS
 for _kind,_meta in DAILY_CONTENT_ITEMS.items():DATA['items'].setdefault(_kind,_meta)
+from native946_double_time import ITEMS as DOUBLE_TIME_ITEMS
+for _kind,_meta in DOUBLE_TIME_ITEMS.items():DATA['items'].setdefault(_kind,_meta)
 for _kind,_meta in json.loads(Path(__file__).with_name('native946_afei_expansion_data.json').read_text('utf8'))['items'].items():
     DATA['items'].setdefault(_kind,_meta)
 from native946_star_rewards import ITEMS as STAR_REWARD_ITEMS
@@ -18,6 +20,7 @@ for _kind,_meta in SIGIL_ITEMS.items():DATA['items'].setdefault(str(_kind),_meta
 for _kind,_meta in GROUP_PRIZES.items():DATA['items'].setdefault(_kind,_meta)
 for _kind,_meta in GROUP_POLICY['prize_materials'].items():DATA['items'].setdefault(_kind,_meta)
 from native946_role_systems import REQUESTS as ROLE_REQUESTS,WRITES as ROLE_WRITES,ITEM_TYPES as ROLE_ITEMS,DATA as ROLE_DATA
+from native946_role_artifacts import BOX_RULES
 from native946_skill6 import ITEM as SKILL6_ITEM, MANUAL as SKILL6_MANUAL
 for _kind,_meta in ROLE_DATA['items'].items():DATA['items'].setdefault(_kind,_meta)
 for _kind,_meta in HERO_DATA['food_items'].items():DATA['items'].setdefault(_kind,_meta)
@@ -28,6 +31,7 @@ WRITES=REQUESTS|HERO_WRITES|ROLE_WRITES
 REQUESTS=REQUESTS|HERO_REQUESTS|ROLE_REQUESTS
 ITEM_TYPES={int(k) for k in DATA['transform_cards']}|set(range(47448,47471))|{int(k) for k in DATA['fish']['fishes']}|{47512,47513,47514,45671}|{int(k) for k in DATA['glyph_slots']}|EXTRA_POINT_ITEMS
 ITEM_TYPES|=ROLE_ITEMS
+ITEM_TYPES.update(BOX_RULES)
 ITEM_TYPES|={6694,47973,47974}
 
 def schema(db):
@@ -98,6 +102,9 @@ def use(game,iid):
     state=game.progression.snapshot();item=next((i for i in state['items'] if i['id']==iid),None)
     if item is None or item['type'] not in ITEM_TYPES:raise ValueError('道具不可用。')
     if game.battle is not None:raise ValueError('请先结束战斗。')
+    if item['type'] in BOX_RULES:
+        from native946_role_artifacts import open_box
+        return open_box(game,iid)
     if item['type'] in (6694,47973,47974):
         from native946_lineups import use_book
         return use_book(game,iid)

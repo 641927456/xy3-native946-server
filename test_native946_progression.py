@@ -79,6 +79,12 @@ class ProgressionTests(unittest.TestCase):
         self.p.move_item(coat['id'],1,3)
         self.assertEqual(speed(),12)
 
+    def test_attribute_plan_quote_only_opens_the_native_confirmation(self):
+        game = NativeGameplay(self.character, self.characters, lambda: ())
+        reply = game.receive(3780, MessageReader(b''))
+        self.assertEqual(reply, packet(3779, ['number'], [1]))
+        self.assertEqual(game.hero_point_quote['cost'], 1)
+
     def test_split_merge_and_reload_conserve_items(self):
         item=self.p.snapshot()['items'][0]
         self.p.split(item['id'],8,10,2)
@@ -130,7 +136,62 @@ class ProgressionTests(unittest.TestCase):
         self.assertEqual((s['level'],s['experience'],s['points']),(6,310,24))
         self.assertEqual((s['cor'],s['mag'],s['strength'],s['speed']),(6,6,6,6))
         self.assertEqual((game.character['level'],game.character['experience']),(6,310))
+        self.assertEqual(s['skills'][6101], 0)
         self.assertEqual(game.auto_level(),0)
+
+    def test_manual_level_up_unlocks_eligible_spells_in_native_skill_reply(self):
+        from native946_codec import SCHEMAS
+        from native946_durable_writer import close
+        from native946_game_login import message_id
+        from native946_progression import level_up_cost
+        from native946_sqlite_runtime import configure_database
+        from sys import getswitchinterval, setswitchinterval
+
+        game = NativeGameplay(self.character, self.characters, lambda: ())
+        with game.progression.transaction() as db:
+            db.execute('UPDATE characters SET level=10,experience=? WHERE id=?',
+                       (level_up_cost(10,11), self.p.cid))
+            db.execute('UPDATE learned_skills SET rank=75 WHERE character_id=? AND skill_id=6100', (self.p.cid,))
+        self.addCleanup(setswitchinterval, getswitchinterval())
+        configure_database(self.path)
+        self.addCleanup(close, self.path)
+        reply = game.receive(748, MessageReader(b''))
+        raw = next(payload for payload in reply if payload[:3] == message_id(699))
+        reader = MessageReader(raw[3:])
+        self.assertEqual(reader.integer(), 0)
+        self.assertEqual(reader.take(1)[0], 0)
+        ranks = {}
+        for _ in range(reader.take(1)[0]):
+            row = {key: reader.string() if kind == 'string' else reader.integer()
+                   for key, kind in SCHEMAS['hero_skill_info']}
+            ranks[row['skill_id']] = row['practice']
+        self.assertEqual({skill:ranks[skill] for skill in (6100,6101,6108,6129)},
+                         {6100:75,6101:0,6108:0,6129:0})
+        self.assertTrue({6102,6116,6105,6127}.isdisjoint(ranks))
+        self.assertEqual(game.progression.snapshot()['level'], 11)
+
+    def test_multi_level_upgrade_and_legacy_backfill_keep_saved_ranks_and_shortcuts(self):
+        from native946_progression import level_up_cost
+        from native946_school import SKILLS
+
+        with self.p.transaction() as db:
+            db.execute('UPDATE characters SET experience=? WHERE id=?',
+                       (level_up_cost(1,41), self.p.cid))
+            db.execute('UPDATE learned_skills SET rank=230 WHERE character_id=? AND skill_id=6107', (self.p.cid,))
+        self.p.level_up(41)
+        expected = {skill for branch in (16,17,18) for skill in SKILLS[branch]}
+        leveled = self.p.snapshot()
+        self.assertTrue(expected.issubset(leveled['skills']))
+        self.assertEqual(leveled['skills'][6107], 230)
+        self.assertEqual(leveled['shortcuts'], {1:6100})
+
+        with self.p.transaction() as db:
+            db.execute('DELETE FROM learned_skills WHERE character_id=? AND skill_id IN (6102, 6111, 6132)',
+                       (self.p.cid,))
+        reopened = Progression(self.path, self.p.owner, self.p.cid).snapshot()
+        self.assertEqual(reopened['skills'], leveled['skills'])
+        self.assertEqual(reopened['shortcuts'], leveled['shortcuts'])
+        self.assertEqual(reopened['gold'], leveled['gold'])
 
     def test_native_unreborn_experience_matches_panel_and_multi_level_cost(self):
         from native946_progression import DATA, level_up_cost

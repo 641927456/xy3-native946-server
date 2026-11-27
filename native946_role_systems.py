@@ -26,9 +26,10 @@ GROUPS['baby_tools']=set(range(3077,3083))|{3088,3089,3090,3091,4178,4746}
 GROUPS['society']-=GROUPS['baby_tools']
 GROUPS['artifacts']={310,313,314,322}
 DATA['protocols'].update({
- '310':dict(name='s_add_last',fields=[]),'313':dict(name='s_get_fabao_info',fields=[['fabao_id','number']]),
+ '310':dict(name='s_add_last',fields=[]),'313':dict(name='s_get_fabao_info',fields=[['item_id','number']]),
  '314':dict(name='s_get_fabao_list',fields=[]),'322':dict(name='s_set_lianyaolu',fields=[['fabao_id','number',0]]),
  '302':dict(name='c_fabao_info',fields=[['info','fabao_info']]),
+ '3007':dict(name='c_fabao_new_info',fields=[['item_id','number'],['fabao','fabao_new_info']]),
  '303':dict(name='c_fabao_list',fields=[['pos1','number'],['pos2','number'],['pos3','number'],['comp_max','number'],['fabao_id','number',0],['msg','string']])})
 REQUESTS=set().union(*GROUPS.values());WRITES=REQUESTS
 CARD_ITEMS={int(v['item_type']):int(k) for k,v in DATA['lingyou_info'].items()}
@@ -179,8 +180,8 @@ def use(game,iid,target=None):
             require(s['exp']<=99999999-20000,'凝气经验已满。');consume(db,cid,iid);s['exp']+=20000;save(db,cid,'goldbody',s)
             result=[notice('获得20000凝气经验。')]
         elif kind==46222:
-            from native946_role_growth import reset_jing
-            result=reset_jing(game,db,0);consume(db,cid,iid)
+            from native946_role_growth import JING_RESET_UNAVAILABLE
+            raise ValueError(JING_RESET_UNAVAILABLE)
         elif kind in (47932,47933):
             from native946_role_arts import lingyou_quick
             result=lingyou_quick(game,db)
@@ -191,9 +192,6 @@ def use(game,iid,target=None):
             game.summons.acquire(species,'tianji-wood:'+str(sequence['sequence']));consume(db,cid,iid);save(db,cid,'wood_grants',sequence);result=[notice('木甲守护已按原生种类加入携带栏。')]
         else:raise ValueError('此道具没有接入当前玩法。')
         after=game.progression._snapshot(db)
-        if kind==46222:
-            for equipped in after['items']:
-                if equipped['page']==after['equipment_page']:game.progression.validate_equipment(after,equipped,equipped['slot'],equipped['page'])
         db.execute('UPDATE progression SET hp=min(hp,?),mp=min(mp,?) WHERE character_id=?',(after['hpmax'],after['mpmax'],cid))
     return game.defer_packets(lambda:(*result,*game.progression.sync(),*game.summons.sync()))
 
@@ -229,7 +227,8 @@ def tick(game):
             finish_city(db,cid)
             messages.extend(wire(2835,r['id'],text(build_info(own_building(db,cid,r['id'])))) for r in construction)
         after=game.progression._snapshot(db);db.execute('UPDATE progression SET hp=min(hp,?),mp=min(mp,?) WHERE character_id=?',(after['hpmax'],after['mpmax'],cid))
-        for row in db.execute('SELECT * FROM summons WHERE character_id=?',(cid,)).fetchall():
+        from native946_guardian_chamber import NOT_RELEASED
+        for row in db.execute('SELECT * FROM summons WHERE character_id=? AND '+NOT_RELEASED,(cid,)).fetchall():
             pet=game.summons.stats(row);db.execute('UPDATE summons SET hp=min(hp,?),mp=min(mp,?) WHERE id=?',(pet['hpmax'],pet['mpmax'],row['id']))
     return (*messages,*game.progression.sync(),*game.summons.sync())
 

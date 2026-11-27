@@ -9,7 +9,7 @@ from time import time,monotonic
 import json
 from collections import deque
 
-REFERENCE_WIRE_VERSION=11
+REFERENCE_WIRE_VERSION=12
 
 from native946_codec import packet, screen_notice, text_notice
 from native946_equipment import DATA
@@ -544,6 +544,8 @@ def reference_roster(task, party_size):
 
 
 class QuestBattle(WildBattle):
+    charge_guardian_participation_on_retreat = False
+
     def __init__(self,leader,games,task):
         self.task=dict(task)
         level=max(1,sum(g.progression.snapshot()['level'] for g in games)//len(games))
@@ -581,7 +583,11 @@ class QuestBattle(WildBattle):
 
     def settle(self,db,victory):
         if self.state['settled']:return
+        from native946_double_time import TASKS, award_captain, experience_rates
+
         rare_available=True
+        double_time = self.task['kind'] in TASKS
+        now = int(time())
         for cid,g in self.games.items():
             existing=db.execute('SELECT * FROM native_npc_quest_rewards WHERE task_id=? AND character_id=?',(self.task['id'],cid)).fetchone()
             if existing:
@@ -602,14 +608,25 @@ class QuestBattle(WildBattle):
                         continue
                 value=reward(self.task['kind'],g.progression.snapshot()['level'],member['ring'],Random(self.task['token']+':'+str(cid)),
                              self.task['branch'],rare_available=rare_available) if valid else dict(experience=0,gold=0,guardian_experience=0,points=0,drops={},victory=False)
+                base_guardian = value['guardian_experience']
+                neidan_rate = 1
                 if valid:
                     if self.task['kind']=='school' and not self.state['participants'][cid]:
                         value['guardian_experience']=0
+                    if double_time:
+                        hero_rate, guardian_rate, neidan_rate = experience_rates(db, cid, now)
+                        value['experience'] = value['experience'] * hero_rate // 100
+                        value['guardian_experience'] *= guardian_rate
                     if value['rare']:rare_available=False
                     settle_reward(db,g,self.task,member['ring'],self.id,value)
+                    if double_time and cid == self.leader and len(self.games) == 5:
+                        award_captain(db, cid, now)
                     for ref,amount in value['drops'].items():db.execute('INSERT INTO native_npc_pending_items(task_id,character_id,reference_type,amount) VALUES(?,?,?,?)',(self.task['id'],cid,ref,amount))
                     deliver(g.progression,db)
-                for pet in self.state['participants'][cid].values():g.summons.settle(pet['id'],self.id,pet['hp'],pet['mp'],valid,experience=value['guardian_experience'])
+                for pet in self.state['participants'][cid].values():
+                    g.summons.settle(pet['id'], self.id, pet['hp'], pet['mp'], valid,
+                                     experience=value['guardian_experience'], neidan_experience=base_guardian * neidan_rate,
+                                     stunt_experience=base_guardian)
             self.state.setdefault('rewards',{})[cid]=value
         self.state['settled']=True
 

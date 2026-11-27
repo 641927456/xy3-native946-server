@@ -2,7 +2,13 @@ from native946_codec import packet
 from native946_guardian_innate import CANSHENG_YIJIU, ZHONGLING_YUXIU
 from native946_guardian_rules import DATA as GUARDIAN_RULES
 
-WIRE_VERSION = 8
+WIRE_VERSION = 9
+
+# Classic 3.0.856 introduced the effect. 3.0.904 raised speed scaling and wrath.
+XINYI_FOLLOW_UP = 4749
+XINYI_TARGETS = 5
+XINYI_SPEED_PERCENT = 900
+XINYI_WRATH = 250
 
 CANSHENG_RULES = GUARDIAN_RULES['skills'][str(CANSHENG_YIJIU)]
 CANSHENG_VERIFIED = CANSHENG_RULES['verified_constraints']
@@ -81,7 +87,7 @@ ACTIVE = {
     356: dict(targets=3, mana=80, element='support', team_debuff='human_resist'),
     361: dict(targets=3, mana=80, element='support', seal_to_faint=True),
     4042: dict(targets=3, mana=120, element='thunder', resist_down=True),
-    4043: dict(targets=3, mana=80, element='support', slow=True),
+    4043: dict(targets=3, mana=80, element='support', slow_rounds=3),
     4044: dict(targets=3, mana=120, element='fire_wind'),
     4227: dict(targets=5, mana=120, element='support', inner_wound=True),
     CANSHENG_YIJIU: dict(targets=CANSHENG_LOCAL['enemy_shock_targets'],
@@ -94,7 +100,7 @@ ACTIVE = {
     4576: dict(targets=3, mana=80, element='physical'),
     4578: dict(targets=3, mana=80, element='physical'),
     4614: dict(targets=3, mana=100, element='physical', remove_random_buff=True),
-    4615: dict(targets=3, mana=100, element='poison', slow=True),
+    4615: dict(targets=3, mana=100, element='poison', slow_rounds=2),
     4730: dict(targets=5, mana=120, element='thunder', resist_down=True),
     4740: dict(targets=4, mana=100, element='physical'),
     4743: dict(targets=4, mana=100, element='physical', random_targets=True),
@@ -281,6 +287,37 @@ def spirit_factor(attacker):
     return min(2000, 1000 + max(0, attacker.get('mag', 0)) * 2)
 
 
+def water_skill_bonus(attacker, target):
+    if has(attacker, 4720):
+        bonus = (target['hpmax'] * 75 // 1000) * spirit_factor(attacker) // 1000
+        return min(20000, bonus)
+    if has(attacker, 4629):
+        points = min(1100, 600 + attacker.get('mag', 0) * 23 // 100)
+        return min(10000, target['hpmax'] * points // 10000)
+    return 0
+
+
+def roll_fire_critical(target, chance, rng, scale=1000):
+    return not has(target, 4746) and rng.randrange(scale) < chance
+
+
+def ordinary_fire_critical_damage(target, amount):
+    return amount * 3 * (10000 - target.get('new_neidan_power', {}).get(280, 0)) // 20000
+
+
+def jing_fire_bonuses(attacker):
+    factor = spirit_factor(attacker)
+    return 250 * factor // 1000, 200 * factor // 1000
+
+
+def jing_fire_critical(attacker, target, amount, rng):
+    chance, extra_damage = jing_fire_bonuses(attacker)
+    if roll_fire_critical(target, chance, rng):
+        amount = amount * (1000 + extra_damage) // 1000
+        amount = amount * (10000 - target.get('new_neidan_power', {}).get(280, 0)) // 10000
+    return amount
+
+
 def elemental(runtime, attacker, targets, skill, family, *, multiplier=1, damage_per_mille=1000, active=True):
     for element in family.split('_'):
         for target in targets:
@@ -294,18 +331,13 @@ def elemental(runtime, attacker, targets, skill, family, *, multiplier=1, damage
             factor = spirit_factor(attacker)
             if has(attacker, 4732):
                 amount = amount * (100 + runtime.rng.randrange(81)) // 100
-            if element == 'water' and (has(attacker,4720) or has(attacker,4629)):
-                if has(attacker,4720):
-                    water_bonus=(target['hpmax']*75//1000)*factor//1000
-                    amount+=min(20000,water_bonus)
-                else:
-                    points=min(1100,600+attacker.get('mag',0)*23//100)
-                    amount+=min(10000,target['hpmax']*points//10000)
+            if element == 'water':
+                amount += water_skill_bonus(attacker, target)
             if element=='fire' and has(attacker,4627) and not has(attacker,4721):
-                if runtime.rng.randrange(10000)<min(5000,400+attacker.get('mag',0)*23//10):
-                    amount=amount*3*(10000-target.get('new_neidan_power',{}).get(280,0))//20000
-            if has(attacker, 4721) and element == 'fire' and runtime.rng.randrange(1000) < 250 * factor // 1000:
-                amount = amount * (1000 + 200 * factor // 1000) // 1000
+                if roll_fire_critical(target,min(5000,400+attacker.get('mag',0)*23//10),runtime.rng,10000):
+                    amount=ordinary_fire_critical_damage(target, amount)
+            if has(attacker, 4721) and element == 'fire':
+                amount = jing_fire_critical(attacker, target, amount, runtime.rng)
             if has(attacker, 4722) and element in ('water', 'fire', 'wind', 'thunder'):
                 amount += 1500 * factor // 1000
             if has(attacker, 4723) and element == 'wind':
@@ -326,6 +358,7 @@ def elemental(runtime, attacker, targets, skill, family, *, multiplier=1, damage
 def cast_cansheng_yijiu(runtime, attacker, targets, rule):
     attacker['mp'] -= rule['mana']
     attacker['role_cooldowns'][f'skill:{CANSHENG_YIJIU}'] = runtime.round + rule['cooldown_rounds'] + 1
+    runtime.bars(attacker)
     runtime.group(attacker, targets, CANSHENG_YIJIU)
     for index, enemy in enumerate(targets):
         runtime.shock(attacker, enemy, primary=index == 0)
@@ -364,6 +397,7 @@ def cast(runtime, game, attacker, target_id, skill):
         if primary is None or primary['hp'] > 0:
             raise ValueError('没有需要复活的目标。')
         attacker['mp'] -= rule['mana']
+        runtime.bars(attacker)
         runtime.group(attacker, [primary], skill)
         if runtime.revive(attacker, primary, 150000):
             runtime.buff(primary, 'role_all_reduction', 400, 1, skill)
@@ -374,6 +408,15 @@ def cast(runtime, game, attacker, target_id, skill):
         runtime.end()
         return True
     attacker['mp'] -= rule['mana']
+    mana_transfer = None
+    if rule.get('transfer_mana'):
+        allies = runtime.allies(attacker)
+        recipient = min(allies, key=lambda row: (row['id'] != target_id, row['mp']))
+        amount = min(100, recipient['mpmax'] - recipient['mp'])
+        if amount > 0:
+            attacker['mp'] = max(0, attacker['mp'] - amount)
+            mana_transfer = (recipient, amount)
+    runtime.bars(attacker)
     runtime.group(attacker, targets, skill)
     if has(attacker, 4969):
         count = min(10, attacker.get('role_stacks', {}).get('4969', 0) + 1)
@@ -432,13 +475,8 @@ def cast(runtime, game, attacker, target_id, skill):
         elemental(runtime, attacker, [targets[0]], skill, family)
     if rule.get('heal'):
         runtime.heal(attacker, attacker, attacker['hpmax'] // 4)
-    if rule.get('transfer_mana'):
-        ally = next((row for row in runtime.allies(attacker) if row['id'] == target_id and row['hp'] > 0), None)
-        if ally is None:ally = min(runtime.allies(attacker), key=lambda row: row['mp'])
-        actual = min(100, ally['mpmax'] - ally['mp'])
-        if actual > 0:
-            attacker['mp'] = max(0, attacker['mp'] - actual)
-            runtime.mana(ally, actual)
+    if mana_transfer is not None:
+        runtime.mana(*mana_transfer)
     if rule.get('team_buff'):
         allies = runtime.allies(attacker)[:rule['targets']]
         kind = rule['team_buff']
@@ -476,14 +514,14 @@ def cast(runtime, game, attacker, target_id, skill):
     if rule.get('control'):
         for enemy in targets:
             runtime.control(attacker, enemy, rule['control'], base=600)
-    if rule.get('slow'):
+    if rule.get('slow_rounds'):
         for enemy in targets:
             amount=200
             if skill==4043:
                 percent,pvp_cap=cold_values(attacker)
                 amount=enemy.get('initiative',0)*percent//10000
                 if runtime.pvp(attacker,enemy):amount=min(amount,attacker.get('role_initial_speed',0)*pvp_cap//10000)
-            runtime.buff(enemy, 'initiative', -max(0,amount), 3, skill)
+            runtime.buff(enemy, 'initiative', -max(0,amount), rule['slow_rounds'], skill)
     if rule.get('inner_wound'):
         for enemy in targets:
             chance=1000 if enemy.get('role_sword_rain_round')==runtime.round else 3000
@@ -584,6 +622,31 @@ def after_damage(runtime, attacker, defender, actual, family):
     if has(attacker, 4748) and family == 'physical' and attacker.get('_normal_attack'):
         if defender['hp'] <= 0 or runtime.rng.randrange(1000) < 400:
             runtime.grant_invisibility(attacker, 4748, runtime.round + 1)
+
+
+def xinyi_follow_up(runtime, guardian, primary_id):
+    if guardian['kind'] != 'pet' or not has(guardian, XINYI_FOLLOW_UP) or guardian['hp'] <= 0:
+        return
+    if any(guardian['controls'].get(key, 0) >= runtime.round
+           for key in ('disorder', 'seal', 'faint', 'wenxin', 'soul_seal', 'jin_gu', 'entangle')):
+        return
+
+    victims = sorted(runtime.enemies(guardian), key=lambda target: (target['id'] != primary_id, target['id']))[:XINYI_TARGETS]
+    if not victims:
+        return
+    damage = max(0, guardian['role_initial_speed']) * XINYI_SPEED_PERCENT // 100
+    runtime.group(guardian, victims, XINYI_FOLLOW_UP)
+    for index, victim in enumerate(victims):
+        repeated_pvp_hit = runtime.pvp(guardian, victim) and victim.get('role_xinyi_hit_round') == runtime.round
+        amount = damage // 2 if repeated_pvp_hit else damage
+        if runtime.damage(guardian, victim, amount, 'physical', primary=index == 0) > 0:
+            victim['role_xinyi_hit_round'] = runtime.round
+    runtime.end()
+
+    owner = runtime.fighters.get(guardian.get('owner'))
+    if owner and owner['kind'] == 'hero' and owner['camp'] == guardian['camp'] and not owner.get('removed'):
+        runtime.restore_wrath(owner, XINYI_WRATH)
+        runtime.bars(owner)
 
 
 def prepare(runtime, fighter):

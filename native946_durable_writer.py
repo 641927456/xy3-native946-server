@@ -8,18 +8,29 @@ import sqlite3
 from native946_runtime import METRICS
 from native946_connections import database_key
 
-_WRITERS={}
-_REGISTRY=Lock()
+if '_WRITERS' not in globals():
+    _WRITERS = {}
+    _REGISTRY = Lock()
 
 
 class BatchView:
     """Application SQL cannot end or split the coordinator's transaction."""
     def __init__(self,connection):self.connection=connection
-    def execute(self,sql,*args):
+
+    @staticmethod
+    def _check_sql(sql):
         first=sql.lstrip().split(None,1)[0].upper()
         if first in ('BEGIN','COMMIT','END','ROLLBACK','SAVEPOINT','RELEASE','VACUUM'):
             raise RuntimeError('Transaction control is owned by the durable writer')
+
+    def execute(self,sql,*args):
+        self._check_sql(sql)
         return self.connection.execute(sql,*args)
+
+    def executemany(self, sql, parameters):
+        self._check_sql(sql)
+        return self.connection.executemany(sql, parameters)
+
     def executescript(self,*args):raise RuntimeError('Schema scripts cannot run inside a gameplay batch')
 
 
@@ -29,6 +40,8 @@ class Slot:
 
 
 class DurableWriter:
+    flush_idle = True
+
     def __init__(self,database,delay=.002,limit=16):
         self.database=database;self.delay=delay;self.limit=limit
         self.condition=Condition();self.waiters=deque();self.pending=[]
@@ -42,7 +55,10 @@ class DurableWriter:
         self.thread=Thread(target=self._loop,name='native-durable-writer',daemon=True);self.thread.start()
 
     def _due(self):
-        return bool(self.pending and (self.stopping or len(self.pending)>=self.limit or monotonic()-self.ready_at>=self.delay))
+        # With no queued writers there is nothing to batch. On Windows a
+        # timed condition wait can consume a full scheduler tick even at 2 ms.
+        return bool(self.pending and (self.stopping or (self.flush_idle and not self.waiters)
+                    or len(self.pending)>=self.limit or monotonic()-self.ready_at>=self.delay))
 
     def _discard(self,error,slot=None):
         """An implicit SQLite rollback must never be acknowledged as a commit."""
@@ -150,6 +166,15 @@ def register(database):
 
 def find(database):
     with _REGISTRY:return _WRITERS.get(key(database))
+
+def refresh_registered_writers():
+    """Update methods on the existing writer without replacing its worker or connection."""
+    with _REGISTRY:
+        for writer in _WRITERS.values():
+            with writer.condition:
+                writer.__class__ = DurableWriter
+                writer.view = BatchView(writer.view.connection)
+                writer.condition.notify_all()
 
 def close(database):
     with _REGISTRY:writer=_WRITERS.pop(key(database),None)

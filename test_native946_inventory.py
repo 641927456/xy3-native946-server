@@ -76,8 +76,27 @@ class InventoryTests(unittest.TestCase):
     def test_native_swaps_leave_both_grid_entries_and_tooltips_available(self):
         g=self.game();grid=NativeGrid();grid.apply(g.progression.item_packets())
         for a,b in [(1,2),(2,4),(4,1),(1,24),(24,3)]:
-            result=self.send(g,795,8,a,8,b);grid.apply(result);self.assert_grid(grid,g.progression)
+            moved=sum((8,slot) in grid.grids for slot in (a,b))
+            result=self.send(g,795,8,a,8,b)
+            self.assertEqual([int.from_bytes(p[1:3],'little') for p in result], [780]*moved+[786]*moved)
+            grid.apply(result);self.assert_grid(grid,g.progression)
             for iid in grid.items:self.assertEqual(int.from_bytes(g.progression.item_description(iid)[1:3],'little'),791)
+
+    def test_wardrobe_open_and_bag_page_only_send_their_own_items(self):
+        g=self.game();p=g.progression
+        with p.transaction() as db:
+            cosmetic=db.execute('INSERT INTO inventory(character_id,type,page,slot,amount) VALUES(?,4001,25,1,1)',
+                                (p.cid,)).lastrowid
+        grid=NativeGrid();grid.apply(p.item_packets())
+        for reply in (self.send(g,3672,1,0),self.send(g,837)):
+            items=NativeGrid();items.apply(reply)
+            self.assertEqual(set(items.items),{cosmetic})
+            self.assertIn(824,[int.from_bytes(pkt[1:3],'little') for pkt in reply])
+            grid.apply(reply);self.assert_grid(grid,p)
+        reply=self.send(g,801,8)
+        items=NativeGrid();items.apply(reply)
+        self.assertEqual(set(items.items),{iid for (page,_),iid in grid.grids.items() if page==8})
+        grid.apply(reply);self.assert_grid(grid,p)
     def test_native_equipment_swap_and_unwear_keep_every_grid_entry(self):
         g=self.game();grid=NativeGrid();grid.apply(g.progression.item_packets())
         for args in [(8,4,1,3),(1,3,8,4),(8,3,1,1),(1,1,8,3)]:
@@ -128,6 +147,32 @@ class InventoryTests(unittest.TestCase):
         self.assertIn(1620,[int.from_bytes(p[1:3],'little') for p in reply])
         item=next(i for i in g.progression.snapshot()['items'] if i['id']==iid)
         self.assertEqual((item['page'],item['slot']),(1,4));self.assertEqual(g.progression.snapshot()['attack'],before+10)
+
+    def test_native_star_title_equipment_changes_stats_after_wear_and_reload(self):
+        from native946_star_rewards import grant, profile
+
+        owner = self.character['owner']
+        character = self.characters.create(owner,'星冠测试',301)
+        game = NativeGameplay(character,self.characters,lambda:())
+        progression = game.progression
+        with progression.transaction() as db:
+            db.execute('UPDATE characters SET level=90 WHERE id=?',(progression.cid,))
+            grant(db,progression,'7',profile('7',character['race']))
+        before = progression.snapshot()
+        iid = next(row['id'] for row in before['items'] if row['type']==13261)
+        reply = self.send(game,807,0,iid)
+        self.assertIn(1620,[int.from_bytes(p[1:3],'little') for p in reply])
+        after = Progression(self.path,owner,progression.cid).snapshot()
+        item = next(row for row in after['items'] if row['id']==iid)
+        self.assertEqual((item['page'],item['slot']),(after['equipment_page'],1))
+
+        def attributes(snapshot):
+            battle_stats = snapshot['cultivation']
+            return (snapshot['mag'], *(battle_stats.get(key,0) for key in ('AttValue','AddFire','AddWind')))
+
+        self.assertEqual(tuple(worn-base for worn,base in zip(attributes(after),attributes(before))), (18,80,90,75))
+        self.send(game,807,0,iid)
+        self.assertEqual(attributes(progression.snapshot()),attributes(before))
 
     def test_equipment_evaluation_uses_the_same_score_in_tooltips_and_active_total(self):
         from time import time

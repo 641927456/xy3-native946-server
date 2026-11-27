@@ -221,6 +221,5 @@ def hall_reply(game):
             record=RECORDS.get(row['dungeon_id'])
             if record and row['state']=='completed':
                 owned.setdefault(record['Name'],dict(Status=2,DungeonName=record['Name'],ResetTime=row['reset_at']))
-    progress=packet(1970,[('array','dungeon_task')],[list(owned.values())])
-    if game.battle:return progress,text_notice('请结束当前战斗后查看副本入口。')
-    return progress,game.defer_packets(lambda:Dungeons(game).listing())
+    # The native hall builds the catalogue locally. This reply only refreshes progress.
+    return packet(1970,[('array','dungeon_task')],[list(owned.values())])

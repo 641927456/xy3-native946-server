@@ -25,14 +25,21 @@ POWER_FAMILIES = {'fire', 'water', 'thunder', 'wind', 'gushu', 'poison', 'wuli',
                   'physical', 'heal', 'attack_buff', 'guard_buff', 'speed_buff',
                   'shock', 'seal', 'disorder', 'faint', 'wenxin', 'jin_gu', 'entangle'}
 AFFIXES = {'mana': ('节省法力（千分比）', 10, 60), 'power': ('秘法效果（千分比）', 10, 100)}
+# Native info_hero_school_skill classifies these alongside the modern spells.
+SCHOOL_FENG_SKILLS = frozenset({1710, 6105, 6112, 6124, 6133})
+EXTRA_FENG_STAGE = 2
+SECOND_PASSIVE_STAGE = 5
+PASSIVE_START = {1:6051, 2:6056, 3:6061}
+PASSIVE_IDS = frozenset(range(6051,6066))
 
 
 def school_skills(school):
     from native946_role_battle import profile
     from native946_school import EXTRA_SKILLS, base_school
 
-    return tuple(skill for skill in EXTRA_SKILLS.get(base_school(school), ())
-                 if profile(skill)['source'] == 'modern')
+    available = EXTRA_SKILLS.get(base_school(school), ())
+    modern = tuple(skill for skill in available if profile(skill)['source'] == 'modern')
+    return modern + tuple(skill for skill in available if skill in SCHOOL_FENG_SKILLS)
 
 
 def saved(db, cid):
@@ -63,20 +70,47 @@ def learn_primary(db, cid, school):
         save(db, cid, 'skill6', data)
 
 
-def skill_row(skill, row):
-    from native946_role_battle import description, profile
+def skill_row(skill, row, character=None):
+    from native946_role_battle import cost_description, description, profile
 
+    actor = character or {}
     return dict(skill_id=skill, skill_exp=row['exp'], skill_level=row['level'],
-                desc=description(skill), cost=f'法力：{profile(skill)["mana"]}')
+                desc=description(skill, actor), cost=cost_description(actor, profile(skill)))
+
+
+def passive_rows(character, active):
+    from native946_role_battle import DATA
+
+    first=PASSIVE_START.get(character.get('race'))
+    if first is None or not character.get('sanctification'):
+        return []
+    highest=max((active[str(skill)]['level'] for skill in school_skills(character.get('school',0))
+                 if str(skill) in active),default=0)
+    catalog=DATA['passive_skill_catalog']
+    rows=[]
+    for offset in range(5):
+        sid=first+offset
+        unlocked=highest>=3+offset
+        detail='已达到研修等级。激活及洗髓待接通。' if unlocked else '最高主动圣心研修等级：'+str(highest)
+        desc=catalog[str(sid)]['desc']+'#n'
+        if sid==6057:
+            desc+='#r单次扣血上限#R50000#n点。'
+        rows.append(dict(skill_id=sid, skill_status=int(unlocked), cost='', desc=desc+'#r'+detail))
+    return rows
 
 
 def list_packet(db, cid, character):
     data = saved(db, cid)
     skills = school_skills(character['school']) if character['sanctification'] else ()
-    active = [skill_row(skill, data['skills'][str(skill)]) for skill in skills if str(skill) in data['skills']]
+    active = [skill_row(skill, data['skills'][str(skill)], character)
+              for skill in skills if str(skill) in data['skills']]
     more = [skill for skill in skills[1:] if str(skill) not in data['skills']]
+    stage=character.get('jing_stage',0)
+    extra_unlocked = bool(skills) and stage >= EXTRA_FENG_STAGE
+    passives=passive_rows(character,data['skills'])
     return packet(686, [('array', 'feng_skill_info'), ('array', 'passive_skill_info'),
-                        'number', 'number', ('array', 'number')], [active, [], 0, 0, more])
+                        'number', 'number', ('array', 'number')],
+                  [active, passives, int(extra_unlocked), int(bool(passives) and stage>=SECOND_PASSIVE_STAGE), more])
 
 
 def training_detail(skill, row):
@@ -110,12 +144,12 @@ def receive(game, mid, reader):
         character = p._snapshot(db)
         if not character['sanctification']:
             raise ValueError('人物封圣后方可修习圣心秘法。')
+        if mid == 1882 or (mid in (1880,1881,1877) and args[0] in PASSIVE_IDS):
+            raise ValueError('灵络秘法激活与洗髓暂未开放。')
         school = character['school']
         options = school_skills(school)
         if not options:
             raise ValueError('请加入传授圣心秘法的门派。')
-        if mid == 1882:
-            raise ValueError('当前入口用于主动圣心秘法研修和洗髓。')
         if mid == 1874:
             learn_primary(db, p.cid, school)
             refresh = True
@@ -135,8 +169,8 @@ def receive(game, mid, reader):
             if skill not in options:
                 raise ValueError('该秘法不属于当前门派。')
             if mid == 2817:
-                if skill == options[0] or key in active or character.get('jing_stage', 0) < 1:
-                    raise ValueError('通过化境后方可领悟更多未习得的圣心秘法。')
+                if skill == options[0] or key in active or character.get('jing_stage', 0) < EXTRA_FENG_STAGE:
+                    raise ValueError('化境达到贰境界方可领悟更多未习得的圣心秘法。')
                 active[key] = dict(level=1, exp=0, wash={})
                 db.execute('INSERT OR IGNORE INTO learned_skills VALUES(?,?,1)', (p.cid, skill))
             else:
@@ -171,7 +205,7 @@ def receive(game, mid, reader):
                     row['exp'] -= count * MANUAL_EXP
                 elif mid == 1881:
                     show = packet(1871, ['feng_skill_info', ('array', 'number'), 'string'],
-                                  [skill_row(skill, row), [MANUAL], '放入易筋心法进行洗髓，可保留本次结果或重新洗髓。'])
+                                  [skill_row(skill, row, character), [MANUAL], '放入易筋心法进行洗髓，可保留本次结果或重新洗髓。'])
                     if key in data['pending']:
                         show = (show, wash_preview(skill, row, data['pending'][key]))
                 elif mid == 1880:

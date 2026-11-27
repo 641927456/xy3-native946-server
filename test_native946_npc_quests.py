@@ -78,6 +78,32 @@ class NpcQuestTests(unittest.TestCase):
         self.assertEqual(self.count('native_npc_quests'),1)
         with self.a.progression.transaction(write=False) as db:self.assertEqual(db.execute('SELECT accepted FROM native_npc_activity_progress').fetchone()[0],1)
 
+    def test_five_player_ghost_task_awards_the_captain_once(self):
+        from time import time
+        from local_accounts import LocalAccounts
+        from native946_double_time import CAPTAIN_POINTS_PER_TASK, load
+        from native946_gameplay import NativeGameplay
+
+        self.team()
+        accounts = LocalAccounts(self.path)
+        for i in range(2, 5):
+            owner = f'captain_fixture{i}'
+            accounts.register(dict(username=owner,password='fixture-password'))
+            role = self.characters.create(owner, '统帅样本'+str(i), 702)
+            peer = NativeGameplay(role, self.characters, lambda: ())
+            peer.source_port = 30000 + i
+            self.games.append(peer)
+            self.call(self.a, 2039, role['id'])
+            self.call(peer, 2038, self.a.character['id'])
+        self.assertEqual(len(self.svc.team(self.a.character['id'])['members']), 5)
+        row = self.accept()
+        battle = self.start(row, True)
+        self.fight(battle)
+        with self.a.progression.transaction() as db:
+            battle.settle(db, True)
+            points = [load(db, g.progression.cid, int(time()))['points'] for g in self.games]
+        self.assertEqual(points, [CAPTAIN_POINTS_PER_TASK, 0, 0, 0, 0])
+
     def test_xianqi_reward_cannot_turn_into_a_same_named_consumable(self):
         from native946_equipment import DATA
         self.assertEqual(DATA['reference_items']['200189']['name'],'清心')

@@ -224,17 +224,29 @@ class CosmeticTests(unittest.TestCase):
         patches=json.loads((root/'catalog-patches.json').read_text('utf8'))
         from native946_fashion_shop import DATA as SHOP
         sys.path[:0]=[str(Path(__file__).parent/'analysis/town-portals-20261125'),str(Path(__file__).parent/'analysis/native-npc-completion-20261126')]
-        from client_archive import Archive
+        from native946_battle_ui import archive_rows
+        from native946_client_stage import CONFIG_ARCHIVE, prepare_config
+        from client_archive import resource_hash
         from literal_schema import replay
         from audit_native_rules import plain
-        archive=Archive(Path(__file__).parent/'client-946/resource/configs.wdf')
-        client={str(row['type']):row for name in patches for row in plain(replay(archive.read('info/info_'+name+'.lua')))[0]['info']}
+        blob = prepare_config(CONFIG_ARCHIVE.read_bytes())
+        locations = {key: (offset, size) for key, offset, size, _ in archive_rows(blob)[2]}
+
+        def catalog(name):
+            offset, size = locations[resource_hash('info/info_' + name + '.lua')]
+            data = blob[offset:offset + size]
+            mask = data[0] ^ 27
+            return replay(bytes(value ^ mask for value in data))[0]
+
+        client={str(row['type']):row for name in patches for row in plain(catalog(name))['info']}
         staged={str(row['type']):row for table in patches.values() for row in table['info']}
-        original=[dict(entry.items()) for _,entry in replay(archive.read('info/info_single_day_2014.lua'))[0].items()]
+        original=[dict(entry.items()) for _,entry in catalog('single_day_2014').items()]
         archived={str(int(row['id'])):row for row in original}
         from native946_cosmetics import SALE_ALIASES, SALE_GOODS
-        self.assertEqual(set(client),set(SALE_GOODS))
-        for kind,row in SALE_GOODS.items():
+        from native946_mall_mounts import DYE_MATERIAL
+        self.assertEqual(set(client) | {str(DYE_MATERIAL)},set(SALE_GOODS))
+        for kind in client:
+            row = SALE_GOODS[kind]
             self.assertEqual(row['yubo'],client[kind]['yubo'])
             if row['price_source']=='native_yubo_single_day_2014':
                 self.assertEqual(row['yubo'],staged[kind]['yubo'])

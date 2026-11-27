@@ -23,6 +23,7 @@ class DurableWriterTests(unittest.TestCase):
         with closing(sqlite3.connect(self.path)) as db,db:
             db.execute('PRAGMA journal_mode=WAL');db.execute('CREATE TABLE saved(id INTEGER PRIMARY KEY,value INTEGER)')
         self.writer=DurableWriter(self.path,delay=.2);self.addCleanup(self.writer.close)
+        self.writer.flush_idle=False
 
     def pending(self,count):
         with self.writer.condition:
@@ -55,9 +56,26 @@ class DurableWriterTests(unittest.TestCase):
         for t in threads:t.join(1);self.assertFalse(t.is_alive())
         self.assertEqual(errors,[]);self.assertEqual(self.reader(),[(1,10),(2,20)])
 
+    def test_idle_writer_commits_without_waiting_for_the_batch_deadline(self):
+        self.writer.flush_idle=True
+        self.writer.delay=10
+        done,errors=Event(),[]
+        thread=Thread(target=self.actor,args=(1,done,errors))
+        thread.start()
+        try:
+            self.assertTrue(done.wait(1))
+            self.assertEqual(errors,[])
+            self.assertEqual(self.reader(),[(1,10)])
+        finally:
+            self.flush()
+            thread.join(1)
+
     def test_aborted_action_rolls_back_only_its_savepoint(self):
         done=Event();errors=[];thread=Thread(target=self.actor,args=(1,done,errors));thread.start();self.pending(1)
-        slot,db=self.writer.begin(monotonic()+1);db.execute('INSERT INTO saved VALUES(2,20)');self.writer.abort(slot)
+        slot,db=self.writer.begin(monotonic()+1)
+        with self.assertRaises(sqlite3.IntegrityError):
+            db.executemany('INSERT INTO saved VALUES(?,?)', ((2,20), (1,99)))
+        self.writer.abort(slot)
         self.flush();thread.join(1)
         self.assertTrue(done.is_set());self.assertEqual(errors,[]);self.assertEqual(self.reader(),[(1,10)])
 
@@ -74,6 +92,7 @@ class DurableWriterTests(unittest.TestCase):
         for control in ('COMMIT','ROLLBACK','BEGIN IMMEDIATE','SAVEPOINT fake'):
             slot,db=self.writer.begin(monotonic()+1)
             with self.assertRaises(RuntimeError):db.execute(control)
+            with self.assertRaises(RuntimeError):db.executemany(control, [()])
             self.writer.abort(slot)
         slot,db=self.writer.begin(monotonic()+1)
         with self.assertRaises(RuntimeError):db.executescript('INSERT INTO saved VALUES(1,10);')

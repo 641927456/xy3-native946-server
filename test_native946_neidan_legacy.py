@@ -37,11 +37,11 @@ class LegacyFormulaTests(unittest.TestCase):
         self.assertEqual(grow(initial,10000)['level'],15)
 
     def test_cap_does_not_recurse_or_drop_remaining_experience(self):
-        row=dict(kind=211,level=101,rebirth=0,experience=0,expnext=threshold(101,0),energy=6000)
-        out=grow(row,10**9)
-        self.assertEqual(out['level'],102)
-        self.assertEqual(out['experience'],10**9-row['expnext'])
-        self.assertEqual(row['level'],101)
+        for stage, cap in enumerate((100, 120, 140)):
+            row=dict(kind=211,level=cap-1,rebirth=stage,experience=0,expnext=threshold(cap-1,stage),energy=6000)
+            out=grow(row,10**9)
+            self.assertEqual((out['level'], out['experience']), (cap, 10**9-row['expnext']))
+            self.assertEqual(row['level'],cap-1)
 
     def test_effect_formula_and_native_tooltip_argument_counts(self):
         pet=dict(level=100,amity=50000,mpmax=1000)
@@ -329,12 +329,46 @@ class LegacyStorageTests(unittest.TestCase):
 
     def test_rebirth_requires_guardian_stage_and_resets_progress(self):
         self.n.use(self.sid,self.item())
-        with self.p.transaction() as db:db.execute('UPDATE legacy_neidan SET level=102 WHERE summon_id=?',(self.sid,))
+        with self.p.transaction() as db:db.execute('UPDATE legacy_neidan SET level=100 WHERE summon_id=?',(self.sid,))
         with self.assertRaises(ValueError):self.n.reborn(self.sid,211)
         with self.p.transaction() as db:db.execute('UPDATE summons SET rebirth=1 WHERE id=?',(self.sid,))
         self.n.reborn(self.sid,211)
         row=self.s.get(self.sid)['neidan'][0]
         self.assertEqual((row['rebirth'],row['level'],row['experience'],row['expnext']),(1,0,0,45))
+
+    def test_reopen_reconciles_equipped_and_bag_pills_once_and_refreshes_client(self):
+        from native946_game_login import message_id
+        from native946_neidan import installed, threshold as new_threshold, NewNeidan
+
+        self.n.use(self.sid, self.item())
+        bag_id = self.item(231)
+        with self.p.transaction() as db:
+            db.execute('UPDATE legacy_neidan SET level=102,experience=181784602,expnext=787453 WHERE summon_id=?',
+                       (self.sid,))
+            db.execute('UPDATE legacy_neidan_items SET rebirth=1,level=121,experience=90 WHERE item_id=?', (bag_id,))
+            db.execute('INSERT INTO native_new_neidan(summon_id,kind,stage,level,experience,advance) '
+                       'VALUES(?,236,2,142,123,3)', (self.sid,))
+        expected_old = 181784602 + threshold(100, 0) + threshold(101, 0)
+        expected_new = 123 + new_threshold(140, 2) + new_threshold(141, 2)
+        self.game.progression = Progression(self.path, self.p.owner, self.p.cid)
+        self.game.summons.progression = self.game.progression
+        updates = self.game.sync_corrected_neidan_levels()
+        self.assertEqual(len(updates), 1)
+        self.assertTrue(updates[0].startswith(message_id(716)))
+        self.assertEqual(updates[0], self.game.summons.neidan_packet(self.sid))
+        self.assertEqual(self.game.sync_corrected_neidan_levels(), ())
+
+        reopened = Progression(self.path, self.p.owner, self.p.cid)
+        self.assertEqual(reopened.neidan_level_updates, ())
+        with reopened.transaction() as db:
+            NewNeidan(self.game.summons).settle(db, self.sid, True, 25)
+            new = installed(db, self.sid)[0]
+            self.assertEqual((new['level'], new['experience'], new['advance']), (140, expected_new, 3))
+            legacy = db.execute('SELECT level,experience,expnext FROM legacy_neidan WHERE summon_id=?',
+                                (self.sid,)).fetchone()
+            bag = db.execute('SELECT level,experience,expnext FROM legacy_neidan_items WHERE item_id=?', (bag_id,)).fetchone()
+        self.assertEqual(tuple(legacy), (100, expected_old, threshold(100, 0)))
+        self.assertEqual(tuple(bag), (120, 90 + threshold(120, 1), threshold(120, 1)))
 
     def test_native_followup_uses_matching_cast_and_not_certain_trigger(self):
         self.n.use(self.sid,self.item());self.n.use(self.sid,self.xp_item())

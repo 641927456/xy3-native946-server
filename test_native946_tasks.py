@@ -49,6 +49,19 @@ class StoryCatalogTests(unittest.TestCase):
         self.assertIn('重见天日', eligibility(row, s)[1])
         self.assertTrue(eligibility(row, s, {'重见天日'})[0])
 
+    def test_five_aggregates_requires_sanctification_185_and_verified_boss_credit(self):
+        story=STORIES[123823]
+        role=dict(role=702,level=185,rebirth=2,ascension=1,sanctification=0)
+        self.assertIn('未达到原版领取等级',eligibility(story,role)[1])
+        role.update(level=184,sanctification=1)
+        self.assertIn('未达到原版领取等级',eligibility(story,role)[1])
+        eligible,reason=eligibility(story,dict(role,level=185))
+        self.assertFalse(eligible)
+        self.assertIn('已记录击败 0/9',reason)
+        self.assertIn('黄风大王',reason)
+        self.assertTrue(eligibility(story,dict(role,level=185),
+                                    demon_wins=set(range(20001,20010)))[0])
+
 
 class TaskJournalTests(unittest.TestCase):
     def setUp(self):
@@ -149,25 +162,92 @@ class TaskJournalTests(unittest.TestCase):
         self.assertIn('领取条件', text)
         self.assertEqual(self.send(4344), packet(4339, [('array', 'number'), ('array', 'string'), ('array', 'number')], [[], [], []]))
         self.assertTrue(self.send(1986, 192500).startswith(message_id(1971)))
+        reader = MessageReader(self.send(1986,123823)[3:])
+        self.assertEqual(reader.integer(),123823)
+        text=reader.string().decode('gb18030')
+        self.assertIn('地藏王',text)
+        self.assertIn('可查看降魔挑战首领指引',text)
+        self.assertIn('领取前需击败以下九个降魔首领',text)
+        self.assertIn('幽冥之幻、黄风大王',text)
+        self.assertNotIn('前置剧情：无',text)
+        reader.finish()
+
+        from native946_gameplay import TRAINER_ID
+        from native946_tasks import TaskJournal
+
+        TaskJournal(self.g).execute(TRAINER_ID,dict(op='detail',task=123823))
+        index=next(i for i,a in enumerate(self.g.dialog_actions,1) if a['op']=='demon_guide')
+        reply=self.login.receive(packet(1032,['byte','number'],[index,TRAINER_ID]))
+        reader=MessageReader(reply[3:])
+        self.assertEqual(reader.take(1),b'\x01')
+        guide=reader.string().decode('gb18030')
+        self.assertIn('真假禺狨王',guide)
+        self.assertIn('萧晚音：大唐东（458,24）',guide)
+
+    def test_boss_record_and_five_aggregates_use_the_same_owned_victories(self):
+        other = self.characters.create('story_owner', '另一角色胜场', 701)
+        with self.p.transaction() as db:
+            db.execute('UPDATE characters SET level=185 WHERE id=?', (self.p.cid,))
+            db.execute('UPDATE cultivation_state SET rebirth=2,ascension=1,sanctification=1 WHERE character_id=?',
+                       (self.p.cid,))
+        settlements = (
+            (self.p.cid, 'demon:20001:one', True),
+            (self.p.cid, 'demon:20001:repeat', True),
+            (self.p.cid, 'demon:20002:one', False),
+            (self.p.cid, 'demon:20010:one', True),
+            (self.p.cid, 'demon:20002:', True),
+            (self.p.cid, 'wild:20002:one', True),
+            (other['id'], 'demon:20009:other', True),
+        )
+        for cid, key, victory in settlements:
+            self.characters.settle_battle(self.p.owner, cid, key, victory, experience=0, gold=0, advance_quest=False)
+        self.assertEqual(self.send(2412),packet(2410,[('array','number')],[[20001]]))
+        reply = self.send(1492,123823)
+        self.assertTrue(reply.startswith(message_id(98)))
+        self.assertIn('1/9'.encode('gb18030'), reply)
+        self.assertIn('黄风大王'.encode('gb18030'), reply)
+        self.assertNotIn('金角大王之怨'.encode('gb18030'), reply)
+
+        for aid in range(20002,20010):
+            self.characters.settle_battle(self.p.owner,self.p.cid,f'demon:{aid}:victory',True,
+                                          experience=0,gold=0,advance_quest=False)
+        self.assertEqual(self.send(2412), packet(2410,[('array','number')],[list(range(20001,20010))]))
+        self.assertTrue(self.send(1492,123823).startswith(message_id(2966)))
+
+        target = STORIES[123823]['locations'][0]
+        c = self.g.character; sid, x, y = (target[k] for k in ('scene','x','y'))
+        rev = self.characters.change_scene(c['owner'], c['id'], c['map_id'], sid, x, y, c.get('position_revision',0))
+        c.update(map_id=sid,x=x,y=y,position_revision=rev)
+        self.g.grid = load_map(sid)
+        before = self.p.snapshot()
+        talk = self.send(1034,target['npc'])
+        self.assertTrue(talk.startswith(message_id(1025)))
+        index = next(i for i,a in enumerate(self.g.dialog_actions,1)
+                     if isinstance(a,dict) and a.get('op')=='five_aggregates_check')
+        checked = self.login.receive(packet(1032,['byte','number'],[index,target['npc']]))
+        self.assertIn('已满足已知领取条件'.encode('gb18030'),checked)
+        self.assertIn('暂不能领取'.encode('gb18030'),checked)
+        for mid in (1492,1493):
+            self.assertIn('暂不能领取'.encode('gb18030'),self.send(mid,123823))
+        self.assertEqual(self.p.snapshot(),before)
 
     def test_native_query_event_returns_only_server_owned_story_state(self):
         reply = self.login.receive(packet(1495, ['number', 'string'], [2, 'forged completion']))
         self.assertEqual(reply, packet(1326, ['number', 'string'], [2, '{{},{},{}}']))
         self.assertEqual(self.p.snapshot()['quest']['state'], 'available')
 
-    def test_catalog_is_appended_to_original_npc_business_and_distance_is_rechecked(self):
+    def test_inactive_story_npc_has_no_catalog_or_progress_option(self):
         target = STORIES[151401]['locations'][0]
         c = self.g.character; sid = target['scene']; grid = load_map(sid)
         x, y = grid.nearest_walkable(target['x'], target['y'])
         rev = self.characters.change_scene(c['owner'], c['id'], c['map_id'], sid, x, y, c.get('position_revision', 0))
         c.update(map_id=sid, x=x, y=y, position_revision=rev); self.g.grid = grid
         reply = self.g.world_npc_look(target['npc'])
-        self.assertTrue(reply.startswith(message_id(1025)))
-        choice = next(i for i,a in enumerate(self.g.dialog_actions,1) if a.get('kind')=='story')
-        self.assertTrue(any(a.get('kind')=='campaign' for a in self.g.dialog_actions))
-        c['x'] = 0; c['y'] = 0
-        rejected = self.login.receive(packet(1032, ['byte', 'number'], [choice, target['npc']]))
-        self.assertTrue(rejected.startswith(message_id(98)))
+        if isinstance(reply, bytes):
+            self.assertNotIn('原版剧情资料与领取条件'.encode('gb18030'), reply)
+            self.assertNotIn('新手与主线剧情进度'.encode('gb18030'), reply)
+        self.assertFalse(any(isinstance(a, dict) and a.get('kind') in ('story', 'campaign')
+                             for a in self.g.dialog_actions))
 
     def test_every_original_story_is_reachable_from_paginated_catalog(self):
         found=set();journal=TaskJournal(self.g)

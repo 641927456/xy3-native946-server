@@ -1,12 +1,13 @@
 """Playable cultivation routes assembled from 946 catalog, NPC and item records."""
 
-from native946_cultivation import ADVANCEMENTS, LAO_JUN, MENG_PO, YU_RONG_WANG
+from native946_cultivation import ADVANCEMENTS, FLIGHT_BREAKTHROUGH, LAO_JUN, MENG_PO, WEST_LIANG_RULER, YU_RONG_WANG
 
 
 TRIAL_RULES = {
     '912101': ('first',),
     '912201': ('second',),
     '111321': ('ascend', 'ascend_after_third'),
+    FLIGHT_BREAKTHROUGH: ('breakthrough',),
     '222400': ('sanctify',),
 }
 MEDICINES = {
@@ -116,5 +117,16 @@ def chapters(stories):
              fight((2256, 6027), '无名老者的考验', '战胜无名老者，取得参加封圣大典的资格。'),
              step(YU_RONG_WANG, '封圣大典', '返回禺狨王处确认封圣。')]
 
+    # User-authorized local substitute for the 946 catalog's missing stage script.
+    breakthrough = [
+        step(WEST_LIANG_RULER, '领取本机试炼', '向西梁国主了解凝气化神的本机替代试炼。'),
+        fight(WEST_LIANG_RULER, '凝气化神试炼', '通过本机单场试炼。', ('试炼化身', 2050)),
+        step(WEST_LIANG_RULER, '确认突破', '向西梁国主确认，开放飞升180级上限。'),
+    ]
+    for node in breakthrough:
+        node['reward'] = dict(experience=0, gold=0)
+    local_trial = quest(FLIGHT_BREAKTHROUGH, 5, breakthrough)
+    local_trial['metadata'] = dict(local_trial['metadata'],
+                                   desc_str='凝气化神（本机替代试炼）。通过一次战斗后向西梁国主确认，开启飞升180级上限。')
     return {row['id']: row for row in (quest('912101', 1, first), quest('912201', 2, second),
-                                       quest('111321', 3, fly), quest('222400', 4, holy))}
+                                       quest('111321', 3, fly), local_trial, quest('222400', 4, holy))}

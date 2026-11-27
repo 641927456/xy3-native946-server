@@ -96,10 +96,21 @@ class DungeonDispatchTests(unittest.TestCase):
         c.update(map_id=target['scene'],x=target['x'],y=target['y'],position_revision=rev)
         self.g.grid=load_map(c['map_id']);self.g.npc_position=None
 
-    def test_native_hall_and_all_pages_preserve_owned_progress_and_no_reset_timestamp(self):
-        before=self.p.snapshot();reply=packets(self.send(1988))
-        self.assertEqual(reply[0],packet(1970,[('array','dungeon_task')],[[]]))
-        self.assertIn('副本与秘境',text(reply))
+    def test_native_hall_refresh_only_sends_progress_and_preserves_existing_dialogue(self):
+        before=self.p.snapshot()
+        progress=packet(1970,[('array','dungeon_task')],[[]])
+        self.assertEqual(packets(self.send(1988)),[progress])
+        self.assertFalse(self.g.dialog_open)
+        Activities(self.g).root()
+        dialogue=(self.g.dialog_open,self.g.dialog_npc,deepcopy(self.g.dialog_actions))
+        self.assertEqual(packets(self.send(1988)),[progress])
+        self.assertEqual((self.g.dialog_open,self.g.dialog_npc,self.g.dialog_actions),dialogue)
+        self.assertEqual(self.p.snapshot(),before)
+
+    def test_explicit_activity_menu_can_still_browse_all_dungeons(self):
+        before=self.p.snapshot()
+        Activities(self.g).root()
+        self.assertIn('副本与秘境',text(self.choose('dungeon_list')))
         seen=set();page=0
         while True:
             seen.update(a['dungeon'] for a in self.g.dialog_actions if a['op']=='dungeon_detail')
@@ -108,21 +119,25 @@ class DungeonDispatchTests(unittest.TestCase):
         self.assertEqual(seen,set(RECORDS))
         self.assertEqual(self.p.snapshot(),before)
 
-    def test_sword_dungeon_static_npc_reaches_detail_and_owned_navigation(self):
+    def test_sword_npc_is_unavailable_and_explicit_catalog_keeps_navigation(self):
         target=ENTRANCES[19][0];self.teleport(target);before=self.p.snapshot()
         opened=self.send(1034,target['npc'])
-        self.assertTrue(any(a.get('op')=='dungeon_list' for a in self.g.dialog_actions),text(opened))
-        self.choose('dungeon_list');reply=self.choose('dungeon_detail',dungeon=19)
+        self.assertEqual([mid(p) for p in packets(opened)],[1183,100])
+        self.assertFalse(self.g.dialog_open)
+        reply=Dungeons(self.g).detail(19,CALLBACK)
         self.assertIn('封圣165级',text(reply));self.assertNotIn('十二生肖',text(reply))
         reply=packets(self.choose('dungeon_navigate'))
         expected=packet(2966,['number']*4+['string'],[87,48,2223,8013,'问剑使者'])
         self.assertIn(expected,reply);self.assertFalse(self.g.dialog_open)
         self.assertEqual(self.p.snapshot(),before)
 
-    def test_shared_entrance_lists_its_three_dungeons_without_losing_other_npc_choices(self):
+    def test_shared_unavailable_entrance_displays_one_native_notice(self):
         target=ENTRANCES[1][0];self.teleport(target)
-        self.send(1034,target['npc']);self.choose('dungeon_list')
-        self.assertEqual({a['dungeon'] for a in self.g.dialog_actions if a['op']=='dungeon_detail'},{1,6,8})
+        closed=packets(self.send(1034,target['npc']))
+        self.assertEqual([mid(p) for p in closed],[1183,100])
+        notice=MessageReader(closed[-1][1:]).string().decode('gb18030')
+        self.assertTrue(all(RECORDS[key]['Name'] in notice for key in (1,6,8)))
+        self.assertEqual(self.g.dialog_actions,[])
 
     def test_all_detail_documents_and_reward_pages_do_not_accept_or_pay(self):
         before=self.p.snapshot();dungeons=Dungeons(self.g)
@@ -152,16 +167,12 @@ class DungeonDispatchTests(unittest.TestCase):
         self.assertTrue(any(a['op']=='dungeon_dialogues' for a in self.g.dialog_actions))
         self.assertTrue(any(a['op']=='guide' for a in self.g.dialog_actions))
 
-    def test_wrong_or_distant_npc_callback_cannot_execute_a_saved_dungeon_choice(self):
+    def test_unavailable_dungeon_invalidates_prior_npc_dialogue(self):
         target=ENTRANCES[19][0];self.teleport(target)
+        self.g.dialog_actions=[dict(kind='activity',op='dungeon_list',section='npc',page=0)]
+        self.g.menu('旧对话',['旧入口'],target['npc'])
         self.send(1034,target['npc']);before=self.p.snapshot()
-        index=next(i for i,a in enumerate(self.g.dialog_actions,1) if a['op']=='dungeon_list')
-        self.assertIsNone(self.login.receive(packet(1032,['byte','number'],[index,8014])))
-        self.assertEqual(self.p.snapshot(),before)
-        self.teleport(dict(target,x=target['x']+20))
-        before=self.p.snapshot()
-        rejected=packets(self.login.receive(packet(1032,['byte','number'],[index,target['npc']])))
-        self.assertIn(98,[mid(p) for p in rejected])
+        self.assertIsNone(self.login.receive(packet(1032,['byte','number'],[1,target['npc']])))
         self.assertEqual(self.p.snapshot(),before)
 
     def test_battle_and_malformed_hall_refresh_do_not_replace_state_or_dialogue(self):
@@ -170,7 +181,7 @@ class DungeonDispatchTests(unittest.TestCase):
         self.assertEqual(self.g.dialog_actions,actions)
         self.g.battle=dict(id='fixture-owned',phase='input',round=1)
         battle=deepcopy(self.g.battle);reply=packets(self.send(1988))
-        self.assertNotIn(1025,[mid(p) for p in reply])
+        self.assertEqual(reply,[packet(1970,[('array','dungeon_task')],[[]])])
         self.assertEqual(self.g.battle,battle);self.assertEqual(self.g.dialog_actions,actions)
 
     def test_invalid_ids_and_pages_and_changed_world_target_do_not_mutate_progress(self):
@@ -197,7 +208,8 @@ class LocalDungeonTests(unittest.TestCase):
             return LocalDungeons(self.g).read(db)
 
     def open_local(self, key):
-        self.send(1988)
+        Activities(self.g).root()
+        self.choose('dungeon_list')
         self.choose('local_dungeon_list')
         return self.choose('local_dungeon_detail',key=key)
 
@@ -295,8 +307,24 @@ class NativeEntranceDungeonTests(unittest.TestCase):
         entry=ENTRANCES[key][0]
         x,y=load_map(entry['scene']).nearest_walkable(entry['x'],entry['y'])
         self.teleport(dict(entry,x=x,y=y))
-        self.send(1034,entry['npc'])
+        self.assertEqual([mid(p) for p in packets(self.send(1034,entry['npc']))],[1025])
+        self.assertFalse(any(a.get('kind')=='activity' for a in self.g.dialog_actions if isinstance(a,dict)))
         return self.choose('show',key=key)
+
+    def test_zhuzi_local_entry_coexists_with_campaign_at_same_npc(self):
+        from native946_campaign import CHAPTERS
+
+        target=CHAPTERS['125051']['nodes'][44]['target']
+        x,y=target['arrival']
+        self.teleport(dict(target,x=x,y=y))
+        with self.p.transaction() as db:
+            db.execute("INSERT INTO native_campaign_runs VALUES(?,'125051',44,'active',1,0)",(self.p.cid,))
+        self.p._cached_snapshot=None
+        reply=self.send(1034,target['npc'])
+        self.assertIn('恶紫夺朱',text(reply))
+        self.assertEqual(self.g.dialog_actions[0]['op'],'complete')
+        self.assertIn('本机战斗与奖励规则',text(self.choose('show',key=25)))
+        self.assertEqual(self.p.snapshot()['campaign']['runs']['125051']['node'],44)
 
     def play_wave(self):
         reply=packets(self.choose('fight'))
@@ -321,6 +349,8 @@ class NativeEntranceDungeonTests(unittest.TestCase):
         start=self.p.snapshot()
         self.assertIn('本机战斗与奖励规则',text(self.open_entry(key)))
         self.choose('accept')
+        self.send(1034,ENTRANCES[key][0]['npc'])
+        self.assertTrue(any(action['op']=='travel' for action in self.g.dialog_actions))
         reply=packets(self.choose('travel'))
         self.assertIn(1597,[mid(value) for value in reply])
         for index,(scene,_,_,_) in enumerate(ROUTES[key]['waves']):
@@ -357,7 +387,7 @@ class NativeEntranceDungeonTests(unittest.TestCase):
                                         ('dungeon:'+run['instance_id'],)).fetchone()[0],1)
         progress=packet(1970,[('array','dungeon_task')],[[dict(Status=2,DungeonName=RECORDS[key]['Name'],
                         ResetTime=run['reset_at'])]])
-        self.assertIn(progress,packets(self.send(1988)))
+        self.assertEqual(packets(self.send(1988)),[progress])
         self.send(1034,GUIDE[key])
         self.choose('leave')
         self.assertEqual(self.g.character['map_id'],ENTRANCES[key][0]['scene'])

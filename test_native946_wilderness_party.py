@@ -80,6 +80,36 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertNotIn(5349,[mid(p) for p in replies])
         self.assertIn(2146,[mid(p) for p in replies])
 
+    def test_wrath_initialization_and_hit_updates_reach_each_team_member(self):
+        from native946_role_battle import nums
+
+        battle = self.battle()
+        hero_ids = [game.character['id'] for game in self.games]
+        initial = [nums(3458, cid, 250, 1000) for cid in hero_ids]
+        for game in self.games:
+            self.assertEqual([p for p in battle.entry(game) if mid(p) == 3458], initial)
+            self.svc.drain(game)
+
+        enemy, *others = battle.enemies()
+        enemy.update(slot=1, skills=())
+        for other in others:
+            other['removed'] = True
+        # Use the normal target rotation for a fixture with one live enemy.
+        enemy.pop('enemy_spell_percent', None)
+        hero = battle.state['fighters'][hero_ids[0]]
+        hp_before = hero['hp']
+        with patch('native946_book_combat.roll', return_value={'miss': False, 'damage': 50, 'effect': 0}):
+            self.call(self.a, 2178, 1)
+            member_replies = self.call(self.b, 2178, 1)
+        gained = (hp_before - hero['hp']) * 1000 // hero['hpmax']
+        self.assertGreater(gained, 0)
+        incremented = 250 + gained
+        for replies in (self.svc.drain(self.a), member_replies + self.svc.drain(self.b)):
+            self.assertIn(nums(2158, hero_ids[0], 7, incremented), replies)
+            self.assertNotIn(nums(2158, hero_ids[1], 7, incremented), replies)
+        self.assertEqual([p for p in battle.entry(self.b) if mid(p) == 3458],
+                         [nums(3458, hero_ids[0], incremented, 1000), initial[1]])
+
     def test_wild_entry_retries_without_leaving_a_member_in_battle(self):
         self.team()
         zone = DATA['zones'][0]
@@ -111,6 +141,21 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertEqual(len(self.svc.battles), 2)
         for game in self.games:
             self.assertIn(2171, [mid(p) for p in self.svc.drain(game)])
+
+    def test_flower_fruit_mountain_uses_one_background_for_team_and_reconnect(self):
+        self.team()
+        zone = next(z for z in DATA['zones'] if z['scene'] == 2011)
+        x, y = (zone['bounds'][0] + zone['bounds'][2]) // 40, (zone['bounds'][1] + zone['bounds'][3]) // 40
+        for game in self.games:
+            game.character.update(map_id=2011, x=x, y=y)
+            self.svc.drain(game)
+        self.a._encounter_steps = POLICY['encounter_steps'] - 1
+        moved(self.a, (2011, x - 1, y), (2011, x, y))
+        for game in self.games:
+            entry = next(p for p in self.svc.drain(game) if mid(p) == 2171)
+            self.assertEqual(MessageReader(entry[3:]).integer(), 2207)
+        entry = next(p for p in self.svc.reconnect_packets(self.b) if mid(p) == 2171)
+        self.assertEqual(MessageReader(entry[3:]).integer(), 2207)
 
     def test_scene_error_cannot_lock_the_party_and_failed_refresh_can_retry(self):
         battle = self.battle()
@@ -401,8 +446,7 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertEqual(set(attacks),{(cid,enemy['id']),(pet['id'],enemy['id'])})
         self.assertEqual((hero['mp'],pet['mp']),(0,0))
 
-    def test_drawing_wakes_processor_and_has_bounded_confirmation_timeout(self):
-        from time import monotonic
+    def test_drawing_wakes_processor_and_waits_for_round_end(self):
         battle=self.battle(party=False,pet=True)
         replies=(*self.call(self.a,2177,3,0),*self.svc.drain(self.a),
                  *self.call(self.a,2181,3,0),*self.svc.drain(self.a))
@@ -410,7 +454,90 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertIn(2167,ids)
         self.assertEqual(ids[-1],2167)
         self.assertEqual(battle.state['phase'],'drawing')
-        self.assertLessEqual(battle.state['deadline']-monotonic(),15)
+        self.assertGreater(battle.state['deadline'] - monotonic(), 25)
+        battle.tick(battle.state['deadline'] - 1)
+        self.assertEqual((battle.state['phase'], battle.state['round']), ('drawing', 1))
+
+    def test_seven_monster_round_waits_for_playback_and_two_survivors_prevent_victory(self):
+        from native946_role_battle import nums
+
+        self.team()
+        for game in self.games:
+            self.buff(game)
+        self.a.summons.claim_starter()
+        zone = zone_at(2269, 38, 48)
+        zone = dict(zone, formations=(), fixed_roster=True, enemies=[zone['enemies'][0]] * 7)
+        battle = WildBattle(self.a, self.games, zone)
+        first_five = battle.enemies()[:5]
+        survivors = battle.enemies()[5:]
+        for enemy in first_five:
+            enemy['hp'] = 1
+        pet = battle.current_pet(self.a.character['id'])
+        pet.update(initiative=1000, mp=100, innate_skills=[dict(stunt_id=4906, level=1)])
+        self.call(self.a, 2178, 1)
+        self.call(self.b, 2178, 1)
+        self.call(self.a, 2183, 9, 4906, first_five[0]['id'])
+        self.assertEqual([enemy['id'] for enemy in battle.enemies()], [enemy['id'] for enemy in survivors])
+        self.assertFalse(battle.state['victory'])
+        self.assertFalse(battle.state['settled'])
+        self.call(self.a, 2184)
+        battle.tick(battle.state['deadline'] - 1)
+        self.assertEqual((battle.state['phase'], battle.state['round']), ('drawing', 1))
+        self.call(self.b, 2184)
+        self.assertEqual((battle.state['phase'], battle.state['round']), ('input', 2))
+        for enemy in survivors:
+            enemy['hp'] = 1
+        for game in self.games:
+            self.svc.drain(game)
+        self.call(self.a, 2176, survivors[0]['id'])
+        self.call(self.a, 2182, 1)
+        with patch('native946_book_combat.roll', return_value={'miss': False, 'damage': 500, 'effect': 0}):
+            self.call(self.b, 2176, survivors[1]['id'])
+        replies = self.svc.drain(self.a)
+        for enemy in survivors:
+            self.assertLess(replies.index(nums(2142, enemy['id'], 3)), replies.index(nums(2167)))
+        self.assertTrue(battle.state['victory'])
+        self.assertEqual(battle.state['rewards'][self.a.character['id']]['kills'], sorted(f['id'] for f in first_five + survivors))
+        self.call(self.a, 2184)
+        battle.tick(battle.state['deadline'] - 1)
+        self.assertEqual(battle.state['phase'], 'drawing')
+        self.assertNotIn(2146, [mid(reply) for reply in self.svc.drain(self.b)])
+        self.assertIn(2146, [mid(reply) for reply in self.call(self.b, 2184)])
+        self.assertEqual(battle.state['phase'], 'finished')
+        self.assertIn(2146, [mid(reply) for reply in self.svc.drain(self.a)])
+        battle.tick(monotonic() + 600)
+        self.assertFalse(self.svc.drain(self.a))
+
+    def test_drawing_unblocks_after_unconfirmed_peer_disconnects(self):
+        battle = self.battle()
+        self.call(self.a, 2178, 1)
+        self.call(self.b, 2178, 1)
+        self.call(self.a, 2184)
+        self.svc.detach(self.b.character['id'])
+        self.svc.tick(self.a)
+        self.assertEqual((battle.state['phase'], battle.state['round']), ('input', 2))
+
+    def test_drawing_timeout_opens_next_round_without_accepting_stale_confirmation(self):
+        battle = self.battle()
+        for game in self.games:
+            self.call(game, 2178, 1)
+        self.call(self.a, 2184)
+        battle.tick(battle.state['deadline'])
+        self.assertEqual((battle.state['phase'], battle.state['round']), ('input', 2))
+        b_id = self.b.character['id']
+        self.assertEqual(battle.state['late_round_ends'], {b_id: 1})
+
+        enemy = battle.enemies()[0]
+        enemy.update(hp=100000, hpmax=100000)
+        self.call(self.a, 2185, 9, 6100, enemy['id'])
+        battle.tick(battle.state['deadline'])
+        self.assertEqual(battle.state['orders'][self.a.character['id']]['skill_id'], 6100)
+        self.assertEqual(battle.state['orders'][b_id]['skill'], 10)
+        self.call(self.a, 2184)
+        self.call(self.b, 2184)
+        self.assertEqual((battle.state['phase'], battle.state['round']), ('drawing', 2))
+        self.call(self.b, 2184)
+        self.assertEqual((battle.state['phase'], battle.state['round']), ('input', 3))
 
     def test_each_round_ends_each_actor_input_once_per_native_connection(self):
         battle=self.battle(party=True,pet=True)
@@ -669,14 +796,38 @@ class WildernessPartyTests(unittest.TestCase):
 
     def test_both_players_and_guardians_receive_one_durable_reward(self):
         battle=self.battle(pet=True)
+        cash_before = {g.progression.cid: g.progression.snapshot()['gold'] for g in self.games}
         self.fight(battle)
         for g in self.games:
             s=g.progression.snapshot();self.assertGreater(s['experience'],0)
+            self.assertEqual(s['gold'], cash_before[g.progression.cid])
+            self.assertEqual(battle.state['rewards'][g.progression.cid]['gold'], 0)
             self.assertGreater(g.summons.snapshot()[0]['experience'],0)
             with g.progression.transaction(write=False) as db:
                 self.assertEqual(db.execute('SELECT count(*) FROM native_encounter_rewards WHERE battle_id=? AND character_id=?',(battle.id,g.character['id'])).fetchone()[0],1)
             previous=(s['experience'],s['gold']);self.call(g,2184);self.call(g,2177,3,0)
             s=g.progression.snapshot();self.assertEqual((s['experience'],s['gold']),previous)
+
+    def test_double_time_affects_only_its_owner_and_guardian(self):
+        from time import time
+        from native946_double_time import HOUR, load, save
+
+        battle = self.battle(pet=True)
+        cid, other = self.a.progression.cid, self.b.progression.cid
+        now = int(time())
+        with self.a.progression.transaction() as db:
+            value = load(db, cid, now)
+            value['expires'] = now + HOUR
+            save(db, cid, value)
+        self.fight(battle)
+        first, second = (battle.state['rewards'][c] for c in (cid, other))
+        self.assertGreater(second['experience'], 0)
+        self.assertEqual(first['experience'], 2 * second['experience'])
+        self.assertEqual(first['guardian_experience'], 2 * second['guardian_experience'])
+        with self.a.progression.transaction(write=False) as db:
+            paid = db.execute('SELECT experience FROM battle_results WHERE battle_id=?',
+                              ('wild:'+battle.id+':'+str(cid),)).fetchone()[0]
+        self.assertEqual(paid, first['experience'])
 
     def test_killed_enemy_reward_cannot_advance_training_quest(self):
         self.a.progression.accept_quest();battle=self.battle(party=False)
@@ -743,8 +894,10 @@ class WildernessPartyTests(unittest.TestCase):
                 battle.settle(db, True)
         battle.finish(True)
         replies = self.svc.drain(game)
-        self.assertTrue(any('已放入摘星袋'.encode('gb18030') in reply for reply in replies))
-        self.assertEqual(sum(mid(reply) == 100 for reply in replies), 1)
+        texts = [MessageReader(reply[1:]).string().decode('gb18030')
+                 for reply in replies if mid(reply) == 100]
+        reward = battle.state['rewards'][game.character['id']]
+        self.assertEqual(texts, [f'你得到了{reward["experience"]}点经验'])
         self.assertNotIn(783, [mid(reply) for reply in replies])
         with p.transaction(write=False) as db:
             temp, = temporary_items(db, p.cid)
@@ -765,7 +918,7 @@ class WildernessPartyTests(unittest.TestCase):
         moved = next(i for i in p.snapshot()['items'] if i['id']==temp['id'])
         self.assertEqual((moved['page'],moved['slot'],moved['amount']),(8,24,temp['amount']))
 
-    def test_wild_victory_shows_one_native_notice_and_flies_delivered_items(self):
+    def test_wild_victory_shows_separate_notices_and_flies_delivered_items(self):
         game = self.a
         game.progression.item_packets()
         battle = self.battle(party=False)
@@ -781,14 +934,17 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertLess(ids.index(2146), ids.index(1590))
         self.assertLess(ids.index(1590), ids.index(100))
         self.assertNotIn(98, ids)
-        notice, = (reply for reply in replies if mid(reply) == 100)
-        reader = MessageReader(notice[1:])
-        content = reader.string().decode('gb18030')
-        self.assertIn('人物经验', content)
-        self.assertIn('物品已放入道具栏。', content)
-        self.assertNotIn('守护经验', content)
-        self.assertEqual(reader.integer(), 0)
-        reader.finish()
+        texts = []
+        for reply in replies:
+            if mid(reply) != 100:
+                continue
+            reader = MessageReader(reply[1:])
+            texts.append(reader.string().decode('gb18030'))
+            self.assertEqual(reader.integer(), 0)
+            reader.finish()
+        reward = battle.state['rewards'][game.character['id']]
+        self.assertEqual(texts, [f'你得到了{reward["experience"]}点经验',
+                                 f'你获得了#R回生丹*{2 * len(enemies)}#n'])
         animation, = (reply for reply in replies if mid(reply) == 783)
         reader = MessageReader(animation[3:])
         self.assertEqual((reader.integer(), reader.integer()), (4000, 2 * len(enemies)))
@@ -799,6 +955,32 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertLess(ids.index(789), ids.index(790))
         battle.finish(True)
         self.assertFalse(self.svc.drain(game))
+
+    def test_wild_pending_reward_is_reported_as_local_system_feedback(self):
+        battle = self.battle(party=False)
+        cid = self.a.character['id']
+        battle.state['rewards'] = {cid: {'loot_delivery': {'waiting': 2}}}
+        reply, = battle.finish_messages(cid, True)
+        self.assertEqual(reply, text_notice('摘星袋已满，剩余奖励已保留。'))
+
+    def test_wild_experience_notice_names_guardian_and_uses_observed_scene_style(self):
+        game = self.a
+        battle = self.battle(party=False, pet=True)
+        cid = game.character['id']
+        guardian = next(iter(battle.state['participants'][cid].values()))['name']
+        battle.state['rewards'] = {cid: {'experience': 180, 'guardian_experience': 225}}
+        for scene, expected in (
+            (2008, f'你得到了180点经验#r你的守护{guardian}得到了225经验'),
+            (2024, f'您获得#G180#n经验#r您的#G{guardian}#n获得#G225#n经验'),
+        ):
+            with self.subTest(scene=scene):
+                game.character['map_id'] = scene
+                payload, = battle.finish_messages(cid, True)
+                self.assertEqual(mid(payload), 100)
+                reader = MessageReader(payload[1:])
+                self.assertEqual(reader.string().decode('gb18030'), expected)
+                self.assertEqual(reader.integer(), 0)
+                reader.finish()
 
     def test_legacy_pending_rolls_into_available_slots_and_survives_relogin(self):
         game = self.a
@@ -948,11 +1130,306 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertEqual(battle.state['orders'][self.a.character['id']]['kind'],'defend')
         self.assertEqual(battle.state['phase'],'drawing')
 
+    def test_batched_timeout_victory_persists_level_spells_and_allows_relogin(self):
+        from native946_durable_writer import close
+        from native946_progression import level_up_cost
+        from native946_sqlite_runtime import configure_database
+        from sys import getswitchinterval, setswitchinterval
+
+        self.team()
+        with self.a.progression.transaction() as db:
+            for game in self.games:
+                db.execute('UPDATE characters SET experience=? WHERE id=?',
+                           (level_up_cost(1, 2) - 1, game.character['id']))
+        zone = DATA['zones'][0]
+        battle = WildBattle(self.a, self.games, dict(zone, fixed_roster=True, enemies=zone['enemies'][:1]))
+        battle.enemies()[0]['hp'] = 1
+        self.addCleanup(setswitchinterval, getswitchinterval())
+        configure_database(self.path)
+        self.addCleanup(close, self.path)
+
+        with patch('native946_book_combat.roll', return_value={'miss': False, 'damage': 500, 'effect': 0}):
+            self.svc.tick(self.a, battle.state['deadline'])
+        self.assertTrue(battle.state['victory'])
+        self.assertEqual(battle.state['phase'], 'drawing')
+        for game in self.games:
+            self.call(game, 2184)
+        self.assertEqual(battle.state['phase'], 'finished')
+
+        with self.a.progression.transaction(write=False) as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM native_encounter_rewards WHERE battle_id=?',
+                                        (battle.id,)).fetchone()[0], 2)
+        for game in self.games:
+            cid = game.character['id']
+            self.svc.detach(cid)
+            character = self.characters.list(game.character['owner'])[0]
+            restored = NativeGameplay(character, self.characters, lambda: ())
+            saved = restored.progression.snapshot()
+            self.assertGreaterEqual(saved['level'], 2)
+            self.assertEqual(saved['skills'][6101], 0)
+            self.assertIsNone(restored.battle)
+
     def test_native_zone_bounds_are_used_and_cities_stay_safe(self):
         self.assertIsNone(zone_at(2001,300,210))
         z=DATA['zones'][0]
         self.assertEqual(zone_at(z['scene'],(z['bounds'][0]+19)//20,(z['bounds'][1]+19)//20)['id'],z['id'])
         self.assertIsNone(zone_at(z['scene'],0,0))
+
+    def test_water_curtain_walk_starts_monkey_encounter_and_settles_once(self):
+        from struct import pack
+        from native946_login import string_field
+        from native946_map import DIRECTIONS
+
+        game = self.a
+        cid = game.character['id']
+        self.buff(game)
+        game.summons.claim_starter()
+        pet = game.summons.active()
+        with game.progression.transaction() as db:
+            db.execute('UPDATE characters SET map_id=2011,x=11,y=53 WHERE id=?', (cid,))
+            db.execute('UPDATE learned_skills SET rank=10000 WHERE character_id=?', (cid,))
+            db.execute('UPDATE learned_skills SET rank=9800 WHERE character_id=? AND skill_id=6100', (cid,))
+            db.execute('UPDATE summons SET level=180,rebirth=2,ascension=1 WHERE id=?', (pet['id'],))
+            db.execute('INSERT INTO native_guardian_books(summon_id,skill,position,expnext) VALUES(?,300,7,20000)',
+                       (pet['id'],))
+        game.character.update(map_id=2011, x=11, y=53)
+        game.grid = load_map(2011)
+        game._encounter_steps = POLICY['encounter_steps'] - 1
+        self.assertIn(1025, [mid(p) for p in self.call(game, 1034, 5718)])
+        game.receive(1032, MessageReader(b'\x01' + number(5718)))
+        self.assertEqual(game.character['map_id'], 2266)
+        self.assertIsNone(game.battle)
+
+        path = game.grid.route((68, 26), (35, 38))
+        by_delta = {delta: code for code, delta in DIRECTIONS.items()}
+        for i, (start, end) in enumerate(zip(path, path[1:]), 1):
+            direction = by_delta[(end[0] - start[0], end[1] - start[1])]
+            replies = self.call(game, 1643, 4, tail=pack('<HH', *start) + string_field(bytes([direction])))
+            if i < POLICY['encounter_steps']:
+                self.assertIsNone(game.battle)
+            else:
+                break
+        self.assertIn(2171, [mid(p) for p in replies])
+        battle = game._wild_battle
+        # The original client lays out the opposing slots in this vertical order.
+        by_slot = {f['slot']: f['name'][-1] for f in battle.enemies()}
+        roster = tuple(by_slot[slot] for slot in (4, 2, 1, 3, 5))
+        self.assertIn(roster, (tuple('乙甲甲甲乙'), tuple('甲乙乙乙甲')))
+        self.assertEqual([f['slot'] for f in battle.enemies()], [1, 2, 3, 4, 5])
+        before = game.progression.snapshot()
+        guardian_xp = game.summons.get(pet['id'])['experience']
+        target = battle.enemies()[0]['id']
+        self.assertIn(98, [mid(p) for p in self.call(game, 2177, 5, target)])
+        self.call(game, 2185, 9, 6100, target)
+        self.call(game, 2182, 1)
+        self.fight(battle)
+
+        after = game.progression.snapshot()
+        self.assertEqual(after['experience'] - before['experience'], 45000)
+        self.assertEqual(after['gold'], before['gold'])
+        self.assertEqual(after['skills'][6100] - before['skills'][6100], 200)
+        self.assertEqual(game.summons.get(pet['id'])['experience'] - guardian_xp, 48539)
+        self.call(game, 2184)
+        battle.state['settled'] = False
+        with game.progression.transaction() as db:
+            battle.settle(db, True)
+            rows = db.execute('SELECT payload FROM native_encounter_rewards WHERE battle_id=?', (battle.id,)).fetchall()
+            self.assertEqual(len(rows), 1)
+            reward = json.loads(rows[0][0])
+            self.assertEqual(reward['school_practice']['amount'], 200)
+            self.assertEqual(reward['drops'], {})
+            self.assertEqual(reward['guardian_experience_by_id'], {str(pet['id']): 48539})
+            self.assertEqual(db.execute('SELECT experience FROM native_guardian_books WHERE summon_id=?',
+                                        (pet['id'],)).fetchone()[0], 12000)
+        self.assertEqual(game.progression.snapshot()['experience'], after['experience'])
+
+    def test_water_curtain_randomizes_only_eligible_learned_spells(self):
+        game = self.a
+        self.buff(game)
+        cid = game.character['id']
+        battle = WildBattle(game, [game], zone_at(2266, 68, 26))
+        with game.progression.transaction() as db:
+            db.execute('DELETE FROM learned_skills WHERE character_id=?', (cid,))
+            db.executemany('INSERT INTO learned_skills VALUES(?,?,?)', [
+                (cid, 6100, 9999), (cid, 6107, 0), (cid, 6128, 10000), (cid, 21, 0), (cid, 9, 0),
+            ])
+            awards = set()
+            for draw in range(20):
+                battle.id = f'practice-fixture-{draw}'
+                reward = battle.school_practice_reward(db, cid, 260)
+                self.assertEqual(battle.school_practice_reward(db, cid, 260), reward)
+                awards.add((reward['skill'], reward['amount']))
+            self.assertEqual(awards, {(6100, 1), (6107, 260)})
+            db.execute('UPDATE learned_skills SET rank=10000 WHERE character_id=?', (cid,))
+            self.assertIsNone(battle.school_practice_reward(db, cid, 260))
+
+    def test_water_curtain_trains_a_learned_school_stunt(self):
+        from native946_school import LIZARD_MASTER, add_contribution
+        from native946_world import world
+
+        game = self.a
+        self.buff(game)
+        cid = game.character['id']
+        scene, master = LIZARD_MASTER
+        npc = world().npc(scene, master)
+        arrival = load_map(scene).nearest_walkable(npc['x'] // 20, npc['y'] // 20)
+        game.change_scene(dict(id=0, to=scene, arrival=arrival), None)
+
+        for operation in ('join', 'learn'):
+            self.assertIn(1025, [mid(p) for p in self.call(game, 1034, master)])
+            choice = next(i for i, action in enumerate(game.dialog_actions, 1) if action['op'] == operation)
+            game.receive(1032, MessageReader(bytes([choice]) + number(master)))
+        with game.progression.transaction() as db:
+            add_contribution(db, cid, 10)
+            db.execute('UPDATE characters SET gold=100 WHERE id=?', (cid,))
+        self.assertNotIn(6105, game.progression.snapshot()['skills'])
+        self.assertIn(699, [mid(p) for p in self.call(game, 749, 6105, 1)])
+        self.assertEqual(game.progression.snapshot()['skills'][6105], 1)
+        with game.progression.transaction() as db:
+            db.execute('UPDATE learned_skills SET rank=10000 WHERE character_id=? AND skill_id<>6105', (cid,))
+
+        game.change_scene(dict(id=0, to=2269, arrival=(20, 56)), None)
+        battle = WildBattle(game, [game], zone_at(2269, 20, 56))
+        target, *others = battle.enemies()
+        target['hp'] = 1
+        for enemy in others:
+            enemy['hp'] = 0
+        self.call(game, 2185, 9, 6100, target['id'])
+        self.assertTrue(battle.state['victory'])
+        replies = self.call(game, 2184)
+        notices = [MessageReader(p[1:]).string().decode('gb18030') for p in replies if mid(p) == 100]
+        self.assertTrue(any('师门技能#G死生契阔#n获得#G320#n熟练度' in text for text in notices))
+        self.assertEqual(game.progression.snapshot()['skills'][6105], 321)
+
+        reader = MessageReader(next(p for p in replies if mid(p) == 699)[3:])
+        self.assertEqual(reader.integer(), 18)
+        for _ in range(reader.take(1)[0]):
+            for _ in range(3):
+                reader.integer()
+        ranks = {}
+        for _ in range(reader.take(1)[0]):
+            reader.string()
+            reader.string()
+            practice = reader.integer()
+            ranks[reader.integer()] = practice
+        self.assertEqual(ranks[6105], 321)
+
+    def test_water_curtain_floor_practice_and_team_scaling(self):
+        from native946_role_battle import profile
+        from native946_school import SCHOOL_SKILLS
+
+        accounts = LocalAccounts(self.path)
+        for i, role in enumerate((111, 211, 311), 2):
+            owner = f'wild{i}'
+            accounts.register(dict(username=owner, password='fixture-password'))
+            character = self.characters.create(owner, f'水帘队员{i}', role)
+            self.games.append(NativeGameplay(character, self.characters, lambda: ()))
+        for game in self.games:
+            self.buff(game)
+        pet = self.a.summons.claim_starter()
+
+        for scene, participants, enemy_count, practice, bonus in (
+            (2266, 1, 5, 260, 0),
+            (2267, 2, 5, 280, 5),
+            (2268, 4, 5, 300, 15),
+            (2269, 5, 7, 320, 20),
+        ):
+            with self.subTest(scene=scene, participants=participants):
+                with self.a.progression.transaction() as db:
+                    db.execute('UPDATE summons SET level=89,experience=0 WHERE id=?', (pet,))
+                games = self.games[:participants]
+                battle = WildBattle(self.a, games, zone_at(scene, 30, 30))
+                self.assertEqual([f['slot'] for f in battle.enemies()], list(range(1, enemy_count + 1)))
+                target, *others = battle.enemies()
+                target['hp'] = 1
+                for enemy in others:
+                    enemy['hp'] = 0
+                before = {g.character['id']: g.progression.snapshot() for g in games}
+                for game in games[1:]:
+                    self.call(game, 2178, 1)
+                self.call(self.a, 2185, 9, 6100, target['id'])
+                self.call(self.a, 2182, 1)
+                self.assertTrue(battle.state['victory'])
+                self.assertEqual(battle.state['rewards'][self.a.character['id']]['guardian_experience_by_id'],
+                                 {str(pet): 24000 * (100 + bonus) // 100})
+                acknowledgements = {}
+                for game in games:
+                    cid = game.character['id']
+                    saved = game.progression.snapshot()
+                    reward = battle.state['rewards'][cid]
+                    self.assertEqual(saved['experience'] - before[cid]['experience'], 45000 * (100 + bonus) // 100)
+                    trained = reward['school_practice']['skill']
+                    self.assertIn(trained, SCHOOL_SKILLS)
+                    self.assertIn(profile(trained)['race'], (0, saved['race']))
+                    changes = {skill: rank - before[cid]['skills'][skill] for skill, rank in saved['skills'].items()
+                               if rank != before[cid]['skills'][skill]}
+                    self.assertEqual(changes, {trained: practice})
+                    self.assertEqual(reward.get('team_experience_percent', 0), bonus)
+                    acknowledgements[cid] = self.call(game, 2184)
+                self.assertIsNone(self.a.battle)
+                for game in games:
+                    cid = game.character['id']
+                    replies = (*acknowledgements[cid], *self.svc.drain(game))
+                    popups = [MessageReader(p[1:]).string().decode('gb18030') for p in replies if mid(p) == 100]
+                    self.assertEqual(len(popups), 1)
+                    self.assertIn('熟练度', popups[0])
+                    self.assertIn('经验', popups[0])
+                    self.assertNotIn('组队经验加成', popups[0])
+                    for now in (100, 106.49):
+                        self.assertFalse(any(mid(p) == 100 for p in game.tick(now) or ()))
+                    popups = [MessageReader(p[1:]).string().decode('gb18030')
+                              for p in game.tick(106.5) or () if mid(p) == 100]
+                    self.assertEqual(popups, [f'组队经验加成#G{bonus}%#n。'] if bonus else [])
+                    self.assertFalse(any(mid(p) == 100 for p in game.tick(107) or ()))
+
+    def test_water_curtain_rewards_each_guardian_at_its_own_level_after_switch(self):
+        from native946_summons import LEVEL_EXPERIENCE_FACTOR
+
+        game = self.a
+        cid = game.character['id']
+        self.buff(game)
+        with game.progression.transaction() as db:
+            db.execute('UPDATE characters SET level=80 WHERE id=?', (cid,))
+        game.character['level'] = 80
+        starter = game.summons.claim_starter()
+        replacement = game.summons.acquire(3374, 'cave-level-test', level=30)
+        with game.progression.transaction() as db:
+            db.execute('UPDATE summons SET level=89 WHERE id=?', (starter,))
+        before = {sid: game.summons.get(sid) for sid in (starter, replacement)}
+        previous_exp = game.progression.snapshot()['experience']
+
+        battle = WildBattle(game, [game], zone_at(2266, 68, 26))
+        self.call(game, 2177, 6, replacement)
+        self.assertEqual(battle.current_pet(cid)['id'], replacement)
+        self.call(game, 2184)
+        self.fight(battle)
+
+        expected = {str(starter): 24000, str(replacement): 8089}
+        self.assertEqual(game.progression.snapshot()['experience'] - previous_exp, 20000)
+        self.assertEqual(battle.state['rewards'][cid]['guardian_experience_by_id'], expected)
+        messages = next(p for p in battle.finish_messages(cid, True) if mid(p) == 100)
+        text = MessageReader(messages[1:]).string().decode('gb18030')
+        for sid, initial in before.items():
+            saved = game.summons.get(sid)
+            levels = range(initial['level'], saved['level'])
+            earned = saved['experience'] - initial['experience'] + LEVEL_EXPERIENCE_FACTOR * sum(levels)
+            self.assertEqual(earned, expected[str(sid)])
+            self.assertIn(f"你的守护{initial['name']}得到了{earned}经验", text)
+
+    def test_water_curtain_retreat_grants_no_rewards(self):
+        game = self.a
+        game.summons.claim_starter()
+        before = game.progression.snapshot()
+        guardian_xp = game.summons.active()['experience']
+        battle = WildBattle(game, [game], zone_at(2266, 68, 26))
+        self.call(game, 2178, 2)
+        self.assertIsNone(game.battle)
+        self.assertEqual(game.progression.snapshot()['experience'], before['experience'])
+        self.assertEqual(game.progression.snapshot()['skills'], before['skills'])
+        self.assertEqual(game.summons.active()['experience'], guardian_xp)
+        with game.progression.transaction(write=False) as db:
+            self.assertIsNone(db.execute('SELECT 1 FROM native_encounter_rewards WHERE battle_id=?',
+                                         (battle.id,)).fetchone())
 
     def test_follow_crosses_scene_and_cold_position_matches(self):
         self.team();target=2008;grid=load_map(target);x,y=grid.nearest_walkable(50,50)
@@ -971,11 +1448,84 @@ class WildernessPartyTests(unittest.TestCase):
         self.call(self.b,2044)
         self.assertEqual(self.svc.team(self.a.character['id'])['members'][1]['away'],1)
 
+    def test_late_world_movement_does_not_reposition_battle_fighters(self):
+        from struct import pack
+        from native946_login import string_field
+
+        battle = self.battle()
+        for game in self.games:
+            with self.subTest(character=game.character['id']):
+                self.svc.drain(game)
+                cid = game.character['id']
+                original = (game.character['x'], game.character['y'])
+                pending = packet(2151, ['number'] * 3, [cid, 40, 0])
+                self.svc.enqueue(game, pending)
+                move = pack('<HH', *original) + string_field(b'')
+                self.assertEqual(self.call(game, 1643, 5, tail=move), (pending,))
+                self.assertEqual(self.call(game, 1643, 5, tail=move), ())
+                self.assertEqual((game.character['x'], game.character['y']), original)
+                saved = self.characters.list(game.character['owner'])[0]
+                self.assertEqual((saved['x'], saved['y']), original)
+                self.assertIs(game._wild_battle, battle)
+                self.assertEqual(battle.state['phase'], 'input')
+
     def test_disconnected_leader_transfers_to_online_member(self):
-        self.team();self.svc.detach(self.a.character['id'])
-        team=self.svc.team(self.b.character['id'])
-        self.assertEqual(team['leader_id'],self.b.character['id'])
-        self.assertEqual(team['members'][0]['away'],1)
+        self.team()
+        old, new = (game.character['id'] for game in self.games)
+        self.svc.drain(self.b)
+        self.svc.detach_port(self.a.source_port)
+        team = self.svc.team(new)
+        self.assertEqual(team['leader_id'], new)
+        self.assertEqual(team['members'][0]['away'], 1)
+        self.assertEqual(self.b.character['team_leader'], new)
+        replies = self.svc.drain(self.b)
+        change = packet(2028, ['number', 'number'], [new, old])
+        remove = packet(1604, ['number'], [old])
+        self.assertLess(replies.index(change), replies.index(remove))
+        self.assertEqual([mid(p) for p in replies].count(3228), 1)
+        self.assertEqual(self.call(self.b, 2043), (self.svc.application_list(new),))
+
+    def test_disconnected_leader_retries_before_removing_scene_actor(self):
+        self.team()
+        old, new = (game.character['id'] for game in self.games)
+        self.svc.drain(self.b)
+        with patch('native946_lineups.reset_invalid_selection', side_effect=StorageBusy('fixture busy')):
+            self.svc.detach_port(self.a.source_port)
+        self.assertEqual(self.svc.team(new)['leader_id'], old)
+        self.assertFalse({2028, 1604}.intersection(map(mid, self.svc.drain(self.b))))
+
+        replies = list(map(mid, self.svc.tick(self.b)))
+        self.assertLess(replies.index(2028), replies.index(1604))
+        self.assertEqual(self.svc.team(new)['leader_id'], new)
+        self.assertFalse({2028, 1604}.intersection(map(mid, self.svc.tick(self.b))))
+
+    def test_disconnected_leader_retries_while_battle_is_active(self):
+        battle = self.battle()
+        old, new = (game.character['id'] for game in self.games)
+        self.svc.drain(self.b)
+        with patch('native946_lineups.reset_invalid_selection', side_effect=StorageBusy('fixture busy')):
+            self.svc.detach_port(self.a.source_port)
+        self.assertIsNone(self.svc.online(old))
+        self.assertEqual(self.svc.team(new)['leader_id'], old)
+        self.assertNotIn(2028, list(map(mid, self.svc.drain(self.b))))
+
+        replies = self.svc.tick(self.b)
+        self.assertIn(packet(2028, ['number', 'number'], [new, old]), replies)
+        self.assertEqual(self.svc.team(new)['leader_id'], new)
+        self.assertEqual(battle.leader, new)
+        self.assertNotIn(2028, list(map(mid, self.svc.tick(self.b))))
+
+    def test_first_member_to_reconnect_gets_leader_packets_when_team_was_offline(self):
+        self.team()
+        old, new = (game.character['id'] for game in self.games)
+        self.svc.detach(self.b.character['id'])
+        self.svc.detach(self.a.character['id'])
+        self.assertEqual(self.svc.team(new)['leader_id'], old)
+
+        self.svc.attach(self.b)
+        replies = self.svc.reconnect_packets(self.b)
+        self.assertEqual(replies[0], packet(2025, ['number'], [new]))
+        self.assertEqual(self.svc.team(new)['leader_id'], new)
 
     def test_native_team_record_types_match_client_constants(self):
         self.team();team=self.svc.team(self.a.character['id'])

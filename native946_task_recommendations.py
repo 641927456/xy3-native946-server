@@ -1,9 +1,138 @@
-"""Native today's list for daily flows that actually exist on this server."""
+"""The four 946 Today's Recommendations lists and daily liveness rewards."""
+from datetime import datetime, timedelta
+
 from native946_codec import packet, screen_notice, text_notice
 from native946_liveness import ACTIVITY_POINTS, TIERS, award, balances, daily_claims, day_start, score, total
 
+WIRE_VERSION = 2
 REQUESTS={1450,1400,4310}
 CLAIM_REWARD = 1400
+
+
+def activity_row(name, kind, time, desc, done='—', active='—'):
+    return dict(name=name, type=kind, time=time, desc=desc, done=done,
+                active=active, status=1, icon_list='{}')
+
+
+def encounter_completions(db, cid, day):
+    """Count only settled victories owned by this character on this HK day."""
+    start, end = int(day.timestamp()), int((day + timedelta(days=1)).timestamp())
+    stars = 0
+    events = {}
+    for (key,) in db.execute(
+        "SELECT battle_id FROM battle_results WHERE character_id=? AND settled_at>=? AND settled_at<? "
+        "AND victory=1 AND (battle_id LIKE 'star:%' OR battle_id LIKE 'afei-event:%')",
+        (cid, start, end),
+    ):
+        if key.startswith('star:'):
+            stars += 1
+        else:
+            event = int(key.split(':', 2)[1])
+            events[event] = events.get(event, 0) + 1
+    return stars, events
+
+
+def challenge_rows(db, cid, day, level):
+    from native946_activities import RECORDS
+    from native946_afei_expansion import STAR_EVENTS
+    from native946_star_challenge import RULE
+
+    stars, wins = encounter_completions(db, cid, day)
+    stars += sum(wins.get(event, 0) for event in STAR_EVENTS)
+    return [
+        activity_row('星宿挑战', '本机挑战' if level >= RULE['level'] else '条件不足', '每小时整点',
+                     f"{RULE['level']}级可单人或组队挑战。每整点刷新，保留{RULE['window_minutes']}分钟。#r"
+                     '从活动与任务总目录的「星宿挑战」可定位目标。编队参考阿飞，属性与奖池采用现有本机规则。',
+                     str(stars), '0'),
+        activity_row('比武大会', '待接通', '周一/周四',
+                     f"946 任务提示：周一{RECORDS[19]['period']}，周四{RECORDS[24]['period']}。#r"
+                     + RECORDS[19]['tips'] + '#r本机尚未开放比武和结算。'),
+        activity_row('宗师阁', '待接通', '见活动界面', RECORDS[75]['tips'] + '#r本机尚未开放匹配和结算。'),
+    ]
+
+
+def timed_rows(db, cid, day, now):
+    from native946_activities import calendar_records
+    from native946_afei_expansion import CALENDAR_EVENTS, EVENTS, window
+    from native946_world import world
+
+    _, wins = encounter_completions(db, cid, day)
+    rows = []
+    for index in CALENDAR_EVENTS:
+        event = EVENTS[index]
+        today = [rule for rule in event['timing'] if day.weekday() in rule['days']]
+        started = window(event, int(now.timestamp()))
+        if not today and started is None and index not in wins:
+            continue
+        times = []
+        for rule in today:
+            hours = rule['hours']
+            time = f'{hours[0]:02d}时' if len(hours) == 1 else f'{hours[0]:02d}–{hours[-1]:02d}时'
+            minutes = '、'.join(f'{minute:02d}' for minute in rule['minutes'])
+            times.append((time, f'{time}的{minutes}分'))
+        label = times[0][0] if times else '见说明'
+        if len(today) == 1 and len(today[0]['hours']) == len(today[0]['minutes']) == 1:
+            label = f"{today[0]['hours'][0]:02d}:{today[0]['minutes'][0]:02d}"
+        places = '、'.join(world().scene(scene)['scene_name'] for scene in event['scenes'])
+        starts = '；'.join(detail for _, detail in times)
+        timing = f'今天在{starts}刷新。' if starts else '今天无新场次。'
+        desc = (f"阿飞参考活动。{timing}每次刷新保留{event['seconds'] // 60}分钟。#r"
+                f"地点：{places}。单人{event['level']}级，组队至少{event['team_min']}人且每人{event['team_level']}级。#r"
+                '从活动与任务总目录的「阿飞参考活动」查看当前目标。')
+        rows.append(activity_row(event['name'], '刷新时段' if started is not None else '未刷新',
+                                 label, desc, str(wins.get(index, 0)), '0'))
+
+    for source, record in calendar_records(day.date()):
+        name = source['name'].strip()
+        if name == '比武大会':
+            continue
+        kind = '仅入口' if name in ('九重幻境', '云阶秘藏') else '待接通'
+        desc = (record['tips'] if record else '') + '#r本机尚未开放活动战斗和结算。'
+        if kind == '仅入口':
+            desc += '#r入口 NPC 按本机活动时段出现。'
+        rows.append(activity_row(name, kind, source['tips'], desc))
+    return rows
+
+
+def dungeon_rows(db, cid, hero, grouped):
+    from native946_activities import RECORDS as ACTIVITIES
+    from native946_dungeon_routes import ROUTES, read_run
+    from native946_dungeons import ENTRANCES, RECORDS, description
+    from native946_world import world
+
+    periods = {row['name']: row['period'] for row in ACTIVITIES.values()}
+    rows = []
+    for key, record in RECORDS.items():
+        if record.get('IsHide'):
+            continue
+        name = record['Name']
+        if key not in ROUTES:
+            kind = '仅入口' if name == '逆转时轮' else '待接通'
+            rows.append(activity_row(name, kind, periods.get(name, '见说明'),
+                                     description(name) + '#r本机尚未开放副本挑战和结算。'))
+            continue
+
+        route = ROUTES[key]
+        run = read_run(db, cid, key)
+        completed = run is not None and run['state'] == 'completed'
+        if completed:
+            kind = '已结算'
+        elif run:
+            kind = '进行中'
+        elif grouped or hero['level'] < route['level'] or not hero[route['cultivation']]:
+            kind = '条件不足'
+        else:
+            kind = '本机副本'
+        entrance = ENTRANCES[key][0]
+        scene = world().scene(entrance['scene'])['scene_name']
+        desc = (f"入口：{scene}（{entrance['x']},{entrance['y']}）{entrance['name']}。#r"
+                f"{route['grade']}可单人参加，每天可结算1次。"
+                f"共{len(route['waves'])}场本机战斗，通关奖励为经验{route['experience']}、现金{route['gold']}。#r"
+                '前往原入口 NPC，选择「本机战斗流程」。')
+        if run and not completed:
+            desc += f"#r本次已通过{run['stage']}/{len(route['waves'])}场战斗。"
+        rows.append(activity_row(name, kind, '每日', desc, '1/1' if completed else '0/1', '0'))
+    return rows
 
 
 class TaskRecommendations:
@@ -57,12 +186,22 @@ class TaskRecommendations:
             points = total(by_activity)
             balance = balances(db, self.p.cid, day)
             claimed = daily_claims(balance, day)
+            if tab == 2:
+                rows = challenge_rows(db, self.p.cid, day, self.g.character['level'])
+            elif tab == 3:
+                rows = timed_rows(db, self.p.cid, day, datetime.now(day.tzinfo))
+            elif tab == 4:
+                hero = self.p._snapshot(db)
+                grouped = self.g.party_service.team(self.p.cid, db) is not None
+                rows = dungeon_rows(db, self.p.cid, hero, grouped)
+        if tab == 1:
+            rows = self.rows(by_activity)
         rewards = [dict(need_liveness=threshold, has_get_reward=int(threshold in claimed),
                         can_get_reward=int(points >= threshold and threshold not in claimed),
                         reward_str=f'本机发放：活力×{rule["energy"]}，家园休息×{rule["rest"]}。')
                    for threshold, rule in TIERS.items()]
         return packet(1233, ['number', 'number', ('array', 'liveness_reward'), ('array', 'activity_list'), 'string', 'string'],
-                      [points, 0, rewards, self.rows(by_activity) if tab == 1 else [], '{}', '{}'])
+                      [points, 0, rewards, rows, '{}', '{}'])
 
     def claim(self, index, action, tab):
         if not 1 <= index <= len(TIERS) or action != 1 or not 1 <= tab <= 4:
@@ -97,7 +236,4 @@ class TaskRecommendations:
             return True,self.claim(index,action,tab)
         tab=reader.take(1)[0];reader.finish()
         if not 1<=tab<=4:raise ValueError('今日推荐分类不存在。')
-        result=self.panel(tab, day_start())
-        if tab!=1:
-            return True,(result,text_notice('此分类暂无已开放的完整流程；日常活动页可查看已接通的参考日常。'))
-        return True,result
+        return True,self.panel(tab, day_start())

@@ -5,9 +5,9 @@ from random import Random
 
 from native946_codec import number, packet
 from native946_cosmetics import appearance
-from native946_equipment import COMPLETION, DATA
+from native946_equipment import COMPLETION, DATA, bonuses
 from native946_gear_sockets import jewel, properties
-from native946_login import MessageReader
+from native946_login import MessageReader, string_field
 from native946_workshops import DATA as WORKSHOPS
 import test_native946_refinement as fixtures
 from test_native946_npc_services import mid
@@ -30,6 +30,46 @@ class GearCompletionTests(unittest.TestCase):
 
     def row(self,kind):
         return next(item for item in self.p.snapshot()['items'] if item['type']==kind)
+
+    def test_classic_fifth_tier_samples_preserve_rolls_and_skip_added_properties(self):
+        import json
+        from native946_equipment import CBG_GEAR
+
+        loose = self.add(17540)
+        self.assertIn('【同编号五阶仙器基础属性参考】'.encode('gb18030'), self.request(806,loose,0))
+        for key, sample in CBG_GEAR['fairy'].items():
+            rule = dict(grade=5, slot=sample['slot'], role='全部', reference_id=int(key), need={},
+                        level=155, rebirth=0, ascension=1, durability=5000, kind='仙器')
+            iid = self.add(int(key), profile=rule)
+            view = self.p.snapshot()['equipment'][iid]
+            self.assertEqual(view['requirements']['cbg_fairy_type'], int(key))
+            self.assertEqual(view['properties'], sample['properties'])
+            self.assertNotIn('native_help', view['requirements'])
+            if key == '17571':
+                self.assertNotIn('攻击', view['properties'])
+                with self.p.transaction() as db:
+                    db.execute('UPDATE characters SET level=155 WHERE id=?',(self.p.cid,))
+                    db.execute('UPDATE cultivation_state SET rebirth=2,ascension=1 WHERE character_id=?',(self.p.cid,))
+                self.assertNotIn(888,ids(self.request(807,0,iid)))
+                equipped = self.p.snapshot()
+                self.assertEqual(next(i['page'] for i in equipped['items'] if i['id']==iid), equipped['equipment_page'])
+                self.assertEqual(equipped['cultivation']['ReGeshan'],800)
+                with self.p.transaction() as db:
+                    db.execute('UPDATE native_equipment SET properties=?,durability=113 WHERE item_id=?',
+                               (json.dumps({'速度': 17}), iid))
+                other = self.p.snapshot()['equipment'][iid]
+                self.assertEqual((other['properties'], other['durability']), ({'速度': 17}, 113))
+                self.assertNotIn('cbg_fairy_type', other['requirements'])
+            if key == '17540':
+                self.assertIn('【抗致命】60%'.encode('gb18030'), self.p.item_description(iid))
+                _, _, stats = bonuses([dict(id=iid, page=1)], {iid:view})
+                self.assertEqual([stats[k] for k in ('ReFire','ReWind','ReJieti','ReHaoran','EquipHpRegen')],
+                                 [300,280,500,500,400])
+            if key == '18038':
+                _, _, stats = bonuses([dict(id=iid, page=1)], {iid: view})
+                self.assertEqual((stats['IgSeal'], stats['IgFaint']), (200, 300))
+        self.assertIn('加强水法伤害', CBG_GEAR['fairy']['17627']['properties'])
+        self.assertNotIn('加强水法伤害', CBG_GEAR['fairy']['17717']['properties'])
 
     def test_native_shop_purchase_can_equip_and_is_an_actual_workshop_input(self):
         self.cash(100000)
@@ -122,6 +162,169 @@ class GearCompletionTests(unittest.TestCase):
         self.assertNotIn(888,ids(reply))
         self.assertEqual(self.game.summons.get(sid)['attack'],before['attack'])
         self.assertIn(packet(695,['number','number'],[88,before['score']]),reply)
+
+    def test_native_crown_quote_and_existing_upgrade_apply_the_946_formula(self):
+        from native946_progression import Progression
+        from native946_refinement import save
+
+        self.cash(30000)
+        crown=self.add(7505,profile=dict(reference_id=7505,grade=4,slot=1,role='全部',need={},level=1,
+                                        rebirth=0,durability=750,kind='神兵'))
+        material=self.add(6109)
+        self.visit(2039,4190)
+        self.assertIn(packet(202,['number'],[4]),self.choose(4190,'crown_upgrade'))
+        self.assertEqual(self.request(281,crown,material),packet(197,['number','number'],[4,8000]))
+        self.assertIn(98,ids(self.request(282,crown,material)))
+        self.assertEqual(self.amount(6109),1)
+        self.assertEqual(self.p.snapshot()['gold'],30000)
+        with self.p.transaction() as db:
+            save(db,self.p.cid,crown,dict(traits=[['DudsHpMax',12,1]],expires=0,lucky=0,attempts=1,pending={}))
+            db.execute('UPDATE characters SET level=30 WHERE id=?',(self.p.cid,))
+            db.execute('UPDATE progression SET strength=110 WHERE character_id=?',(self.p.cid,))
+        self.visit(2039,4190)
+        self.choose(4190,'transition')
+        self.assertNotIn(888,ids(self.choose(4190,'transition_do')))
+        before=self.p.snapshot()
+        self.assertNotIn(888,ids(self.request(807,0,crown)))
+        stored=Progression(self.path,'npc_owner',self.p.cid).snapshot()
+        self.assertEqual(stored['gold'],22000)
+        self.assertEqual(self.amount(6109),0)
+        gear=stored['equipment'][crown]
+        self.assertEqual((gear['grade'],gear['role'],gear['durability']),(5,'女',750))
+        self.assertEqual(gear['requirements'],{'kind':'神兵','native_help':131003,'level':30,'rebirth':0,'力量':110})
+        self.assertEqual(gear['properties'],{'防御':750,'抗混乱':10,'抗封印':10,'反震率':40,'反震程度':40})
+        self.assertEqual(stored['defense']-before['defense'],750)
+        self.assertEqual(stored['cultivation']['EquipReflectChance'],400)
+        self.assertEqual(stored['hpmax']-before['hpmax'],12)
+
+    def test_fairy_base_uses_native_type_for_new_and_existing_equipment(self):
+        import json
+        from native946_refinement import save as save_refinement, state as refinement_state
+
+        head = dict(reference_id=1, grade=2, slot=1, role='男', need={},
+                    level=100, rebirth=0, durability=1000, kind='仙器')
+        iid = self.add(7605, profile=head)
+        with self.p.transaction() as db:
+            saved = db.execute('SELECT properties FROM native_equipment WHERE item_id=?', (iid,)).fetchone()
+            self.assertEqual(json.loads(saved[0])['抗毒伤害'], 150)
+            db.execute('UPDATE native_equipment SET properties=?,durability=123 WHERE item_id=?',
+                       ('{"抗水法":999}', iid))
+            save_refinement(db, self.p.cid, iid,
+                            dict(traits=[['DudsHpMax', 20, 1]], expires=0, lucky=0, attempts=1, pending={}))
+        weapon = dict(head, grade=4, slot=4, level=140, role='画魂')
+        sword = self.add(16807, profile=weapon)
+        control_sword = self.add(16806, profile=dict(weapon, role='慕容'))
+        wrong_grade = self.add(16806, profile=dict(weapon, grade=3))
+        equipment = self.p.snapshot()['equipment']
+        self.assertEqual(equipment[wrong_grade]['properties'], {})
+        self.assertEqual(equipment[iid]['requirements']['native_help'], 132012)
+        self.assertEqual(equipment[iid]['durability'], 123)
+        self.assertEqual(equipment[iid]['properties']['抗水法'], 90)
+        self.assertIn('【物理反震几率】27%'.encode('gb18030'), self.p.item_description(iid))
+        self.assertIn('【加强雷法伤害】340'.encode('gb18030'), self.p.item_description(sword))
+        _, _, stats = bonuses([dict(id=iid,page=1),dict(id=sword,page=1)], equipment)
+        self.assertEqual({key: stats[key] for key in ('ReWater','EquipReflectChance','AddThunder','IgThunder','EquipHpRegen')},
+                         {'ReWater':90,'EquipReflectChance':270,'AddThunder':340,'IgThunder':150,'EquipHpRegen':200})
+        _, _, stats = bonuses([dict(id=control_sword, page=1)], equipment)
+        self.assertEqual((stats['AddDisorder'], stats['IgDisorder']), (300, 140))
+        with self.p.transaction(write=False) as db:
+            saved = db.execute('SELECT properties FROM native_equipment WHERE item_id=?', (iid,)).fetchone()
+            self.assertEqual(json.loads(saved[0]), {'抗水法':999})
+            self.assertEqual(refinement_state(db, self.p.cid, iid)['traits'], [['DudsHpMax', 20, 1]])
+
+    def test_first_tier_weapon_regenerates_mana_and_third_tier_helmet_keeps_saved_sets(self):
+        from native946_role_battle import Runtime
+        from test_native946_innate_effects import AlwaysProc, fighter
+
+        profile=next(p for p in DATA['rare_equipment'].values() if p['native_type']==18168)
+        weapon=self.add(18168,profile=profile)
+        helm=self.add(7640,profile=dict(profile,grade=3,slot=1,role='男'))
+        with self.p.transaction() as db:
+            db.execute('UPDATE characters SET role_id=204,race=2,sex=2,level=100 WHERE id=?',(self.p.cid,))
+            # An old instance retains its recorded wear requirements and durability.
+            db.execute("UPDATE native_equipment SET properties='{}',durability=123 WHERE item_id=?",(helm,))
+        self.game.character.update(role_id=204,race=2,sex=2)
+        self.assertIn('【每回合回法】70'.encode('gb18030'),self.p.item_description(weapon))
+        self.request(807,0,weapon)
+        snap=self.p.snapshot()
+        self.assertEqual(next(i['page'] for i in snap['items'] if i['id']==weapon),snap['equipment_page'])
+        self.assertEqual(snap['cultivation']['EquipMpRegen'],70)
+        actor=fighter(1,3)
+        actor.update(mp=0,cultivation=snap['cultivation'])
+        Runtime({1:actor},{},1,AlwaysProc(),{}).begin_round()
+        self.assertEqual(actor['mp'],70)
+        recovered=snap['equipment'][helm]
+        self.assertEqual((recovered['requirements']['native_help'],recovered['durability']),(132018,123))
+        self.assertEqual(recovered['properties']['抗隔山'],1550)
+        with self.p.transaction() as db:
+            db.execute('INSERT INTO native_equipment_attribute_sets VALUES(?,?,2,?)',
+                       (helm,self.p.cid,'{"防御":17}'))
+            db.execute('UPDATE native_equipment SET properties=? WHERE item_id=?',('{"防御":17}',helm))
+        self.assertEqual(self.p.snapshot()['equipment'][helm]['properties'],{'防御':17})
+
+    def test_ring_resistance_reaches_the_native_resistance_packet(self):
+        from native946_lua_values import table
+
+        kind = COMPLETION['ring'][str(self.game.character['race'])]
+        ring = self.add(kind, profile=dict(reference_id=kind, grade=3, slot=12, role='全部',
+                                           level=1, rebirth=0, need={}, durability=500, kind='神兵'))
+        with self.p.transaction() as db:
+            db.execute('UPDATE native_equipment SET properties=? WHERE item_id=?',
+                       ('{"抗小楼":300}', ring))
+        before = self.p.snapshot()['cultivation'].get('ReXiaolou', 0)
+        self.p.move_item(ring, 1, 12)
+        self.assertEqual(self.p.snapshot()['cultivation']['ReXiaolou'], before + 300)
+        reply = self.p.resistance_packet(1)
+        self.assertEqual(mid(reply), 698)
+        reader = MessageReader(reply[3:])
+        self.assertEqual(reader.integer(), 1)
+        self.assertEqual(table(reader.string().decode('gb18030'))['ReXiaolou'], before + 300)
+        reader.finish()
+
+    def test_native_ring_panel_reads_saved_level_and_refuses_unverified_settlement(self):
+        race=str(self.game.character['race'])
+        kind=COMPLETION['ring'][race]
+        iid=self.add(kind,profile=dict(reference_id=kind,grade=4,slot=12,role='全部',need={},level=1,
+                                       rebirth=0,durability=500,kind='神兵'))
+        self.cash(10000)
+        self.add(6109)
+        self.visit(2039,4190)
+        self.assertIn(packet(202,['number'],[7]),self.choose(4190,'ring_upgrade'))
+        extras=self.request(3758,iid,b'\x01',string_field('EquipLevel'))
+        reader=MessageReader(extras[3:])
+        self.assertEqual(reader.integer(),iid)
+        from native946_lua_values import table
+        self.assertEqual(table(reader.string().decode('gb18030')),{'EquipLevel':4})
+        reader.finish()
+        self.assertIn(4589,ids(self.request(4591,iid)))
+        self.assertIn(98,ids(self.request(4587,iid,b'\x00')))
+        self.assertEqual(self.p.snapshot()['equipment'][iid]['grade'],4)
+        self.assertEqual(self.p.snapshot()['gold'],10000)
+        self.assertEqual(self.amount(6109),1)
+
+    def test_second_human_ring_is_recognized_without_opening_settlement(self):
+        from native946_gear_services import plan
+        from native946_refinement import Refinement
+
+        kind = 25312
+        iid = self.add(kind, profile=dict(reference_id=kind,grade=4,slot=12,role='全部',need={},
+                                         native_race=1,level=1,rebirth=0,durability=500,kind='神兵'))
+        self.assertEqual(COMPLETION['ring']['1'], 25256)
+        self.assertEqual(COMPLETION['ring_variants']['25312'], {'race': 1, 'holy_target': 25314})
+        self.assertTrue(any('缘定三生'.encode('gb18030') in msg for msg in self.p.item_packets(item_ids={iid})))
+        self.assertIn('【装备角色】人族'.encode('gb18030'), self.p.item_description(iid))
+        self.cash(10000)
+        self.add(6109)
+        self.visit(2039,4190)
+        self.assertIn(packet(202,['number'],[7]),self.choose(4190,'ring_upgrade'))
+        self.assertIn(4589,ids(self.request(4591,iid)))
+        self.assertIn(98,ids(self.request(4587,iid,b'\x00')))
+        instance = self.p.snapshot()['equipment'][iid]
+        self.assertEqual(instance['grade'], 4)
+        self.assertIsNone(plan(self.game, self.row(kind), instance, 'holy'))
+        self.assertFalse(Refinement.gear_allowed(kind, instance, 'shenbing'))
+        self.assertEqual(self.p.snapshot()['gold'], 10000)
+        self.assertEqual(self.amount(6109),1)
 
     def test_guardian_ornament_score_counts_only_confirmed_refinement(self):
         sid=self.game.summons.acquire(3313,'score:ornament')

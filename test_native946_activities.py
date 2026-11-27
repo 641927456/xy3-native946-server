@@ -1,14 +1,18 @@
 """Native activity metadata, calendar dispatch and unimplemented-flow limits."""
 from pathlib import Path
-from datetime import date
+from datetime import date, datetime
 from unittest.mock import patch
 import json,sys,unittest
 
-from native946_activities import Activities,RECORDS,CALLBACK,CALENDAR,RULES,EXTRA_NAMES,calendar_records,rule_pages,guide_pages
+from native946_activities import (
+    ACTIVITY_TIMEZONE, Activities, RECORDS, CALLBACK, CALENDAR, RULES, EXTRA_NAMES,
+    calendar_records, rule_pages, guide_pages,
+)
 from native946_codec import packet
 from native946_game_login import message_id
 from native946_login import MessageReader
 from native946_npc_quests import day_key
+from native946_party import packets
 import test_native946_tasks as task_fixtures
 
 
@@ -88,6 +92,26 @@ class ActivityDispatchTests(unittest.TestCase):
     def choose(self,index,callback=CALLBACK):
         return self.login.receive(packet(1032,['byte','number'],[index,callback]))
 
+    def choose_action(self, op, callback=CALLBACK):
+        index=next(i for i,a in enumerate(self.g.dialog_actions,1) if a['op']==op)
+        return self.choose(index,callback)
+
+    def menu_text(self, reply):
+        raw=next(p for p in packets(reply) if p.startswith(message_id(1025)))
+        reader=MessageReader(raw[3:])
+        reader.take(1)
+        return reader.string().decode('gb18030')
+
+    def at_entrance(self, scene, npc):
+        from native946_world import world
+
+        target=world().npc(scene,npc)
+        char=self.g.character
+        x,y=target['x']//20,target['y']//20
+        revision=self.f.characters.change_scene(char['owner'],self.p.cid,char['map_id'],scene,x,y)
+        char.update(map_id=scene,x=x,y=y,position_revision=revision)
+        return self.f.send(1034,npc)
+
     def test_calendar_invitation_opens_actionable_native_dialog(self):
         with patch('native946_activities.calendar_day',return_value=date(2026,11,26)):
             reply=self.f.send(1448)
@@ -136,6 +160,12 @@ class ActivityDispatchTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.hub.execute(CALLBACK,dict(op='accept',id=rid))
         self.assertEqual(self.p.snapshot(),before)
 
+    def test_unavailable_notice_requires_an_explicit_npc_binding(self):
+        from native946_activities import npc_activity_names
+
+        self.assertEqual(npc_activity_names(2001,6859),('神器试炼',))
+        self.assertNotIn('鬼王任务',npc_activity_names(2001,7682))
+
     def test_visitor_activity_exposes_sourced_auto_task_rules_without_accepting(self):
         before=self.p.snapshot()
         self.hub.detail(74)
@@ -158,7 +188,7 @@ class ActivityDispatchTests(unittest.TestCase):
         self.assertIn('增加1点活跃度，累计上限40点',preview)
         self.assertEqual(self.p.snapshot(),before)
 
-    def test_visitor_giver_uses_current_team_and_difficulty_without_grants(self):
+    def test_visitor_npc_keeps_transport_and_activity_info_checks_team(self):
         from native946_gameplay import NativeGameplay
         from native946_party import packets
         from native946_world import world
@@ -166,12 +196,17 @@ class ActivityDispatchTests(unittest.TestCase):
         giver=world().npc(2001,7510)
         position=dict(map_id=2001,x=giver['x']//20,y=giver['y']//20)
         self.g.character.update(position)
+        opened=packets(self.f.send(1034,7510))
+        self.assertTrue(any(p.startswith(message_id(1025)) for p in opened))
+        self.assertTrue(any(isinstance(action,int) for action in self.g.dialog_actions))
+        self.assertFalse(any(isinstance(action,dict) and action['kind']=='activity'
+                             for action in self.g.dialog_actions))
 
         def check():
-            self.assertTrue(any(p.startswith(message_id(1025)) for p in packets(self.f.send(1034,7510))))
+            self.hub.detail(74)
             choice=next(i for i,a in enumerate(self.g.dialog_actions,1)
                         if isinstance(a,dict) and a.get('op')=='visitor_readiness')
-            reply=next(p for p in packets(self.choose(choice,7510)) if p.startswith(message_id(1025)))
+            reply=next(p for p in packets(self.choose(choice)) if p.startswith(message_id(1025)))
             reader=MessageReader(reply[3:]);reader.take(1)
             return reader.string().decode('gb18030')
 
@@ -238,10 +273,161 @@ class ActivityDispatchTests(unittest.TestCase):
 
     def test_calendar_queries_do_not_fabricate_festival_or_dungeon_completion(self):
         self.assertEqual(self.f.send(1987),packet(1969,[('array','festival_info')],[[]]))
-        reply=self.f.send(1988)
-        self.assertEqual(reply[0],packet(1970,[('array','dungeon_task')],[[]]))
+        self.assertEqual(self.f.send(1988),packet(1970,[('array','dungeon_task')],[[]]))
         self.assertEqual(self.f.send(1989),(packet(1975,[('array','task_trace_info')],[[]]),
                                          packet(1978,[('array','task_trace_info')],[[]])))
+
+    def test_mijing_previews_use_original_rewards_and_only_the_actual_entrances(self):
+        from native946_navigation import npc_auto_trace
+
+        before=self.p.snapshot()
+        for rid,target in ((98,(2360,79,53,8010,'陌上岚化身')),
+                           (111,(2451,33,113,8270,'魔影'))):
+            with self.subTest(activity=rid):
+                self.hub.detail(rid)
+                actions={op:[i for i,a in enumerate(self.g.dialog_actions,1) if a['op']==op]
+                         for op in ('navigate','rules','guide')}
+                self.assertTrue(all(len(indexes)==1 for indexes in actions.values()))
+                reply=packets(self.choose(actions['navigate'][0]))
+                self.assertIn(npc_auto_trace(*target),reply)
+                self.hub.detail(rid)
+                self.assertTrue(self.choose(actions['rules'][0]).startswith(message_id(1025)))
+                self.hub.detail(rid)
+                self.assertTrue(self.choose(actions['guide'][0]).startswith(message_id(1025)))
+        self.assertIn('1000积分', '#r'.join(rule_pages(RECORDS[111])))
+        self.assertIn('高级守护内丹宝箱×1',rule_pages(RECORDS[111])[-1])
+        self.assertIn('困难 · 末世衰弱（二）','#r'.join(guide_pages(RECORDS[111])))
+        self.assertEqual(len(guide_pages(RECORDS[98])),33)
+        self.assertIn('4点幻境积分、九转元婴丹×6',guide_pages(RECORDS[98])[0])
+        self.assertEqual(self.p.snapshot(),before)
+
+    def test_current_mijing_contacts_offer_native_read_only_help(self):
+        for rid in (98,111):
+            with self.subTest(activity=rid):
+                entrance=next(e for e in RECORDS[rid]['locations'] if e['npc'] in (8010,8270))
+                char=self.g.character
+                revision=self.f.characters.change_scene(char['owner'],self.p.cid,char['map_id'],
+                                                         entrance['scene'],entrance['x'],entrance['y'])
+                char.update(map_id=entrance['scene'],x=entrance['x'],y=entrance['y'],
+                            position_revision=revision)
+                reply=self.f.send(1034,entrance['npc'])
+                self.assertTrue(reply.startswith(message_id(1025)))
+                self.assertEqual(self.g.dialog_actions[0],
+                                 dict(kind='activity',op='rules',id=rid,page=0))
+                before=self.p.snapshot()
+                self.assertTrue(self.choose(1,entrance['npc']).startswith(message_id(1025)))
+                self.assertEqual(self.p.snapshot(),before)
+
+    def test_demon_guide_shows_nine_native_names_and_verified_coordinates(self):
+        from native946_map import load_map
+
+        before=self.p.snapshot()
+        self.hub.detail(82)
+        description=self.menu_text(self.choose_action('demon_guide'))
+        expected=(
+            ('金角大王之怨','平顶山',2220,114,94),('真假禺狨王','火焰山',2256,109,84),
+            ('如来之幻','御天岭',2357,204,158),('萧晚音','大唐东',2027,458,24),
+            ('牛魔王之难','火焰山',2256,215,150),('赤煞妖姬','西梁女国集市',2236,11,168),
+            ('百花劫','宝象国',2041,232,39),('幽冥之幻','幽冥地府',2009,40,127),
+            ('黄风大王','乌斯藏',2024,68,163),
+        )
+        self.assertEqual(tuple((row['name'],row['scene_name'],row['scene'],row['x'],row['y'])
+                               for row in RULES['demon_bosses']),expected)
+        for name,scene_name,scene,x,y in expected:
+            self.assertIn(f'{name}：{scene_name}（{x},{y}）',description)
+            self.assertTrue(load_map(scene).walkable(x,y))
+        self.assertIn('每小时第30分钟接受挑战',description)
+        self.assertIn('均为「化境·五蕴」前置',description)
+        self.assertEqual(self.p.snapshot(),before)
+
+    def test_tower_readiness_checks_captain_five_nearby_players_grade_and_hours(self):
+        from native946_gameplay import NativeGameplay
+
+        self.at_entrance(2451,8270)
+
+        def check(hour, minute=0):
+            self.f.send(1034,8270)
+            with patch('native946_activities.datetime',wraps=datetime) as clock:
+                clock.now.return_value=datetime(2026,11,27,hour,minute,tzinfo=ACTIVITY_TIMEZONE)
+                return self.menu_text(self.choose_action('tower_readiness',8270))
+
+        self.assertIn('当前未组队',check(8,29))
+        self.assertIn('当前未开放',check(8,29))
+        self.f.send(2042,self.p.cid)
+        position={key:self.g.character[key] for key in ('map_id','x','y')}
+        followers=[]
+        for i in range(1,5):
+            actor=self.f.characters.create('story_owner',f'炼狱队员{i}',701)
+            actor.update(position)
+            member=NativeGameplay(actor,self.f.characters,lambda:())
+            member.source_port=19260+i
+            self.addCleanup(self.g.party_service.detach,actor['id'])
+            member.receive(1034,MessageReader(packet(1034,['number'],[8270])[3:]))
+            self.f.send(2039,actor['id'])
+            member.receive(2038,MessageReader(packet(2038,['number'],[self.p.cid])[3:]))
+            followers.append(member)
+        team=self.g.party_service.team(self.p.cid)
+        self.assertEqual(len(team['members']),5)
+        with self.p.transaction() as db:
+            for row in team['members']:
+                cid=row['character_id']
+                db.execute('UPDATE characters SET level=140 WHERE id=?',(cid,))
+                db.execute('INSERT INTO cultivation_state(character_id,rebirth,ascension) VALUES(?,2,1) '
+                           'ON CONFLICT(character_id) DO UPDATE SET rebirth=2,ascension=1',(cid,))
+            cid=followers[-1].character['id']
+            db.execute('UPDATE characters SET level=139 WHERE id=?',(cid,))
+        self.assertIn('等级未达标：炼狱队员4',check(8,30))
+        with self.p.transaction() as db:
+            db.execute('UPDATE characters SET level=140 WHERE id=?',(cid,))
+            db.execute('UPDATE native_team_members SET away=1 WHERE character_id=?',(cid,))
+        self.assertIn('当前无法跟随参战：炼狱队员4',check(8,30))
+        with self.p.transaction() as db:
+            db.execute('UPDATE native_team_members SET away=0 WHERE character_id=?',(cid,))
+        before=self.p.snapshot()
+        self.assertIn('满足人数、等级、时段和跟随条件',check(8,30))
+        self.assertIn('当前未开放',check(23))
+        self.assertNotIn('满足人数、等级、时段和跟随条件',check(23))
+        self.assertEqual(self.p.snapshot(),before)
+        self.assertIsNone(self.g.battle)
+
+    def test_mijing_readiness_and_native_shop_are_read_only(self):
+        self.at_entrance(2360,8010)
+
+        def check(hour=8):
+            self.f.send(1034,8010)
+            with patch('native946_activities.datetime',wraps=datetime) as clock:
+                clock.now.return_value=datetime(2026,11,27,hour,tzinfo=ACTIVITY_TIMEZONE)
+                return self.menu_text(self.choose_action('mijing_readiness',8010))
+
+        self.assertIn('封圣140级门槛未达标',check())
+        self.assertIn('请携带至少一只有气血的守护',check())
+        sid=self.g.summons.claim_starter()
+        with self.p.transaction() as db:
+            db.execute('UPDATE characters SET level=140 WHERE id=?',(self.p.cid,))
+            db.execute('UPDATE cultivation_state SET rebirth=2,ascension=1,sanctification=1 WHERE character_id=?',
+                       (self.p.cid,))
+        self.assertIn('满足时段、等级、单人和守护携带条件',check())
+        self.assertIn('猴儿精',check())
+        self.assertIn('当前未开放',check(23))
+        with self.p.transaction() as db:
+            db.execute('UPDATE summons SET hp=0 WHERE id=?',(sid,))
+        self.assertIn('其中 0 只气血大于零',check())
+        self.f.send(2042,self.p.cid)
+        self.assertIn('当前仍在队伍',check())
+        before=self.p.snapshot()
+        guardians=self.g.summons.snapshot()
+        expected=packet(3983,['number','string','string'],[0,'{}','{}'])
+        self.f.send(1034,8010)
+        self.assertIn(expected,packets(self.choose_action('mijing_shop',8010)))
+        self.assertIn(expected,packets(self.f.send(3989)))
+        self.hub.detail(98)
+        self.assertIn(expected,packets(self.choose_action('mijing_shop')))
+        self.assertIn('兑换尚未接通',self.f.send(3988,1,1).decode('gb18030',errors='ignore'))
+        self.assertEqual(self.p.snapshot(),before)
+        self.assertEqual(self.g.summons.snapshot(),guardians)
+        self.assertIsNone(self.g.battle)
+        self.g.character['x']+=30
+        self.assertNotIn(expected,packets(self.f.send(3989)))
 
     def test_native_baoxiang_reward_preview_and_claims_do_not_change_owned_state(self):
         self.hub.root()

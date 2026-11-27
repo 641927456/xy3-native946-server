@@ -4,10 +4,10 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from local_accounts import LocalAccounts
-from native946_characters import Characters
+from native946_characters import Characters, ROLES
 from native946_codec import number, packet
 from native946_game_login import NativeGameLogin
-from native946_growth_battle import DATA, LEVELS, GrowthBattle, eligible
+from native946_growth_battle import DATA, FIRST_CHARGE_INDEX, LEVELS, GrowthBattle, eligible
 from native946_login import MessageReader
 from native946_tickets import NativeTickets
 
@@ -147,12 +147,61 @@ class GrowthBattleTests(unittest.TestCase):
                                  dict(base, rebirth=2, ascension=1)))
         self.assertTrue(all(eligible(row, dict(base, rebirth=2, ascension=1)) for row in LEVELS))
 
-    def test_charge_request_is_explicitly_unclaimed_and_guides_match_source(self):
-        result = self.game.receive(packet(2574, [], []))
-        self.assertIn(DATA["first_charge"]["reason"], result[-1].decode("gb18030", errors="ignore"))
+    def test_first_charge_grants_five_matching_pieces_immediately_and_only_once(self):
+        before = self.p.snapshot()
+        self.assertLess(before["level"], 80)
+        result = self.send(2574)
+        self.assertTrue(result[-1].startswith(packet(100, [], [])))
+        self.assertIn("已领取炎龙套装", result[-1].decode("gb18030", errors="ignore"))
+        item_header = packet(786, [], [])
+        self.assertEqual(sum(reply.startswith(item_header) for reply in result), 5)
+        after = self.p.snapshot()
+        pieces = {item["type"]: after["equipment"][item["id"]] for item in after["items"]
+                  if str(item["type"]) in DATA["first_charge"]["equipment"]}
+        self.assertEqual(set(pieces), {25303, 25305, 25306, 25307, 25310})
+        self.assertEqual({piece["slot"] for piece in pieces.values()}, {1, 2, 3, 4, 5})
+        self.assertTrue(all(piece["requirements"]["level"] == 80 for piece in pieces.values()))
+        self.assertEqual(after["gold"], before["gold"])
+        self.assertTrue(self.send(2574).startswith(packet(100, [], [])))
+        self.assertEqual(self.p.snapshot()["items"], after["items"])
+        statuses, _ = self.panel(self.send(1390, 17))
+        self.assertEqual(statuses, [0] * len(LEVELS))
         with self.p.transaction(write=False) as db:
-            self.assertFalse(db.execute("SELECT 1 FROM native_growth_claims WHERE character_id=?",
-                                        (self.p.cid,)).fetchone())
+            claims = db.execute("SELECT reward_index FROM native_growth_claims WHERE character_id=?",
+                                (self.p.cid,)).fetchall()
+        self.assertEqual([row[0] for row in claims], [FIRST_CHARGE_INDEX])
+        with self.p.transaction() as db:
+            db.execute("UPDATE characters SET level=80 WHERE id=?", (self.p.cid,))
+        for item in after["items"]:
+            if item["type"] in pieces:
+                self.p.move_item(item["id"], 1, pieces[item["type"]]["slot"])
+        self.assertEqual({item["type"] for item in self.p.snapshot()["items"] if item["page"] == 1},
+                         set(pieces))
+
+    def test_first_charge_full_bag_rolls_back_partial_delivery(self):
+        with self.p.transaction() as db:
+            from native946_mall_bags import pages
+            for page in pages(db, self.p.cid):
+                for slot in range(1, 25):
+                    db.execute("INSERT OR REPLACE INTO inventory(character_id,type,page,slot,amount) VALUES(?,?,?,?,1)",
+                               (self.p.cid, 4000, page, slot))
+            db.execute("DELETE FROM inventory WHERE character_id=? AND page=? AND slot<=4",
+                       (self.p.cid, pages(db, self.p.cid)[0]))
+        before = self.p.snapshot()
+        reply = self.send(2574)
+        self.assertIn("物品栏都已放满", reply.decode("gb18030", errors="ignore"))
+        self.assertEqual(self.p.snapshot()["items"], before["items"])
+        self.assertEqual(self.p.snapshot()["equipment"], before["equipment"])
+        with self.p.transaction(write=False) as db:
+            self.assertIsNone(db.execute("SELECT 1 FROM native_growth_claims WHERE character_id=?",
+                                         (self.p.cid,)).fetchone())
+
+    def test_every_role_has_one_piece_per_slot_and_guides_match_source(self):
+        for role in ROLES.values():
+            with self.subTest(role=role["name"]):
+                slots = sorted(item["slot"] for item in DATA["first_charge"]["equipment"].values()
+                               if role["name"] in item["roles"] or item["race"] == role["race"])
+                self.assertEqual(slots, [1, 2, 3, 4, 5])
         self.assertEqual(len(DATA["guides"]), 13)
         self.assertEqual(len(LEVELS), 14)
 

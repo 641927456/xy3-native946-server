@@ -95,14 +95,17 @@ class GroupBattle(AfeiBattle):
                 runtime.end()
         if not self.allies():
             return
+        observed = PENDING_GROUPS[45097]['observed_replacement_positions']
+        def replace(name):
+            preferences = [record['slot'] for record in observed if record.get('name') == name and 'slot' in record]
+            self.reinforce(runtime,flags,name,preferences,GROUP_POLICY)
+
         if runtime.round >= 2 or not self.enemies():
-            self.reinforce(runtime, flags, '天威星', (10, 2, 1), GROUP_POLICY)
+            replace('天威星')
         if actors['地轴星']['hp'] <= 0:
-            self.reinforce(runtime, flags, '地英星', (8, 7, 10), GROUP_POLICY)
+            replace('地英星')
         if actors['地幽星']['hp'] <= 0:
-            observed = PENDING_GROUPS[45097]['observed_replacement_positions']
-            slots = [r['slot'] for r in observed if r.get('name') == '天猛星' and 'slot' in r]
-            self.reinforce(runtime, flags, '天猛星', (*slots, 7, 9, 10, 2, 3), GROUP_POLICY)
+            replace('天猛星')
         healer = actors['地威星']
         if runtime.round % GROUP_POLICY['revive_round'] == 0 and healer['hp'] > 0 and 'revived' not in flags:
             fallen = sorted((f for f in actors.values() if f['hp'] <= 0 and not f.get('removed') and

@@ -4,6 +4,7 @@ from time import time,monotonic
 import json,secrets
 from native946_codec import packet
 from native946_codec import text_notice
+from native946_mall_mounts import FIXED_DYES, REQUESTS as MOUNT_REQUESTS, WRITES as MOUNT_WRITES
 
 DATA=json.loads(Path(__file__).with_name('native946_mall_uses_data.json').read_text('utf8'))
 from native946_premium_items import RULES as PREMIUM_RULES,PENDING as PREMIUM_PENDING
@@ -23,6 +24,7 @@ DATA['rules']['47580'] = dict(op='shenbing_ring',local_rule='native_ring_identit
 DATA['rules']['47415'] = dict(op='jing_essence_pack')
 DATA['rules']['47680'] = dict(op='guardian_ornament_panel')
 DATA['rules']['48017'] = dict(op='guardian_ornament_panel')
+DATA['rules'].update({str(kind): dict(op='fixed_mount_dye') for kind in FIXED_DYES})
 from native946_mall_event_boxes import RULES as EVENT_BOX_RULES
 DATA['rules'].update(EVENT_BOX_RULES)
 for _kind, _rule in DATA['pending_rules'].items():
@@ -31,8 +33,9 @@ for _kind, _rule in DATA['pending_rules'].items():
             op=_rule['op'], mode=_rule['mode'], rate=_rule['rate'],
             local_rule='uniform_distinct_appearance',
         )
-REQUESTS={112,1496,2289,2296,2300,2302,2312,2314,3309,3310,3474,3475,3476,3683,4475,4476,3969,3971,4041,4042,238,239,240,280,2597,2598,2599}
-WRITES={2289,2300,2312,2314,3309,3310,3474,3475,3476,4475,3971,4042,238,239,2597,2599}
+REQUESTS={112,1496,2289,2296,2300,2302,2312,2314,3309,3310,3474,3475,3476,3683,4475,4476,3969,3971,4041,4042,238,239,240,280,2597,2598,2599}|MOUNT_REQUESTS
+WRITES={2289,2300,2312,2314,3309,3310,3474,3475,3476,4475,3971,4042,238,239,2597,2599}|MOUNT_WRITES
+MOUNT_ITEM_TYPES = {int(kind): rule['value'] for kind, rule in DATA['rules'].items() if rule['op'] == 'mount'}
 
 def schema(db):
     db.execute('CREATE TABLE IF NOT EXISTS cosmetic_features (character_id INTEGER NOT NULL REFERENCES characters(id), key TEXT NOT NULL, value INTEGER NOT NULL, expires INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(character_id,key))')
@@ -56,6 +59,15 @@ def schema(db):
 
 def features(db,cid):
     return {r['key']:dict(value=r['value'],expires=r['expires']) for r in db.execute('SELECT * FROM cosmetic_features WHERE character_id=? AND (expires=0 OR expires>?)',(cid,int(time())))}
+
+def owned_mount_items(saved, item_catalog):
+    # Ordinary and trial licenses with the same permanent unlock both represent ownership.
+    owned = set()
+    for kind, mount in MOUNT_ITEM_TYPES.items():
+        grant = saved.get(f'mount:{mount}')
+        if grant and (kind == grant['value'] or (not grant['expires'] and not item_catalog[str(kind)]['days'])):
+            owned.add(kind)
+    return owned
 
 def consume(db,item,count=1):
     from native946_inventory_locks import require_unlocked
@@ -81,6 +93,10 @@ class MallUses:
         from native946_mall_bags import pages as bag_pages
         if item['page'] not in bag_pages(db,self.p.cid):raise ValueError('请先将道具放入有效背包。')
         op=rule['op']
+        if op=='fixed_mount_dye':
+            from native946_mall_mounts import apply_fixed_dye
+            return apply_fixed_dye(self.g, FIXED_DYES[item['type']]['mount'], item['type'],
+                                   unlock=True, source_item=item)
         if op=='jing_essence_pack':
             from native946_jing_gems import open_pack
             return open_pack(self.g,db,item)
@@ -138,6 +154,9 @@ class MallUses:
         if op=='child_fashion':
             from native946_child_fashion import select_child
             return select_child(db,self.p.cid,item,rule)
+        if op=='knight_experience_panel':
+            from native946_role_city_war import receive
+            return tuple(receive(self.g, db, 2891, [0, 1]))
         if op in ('shared_medical', 'auto_medical', 'team_speed'):
             from native946_premium_items import use_convenience_license
             return use_convenience_license(self.g,db,item,rule)
@@ -197,6 +216,9 @@ class MallUses:
             db.execute("INSERT INTO cosmetic_features VALUES(?,'namecard_current',?,0) ON CONFLICT(character_id,key) DO UPDATE SET value=excluded.value",(self.p.cid,rule['value']))
         elif op=='bag_temp':self.grant(db,'bag_temp',1,rule['days'])
         elif op=='timed_feature':self.grant(db,rule['key'],1,rule['days'])
+        elif op=='city_quick_task':
+            from native946_role_city_war import CITY_TASK_LICENSE
+            self.grant(db, CITY_TASK_LICENSE, item['type'], rule['days'])
         elif op=='totem':
             from native946_cosmetics import DATA as CATALOG
             key='totem:'+str(rule['value'])
@@ -248,17 +270,28 @@ class MallUses:
         from native946_mall_portraits import Portraits
         return (packet(1327,[('array','bigemoteinfo')],[emotes]),*liuguang_packets(balance),*Bags(self.g).sync(),*Portraits(self.g).sync())
     def mounts(self,mode=2302):
+        from native946_mall_mounts import feature_value, known_skills
         from native946_premium_items import SPEED_KEY
         with self.p.transaction(write=False) as db:f=features(db,self.p.cid)
-        owned=[int(k.split(':')[1]) for k in f if k.startswith('mount:')]
+        owned=sorted(int(k.split(':')[1]) for k in f if k.startswith('mount:'))
         ride=f.get('ride',{}).get('value',0)
         if ride not in owned:ride=0
-        records=[dict(index=k,timeout=f['mount:'+str(k)]['expires'] or -1,effective=1,skill=0,owntime=0) for k in owned]
-        if mode==3683:return packet(3681,[('array','pay_mount_list'),('array','number')],[records,[]])
+        # Native 946 interprets a negative timeout as unowned and zero as permanent.
+        records=[dict(index=k,timeout=f['mount:'+str(k)]['expires'],effective=1,
+                      skill=feature_value(f, f'mount_skill:{k}'),owntime=0) for k in owned]
+        if mode==3231:return packet(3230,[('array','number')],[known_skills(f)])
+        if mode==3683:
+            from native946_mall_mounts import PAY_MOUNTS, SUPPORTED_SKILLS
+            by_mount = {row['index']:row for row in records}
+            entries = [by_mount.get(k,dict(index=k,timeout=-1,effective=0,skill=0,owntime=0))
+                       for k in sorted(PAY_MOUNTS)]
+            return packet(3681,[('array','pay_mount_list'),('array','number')],
+                          [entries,sorted(SUPPORTED_SKILLS)])
         if mode==2296:return packet(2280,[('array','number'),'number'],[owned,ride])
         remaining = max(0, f.get(SPEED_KEY, {}).get('expires', 0) - int(time()))
         days = (remaining + 86399) // 86400
-        return packet(2265,['number',('array','number'),'number',('array','pay_mount_list'),('array','pair_number'),'number'],[0,owned,ride,records,[],days])
+        all_mounts = [dict(key=k,value=int(k in owned)) for k in range(1,len(DATA['mounts'])+1)]
+        return packet(2265,['number',('array','number'),'number',('array','pay_mount_list'),('array','pair_number'),'number'],[1,owned,ride,records,all_mounts,days])
     def weapon_open(self,nid,mode):
         from native946_cosmetics import Cosmetics
         Cosmetics(self.g).refresh();a=self.g.character['appearance'];role=str(self.g.character['role_id'])
@@ -271,8 +304,9 @@ class MallUses:
     def weapon_session(self,equip_id,mode):
         s=getattr(self.g,'cosmetic_weapon',None)
         if not s or s['equip_id']!=equip_id or s['mode']!=mode or s['scene']!=self.g.character['map_id'] or s['until']<monotonic():raise ValueError('武器外观会话已失效，请重新与弦舞交谈。')
-        from native946_npc_services import NpcServices
-        NpcServices(self.g).validate(s['npc'],'cosmetic')
+        if s['npc'] is not None:
+            from native946_npc_services import NpcServices
+            NpcServices(self.g).validate(s['npc'],'cosmetic')
         return s
     def material(self,db,kind):
         row=db.execute('SELECT * FROM inventory WHERE character_id=? AND page=8 AND type IN (?,?) ORDER BY id LIMIT 1',(self.p.cid,kind,kind+10000)).fetchone()
@@ -281,6 +315,9 @@ class MallUses:
     def receive(self,mid,r):
         from native946_cosmetics import Cosmetics
         c=Cosmetics(self.g)
+        if mid in MOUNT_REQUESTS:
+            from native946_mall_mounts import receive
+            return receive(self.g,mid,r)
         if mid in (2597,2598,2599):
             from native946_mall_portraits import Portraits
             return Portraits(self.g).receive(mid,r)

@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from native946_characters import scene_actor_packet
+from native946_campaign import TRIALS, VERSION
 from native946_codec import SCHEMAS, number, packet
 from native946_cosmetics import Cosmetics
 from native946_cultivation import LAO_JUN, MENG_PO, YU_RONG_WANG
@@ -72,17 +73,22 @@ class CultivationTests(unittest.TestCase):
         self.open(MENG_PO)
         self.assertFalse(any(isinstance(a, dict) and a.get('kind') == 'cultivation'
                              for a in self.game.dialog_actions))
-        for location, level, action, stage, halo in (
-            (MENG_PO, 100, 'first', (1, 0, 0), 0),
-            (MENG_PO, 120, 'second', (2, 0, 0), 0),
-            (MENG_PO, 140, 'third', (3, 0, 0), 0),
-            (LAO_JUN, 140, 'ascend_after_third', (2, 1, 0), 100),
-            (YU_RONG_WANG, 165, 'sanctify', (2, 1, 1), 101),
+        for location, level, chapter, stage, halo, new_level, resistance in (
+            (MENG_PO, 100, '912101', (1, 0, 0), 0, 30, 30),
+            (MENG_PO, 120, '912201', (2, 0, 0), 0, 45, 46),
+            (LAO_JUN, 140, '111321', (2, 1, 0), 100, 120, 65),
+            (YU_RONG_WANG, 165, '222400', (2, 1, 1), 101, 165, 45),
         ):
-            with self.subTest(action=action):
+            with self.subTest(chapter=chapter):
                 self.level(level)
+                final = len(TRIALS[chapter]['nodes']) - 1
+                with self.progress.transaction() as db:
+                    db.execute('INSERT INTO native_campaign_runs VALUES(?,?,?,\'active\',?,0)', (self.cid, chapter, final, VERSION))
+                    db.execute('UPDATE characters SET experience=1234 WHERE id=?', (self.cid,))
+                    db.execute('UPDATE progression SET cor=?,mag=?,strength=?,speed=?,points=? WHERE character_id=?',
+                               (level, level, level, level, level * 4 + 20, self.cid))
                 self.open(location)
-                if action == 'first':
+                if chapter == '912101':
                     row = self.fixture.characters.create('npc_owner', '修行观测', 702)
                     row.update({key: self.game.character[key] for key in ('map_id', 'x', 'y')})
                     viewer = NativeGameplay(row, self.fixture.characters, lambda: ())
@@ -90,7 +96,7 @@ class CultivationTests(unittest.TestCase):
                     viewer.character.update({key: self.game.character[key] for key in ('map_id', 'x', 'y')})
                 self.game.party_service.drain(viewer)
                 index = next(i for i, item in enumerate(self.game.dialog_actions, 1)
-                             if item == {'kind': 'cultivation', 'op': action})
+                             if item.get('kind') == 'campaign' and item.get('op') == 'complete')
                 before = self.progress.snapshot()
                 reply = packets(self.choose(location, index))
                 spawn = next(i for i, value in enumerate(reply) if value.startswith(message_id(1590)))
@@ -104,8 +110,9 @@ class CultivationTests(unittest.TestCase):
                 self.assertEqual((peer['rei'], peer['fly'], peer['feng'], peer['halo']), (*stage, halo))
                 after = self.progress.snapshot()
                 self.assertEqual(self.stage(), stage)
-                self.assertEqual([after[k] for k in ('level', 'experience', 'gold', 'points', 'items')],
-                                 [before[k] for k in ('level', 'experience', 'gold', 'points', 'items')])
+                self.assertEqual((after['level'], after['points']), (new_level, new_level * 4 + 80))
+                self.assertEqual(after['experience'], 1000 + (1234 if chapter == '222400' else 0))
+                self.assertEqual(after['cultivation_state']['earned_points'] - before['cultivation_state']['earned_points'], resistance)
                 self.choose(location, index)
                 self.assertEqual(self.stage(), stage)
 
@@ -152,13 +159,17 @@ class CultivationTests(unittest.TestCase):
         from native946_role_systems import RULES
         from native946_storage import StorageBusy
 
-        self.level(165)
+        self.level(184)
         cost = RULES['jing_upgrade_exp']
         with self.progress.transaction() as db:
             db.execute('UPDATE cultivation_state SET rebirth=2,ascension=1,sanctification=1 '
                        'WHERE character_id=?', (self.cid,))
             db.execute('UPDATE characters SET experience=? WHERE id=?', (cost, self.cid))
             MallUses(self.game).grant(db, SPEED_KEY, 56659, 1)
+        failed = self.fixture.login.receive(message_id(2551))
+        self.assertTrue(failed.startswith(message_id(98)))
+        self.assertEqual(self.progress.snapshot()['experience'], cost)
+        self.level(185)
         self.game.sync_progression()
         row = self.fixture.characters.create('npc_owner', '化境观测', 702)
         viewer = NativeGameplay(row, self.fixture.characters, lambda: ())
@@ -198,6 +209,46 @@ class CultivationTests(unittest.TestCase):
         self.assertTrue(failed.startswith(message_id(98)))
         self.assertEqual(service.drain(viewer), ())
         self.assertEqual(service.drain(distant), ())
+
+    def test_jing_panel_fields_and_unverified_actions_preserve_saved_points_and_items(self):
+        from native946_role_systems import RULES,give,save
+
+        self.level(185)
+        with self.progress.transaction() as db:
+            save(db,self.cid,'jing',dict(level=RULES['jing_max_level'],exp=0))
+            db.execute('UPDATE characters SET experience=1000000 WHERE id=?',(self.cid,))
+            db.execute('UPDATE progression SET cor=201,mag=202,strength=203,speed=204 WHERE character_id=?',
+                       (self.cid,))
+            db.executemany('INSERT INTO resistance_points VALUES(?,?,?)',
+                           ((self.cid,'FaintPoint',2),(self.cid,'DefPoint',3)))
+            give(db,self.progress,46222)
+        before=self.progress.snapshot()
+        item=next(row['id'] for row in before['items'] if row['type']==46222)
+        reply=self.fixture.login.receive(message_id(2549))
+        reader=MessageReader(next(p for p in packets(reply) if p.startswith(message_id(2548)))[3:])
+        self.assertEqual(reader.integer(),RULES['jing_max_level'])
+        reader.string()
+        self.assertEqual(reader.integer(),0)
+        reader.string()
+        reader.integer()
+        self.assertEqual(reader.integer(),0)
+        reader.string()
+        def pairs(count):
+            return {reader.string().decode('gb18030'):reader.integer() for _ in range(count)}
+        self.assertEqual(pairs(4),dict(Cor=201,Mag=202,Str=203,Spe=204))
+        reader.string()
+        resists=pairs(10)
+        self.assertEqual(resists['FaintPoint'],2)
+        self.assertEqual(resists['AbsorbPoint'],0)
+        self.assertNotIn('DefPoint',resists)
+        reader.finish()
+        for request in (packet(2550,['number'],[1]), packet(2550,['number'],[2]),
+                        message_id(2799),packet(807,['number','number'],[0,item])):
+            reply=self.fixture.login.receive(request)
+            msg_id=message_id(98)
+            notice=next(p for p in packets(reply) if p.startswith(msg_id))
+            self.assertIn('暂未开放',MessageReader(notice[len(msg_id):]).string().decode('gb18030'))
+            self.assertEqual(self.progress.snapshot(),before)
 
     def test_attach_exposes_saved_stage_before_first_self_scene(self):
         with self.progress.transaction() as db:

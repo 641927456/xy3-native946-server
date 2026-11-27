@@ -7,7 +7,8 @@ import json
 import math
 from pathlib import Path
 from native946_codec import packet
-REFERENCE_WIRE_VERSION=7
+from native946_neidan import LEVEL_CAPS
+REFERENCE_WIRE_VERSION=8
 
 DATA=json.loads(Path(__file__).with_name('native946_neidan_legacy.json').read_text('utf-8'))
 KINDS={int(k):v for k,v in DATA['skills'].items()}
@@ -38,7 +39,7 @@ def threshold(level,rebirth):
 
 def grow(row,experience):
     if type(experience) is not int or experience<0:raise ValueError('内丹经验无效。')
-    row=dict(row);cap=(102,122,142)[row['rebirth']]
+    row=dict(row);cap=LEVEL_CAPS[row['rebirth']]
     row['experience']+=experience
     # The reference uses strict > and a second recursion path updates the
     # threshold too late. Equality must level up, with each new cost applied.
@@ -146,7 +147,7 @@ class LegacyNeidan:
                 rows=raw_list(db,sid)
                 # Native item usage specifies the guardian, not a pill.
                 # The local test profile trains every equipped, non-max pill.
-                rows=[r for r in rows if r['level']<(102,122,142)[r['rebirth']]]
+                rows=[r for r in rows if r['level']<LEVEL_CAPS[r['rebirth']]]
                 if not rows:raise ValueError('请先安装内丹，或所装内丹已经满级。')
                 for row in rows:self._save(db,sid,grow(row,10000))
             elif item['type']==6052:
@@ -177,7 +178,7 @@ class LegacyNeidan:
     def convert(self,sid,kind):
         with self.p.transaction() as db:
             row=self._equipped(db,sid,kind);pet=self.owned(db,sid)
-            if row['level']>=(102,122,142)[row['rebirth']]:raise ValueError('内丹已达当前转生阶段上限。')
+            if row['level']>=LEVEL_CAPS[row['rebirth']]:raise ValueError('内丹已达当前转生阶段上限。')
             amount=pet['experience']//5
             if amount<500:raise ValueError('守护至少需要2500点结余经验才能转换。')
             self._save(db,sid,grow(row,amount))
@@ -186,7 +187,7 @@ class LegacyNeidan:
     def reborn(self,sid,kind):
         with self.p.transaction() as db:
             row=self._equipped(db,sid,kind);pet=self.owned(db,sid)
-            if row['rebirth']>=2 or row['level']<(102,122,142)[row['rebirth']]:raise ValueError('内丹尚未达到转生等级，或已经二转。')
+            if row['rebirth']>=2 or row['level']<LEVEL_CAPS[row['rebirth']]:raise ValueError('内丹尚未达到转生等级，或已经二转。')
             if row['rebirth']>=pet['rebirth']:raise ValueError('请先提升守护转生阶段。')
             row.update(rebirth=row['rebirth']+1,level=0,experience=0)
             row['expnext']=threshold(0,row['rebirth']);self._save(db,sid,row)

@@ -70,7 +70,9 @@ def run(login, request):
         target, index = node['target'], row['node']
         level = promotion(quest['id'], before).level if index + 1 == len(quest['nodes']) else snapshot['level']
     else:
-        quest = next((entry for key, entry in TRIALS.items() if promotion(key, before)), None)
+        runs = snapshot['campaign']['runs']
+        quest = next((entry for key, entry in TRIALS.items()
+                      if promotion(key, before) and runs.get(key, {}).get('state') != 'completed'), None)
         if not quest:
             login._acceptance_reply = dict(finished=True)
             return None

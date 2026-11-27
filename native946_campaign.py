@@ -8,7 +8,17 @@ from pathlib import Path
 from secrets import randbelow
 from time import time,monotonic
 import json
-from native946_codec import packet, screen_notice, text_notice
+from native946_codec import experience_notice_lines, packet, screen_notice, text_notice
+import native946_cultivation as cultivation
+import native946_cultivation_quests as cultivation_quests
+
+# The existing service reloads campaign in place. Refresh the rules before
+# rebuilding the trial menu and catalog so connected players use the same gates.
+if 'TRIALS' in globals():
+    from importlib import reload
+    reload(cultivation)
+    reload(cultivation_quests)
+
 from native946_cultivation_quests import GUIDES, MEDICINES, chapters as cultivation_chapters, promotion
 from native946_tasks import STORIES
 
@@ -52,9 +62,13 @@ BIOPIC_PIECES = range(489601, 489605)
 
 def trial_schema(db):
     # A running service can load a new dispatcher before a cold store open.
-    indexes = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='index' "
-               "AND name IN ('native_campaign_mainline_current','native_campaign_trial_current','native_campaign_one_current')")}
+    indexes = dict(db.execute("SELECT name,sql FROM sqlite_master WHERE type='index' "
+               "AND name IN ('native_campaign_mainline_current','native_campaign_trial_current','native_campaign_one_current')"))
     trial_ids = ','.join(f"'{key}'" for key in TRIALS)
+    for name in ('native_campaign_mainline_current', 'native_campaign_trial_current'):
+        if name in indexes and trial_ids not in indexes[name]:
+            db.execute(f'DROP INDEX {name}')
+            del indexes[name]
     if 'native_campaign_mainline_current' not in indexes:
         db.execute("CREATE UNIQUE INDEX IF NOT EXISTS native_campaign_mainline_current ON native_campaign_runs(character_id) "
                    f"WHERE state IN ('available','active') AND chapter NOT IN ({trial_ids})")
@@ -197,11 +211,7 @@ def settlement_message(chapter,node_index,snapshot,*,guardian_rewards=()):
     node=chapter_data['nodes'][node_index]
     reward=node['reward']
     if chapter_data is NEWBIE_CHAPTER:
-        lines = []
-        if reward['experience']:
-            lines.append(f'获得 {reward["experience"]} 点经验。')
-        for name, experience in guardian_rewards:
-            lines.append(f'守护{name}获得 {experience} 点经验。')
+        lines = experience_notice_lines(reward['experience'], guardian_rewards)
         if reward['gold']:
             lines.append(f'获得 {reward["gold"]} 金钱。')
         for kind, count in node['give'].items():
@@ -212,9 +222,13 @@ def settlement_message(chapter,node_index,snapshot,*,guardian_rewards=()):
     trial = chapter in TRIALS
     if chapter != 'newbie' and node_index + 1 == len(QUESTS[chapter]['nodes']):
         if trial:
-            text += '#r人物修行阶段已提升。'
-            if chapter == '222400':
-                text += '#r获得60点属性点、45点抗性点及封圣光环。'
+            if chapter == cultivation.FLIGHT_BREAKTHROUGH:
+                text += '#r飞升等级上限已开放至180级。'
+            else:
+                stage_rule = cultivation.ADVANCEMENTS[cultivation_quests.TRIAL_RULES[chapter][0]]
+                text += f'#r已完成{stage_rule.name}，获得{stage_rule.points}点属性、{stage_rule.resistance}点抗性。'
+                if stage_rule.start_level is not None:
+                    text += f'#r当前等级为{stage_rule.start_level}级。'
         else:
             text+=f'#r本章通关获得{REVIEW_COMPLETION_POINTS}积分，可在剧情回顾查看。'
         if chapter == BIOPIC_CHAPTER:
@@ -341,21 +355,20 @@ def battle_attributes(chapter, node_index, stats):
     return dict(hp=hp, hpmax=hp, attack=max(1, average_health // incoming_divisor), initiative=1, defense=defense)
 
 
-def cultivation_transition(c,s):
-    """Explicit local handoff for tier systems absent from the reference server."""
-    if c['id']=='newbie' or current(s, True):return False
-    row=s.get('campaign',{}).get('runs',{}).get(c['id'])
-    previous=s.get('campaign',{}).get('runs',{}).get(c['previous'])
-    if not row or row['state']!='available' or not previous or previous['state']!='completed':return False
-    m=c['metadata'];wanted=tuple(m['min_'+k] for k in ('rei','fly','feng'))
-    actual=tuple(s[k] for k in ('rebirth','ascension','sanctification'))
-    from native946_cultivation import ADVANCEMENTS
-    third_to_ascension = ADVANCEMENTS['ascend_after_third']
-    if (actual, wanted) == (third_to_ascension.before, third_to_ascension.after):
-        return s['level'] >= third_to_ascension.level
-    # Only the immediate successor can unlock its required cultivation tier.
-    # Level and XP still use the ordinary manual-upgrade path.
-    return all(a<=b for a,b in zip(actual,wanted)) and actual!=wanted
+def cultivation_hint(chapter, s):
+    metadata = chapter.get('metadata', {})
+    before = (s['rebirth'], s['ascension'], s['sanctification'])
+    required = (metadata.get('min_rei', 0), metadata.get('min_fly', 0), metadata.get('min_feng', 0))
+    if all(actual >= minimum for actual, minimum in zip(before, required)):
+        return ''
+    key = cultivation.FLIGHT_BREAKTHROUGH
+    if before == cultivation.ADVANCEMENTS['breakthrough'].before and cultivation.level_cap(s) == cultivation.FLIGHT_LIMIT and s['level'] <= cultivation.FLIGHT_LIMIT:
+        trial = TRIALS[key]
+    else:
+        trial = next((c for key, c in TRIALS.items() if key != cultivation.FLIGHT_BREAKTHROUGH and promotion(key, before)), None)
+    if not trial:
+        return ''
+    return f'#r请达到{trial["metadata"]["grade"]}，向{trial["giver"]["name"]}领取{trial["name"]}。'
 
 
 def deliver(db,cid,*,chapter=None):
@@ -596,20 +609,13 @@ class Campaign:
             elif battle is not None:raise ValueError('本阶段无需战斗。')
             elif not self.near(node['target']):raise ValueError('请前往当前剧情联系人处。')
             last = node_index + 1 == len(c['nodes']) or node.get('handoff_to_carter', False)
+            rule = None
             if last and key in TRIALS:
                 before = (s['rebirth'], s['ascension'], s['sanctification'])
                 rule = promotion(key, before)
                 if rule is None:
                     raise ValueError('当前人物阶段已改变，无法重复办理修行。')
-                if s['level'] < rule.level:
-                    raise ValueError(f'达到{rule.level}级后才能确认{rule.name}。')
-                attributes, resistance = (60, 45) if key == '222400' else (0, 0)
-                db.execute('UPDATE cultivation_state SET rebirth=?,ascension=?,sanctification=?,'
-                           'earned_points=earned_points+? WHERE character_id=?', (*rule.after, resistance, self.p.cid))
-                if attributes:
-                    db.execute('UPDATE progression SET points=points+? WHERE character_id=?', (attributes, self.p.cid))
-                    from native946_skill6 import learn_primary
-                    learn_primary(db, self.p.cid, s['school'])
+                cultivation.settle(self.p, db, s, rule)
             for kind,count in node['take'].items():
                 owned=db.execute('SELECT amount FROM native_campaign_items WHERE character_id=? AND chapter=? AND type=?',(self.p.cid,key,int(kind))).fetchone()
                 # Older runs could complete the preceding battle before it
@@ -626,7 +632,8 @@ class Campaign:
                 db.execute('INSERT INTO native_campaign_items VALUES(?,?,?,?) ON CONFLICT(character_id,chapter,type) DO UPDATE SET amount=amount+excluded.amount',(self.p.cid,key,int(kind),count))
             reward=node['reward'];receipt='campaign:'+str(self.p.cid)+':'+key+':'+str(node_index)
             self.g.characters.settle_battle(self.g.character['owner'],self.p.cid,receipt,True,experience=reward['experience'],gold=reward['gold'],advance_quest=False)
-            self.g.auto_level()
+            if rule is None or rule.start_level is None:
+                self.g.auto_level()
             db.execute('INSERT INTO native_campaign_receipts VALUES(?,?,?,?,?,?,?)',(self.p.cid,key,node_index,battle.id if battle else None,reward['experience'],reward['gold'],int(time())))
             db.execute('UPDATE native_campaign_runs SET node=node+1,state=?,changed=? WHERE character_id=? AND chapter=? AND state=? AND node=?',
                        ('completed' if last else 'active', int(time()), self.p.cid, key, run['state'], node_index))
@@ -637,6 +644,9 @@ class Campaign:
                     queue_biopic_key(db, self.p.cid)
                 if c['next']:db.execute("INSERT OR IGNORE INTO native_campaign_runs VALUES(?,?,0,'available',?,?)",(self.p.cid,c['next'],VERSION,int(time())))
             deliver(db,self.p.cid)
+            if rule is not None:
+                saved = db.execute('SELECT level,experience,gold FROM characters WHERE id=?', (self.p.cid,)).fetchone()
+                self.g.character.update(dict(saved))
         self.p._cached_snapshot=None
         return True
     def hub(self,nid):
@@ -732,9 +742,9 @@ class Campaign:
                     if cost is not None and s['experience'] >= cost:
                         choices.insert(0, (f'消耗{cost}经验升至{c["metadata"]["min_grade"]}级并领取',
                                            dict(op='handoff', chapter=c['id'], node=row['node'], state=row['state'])))
-                    if cultivation_transition(c,s):choices.append(('修行至下一剧情境界',dict(op='cultivate',chapter=c['id'],node=row['node'],state=row['state'])))
                     choices.extend([('查看当前进度',dict(op='hub')),('其他事务',dict(op='service'))])
-                    return self.menu(nid,c['name']+'#r'+(c.get('metadata',{}).get('desc_str') or node['text'])+('#r'+reason if reason else ''),choices)
+                    hint = cultivation_hint(c, s) if not okay else ''
+                    return self.menu(nid,c['name']+'#r'+(c.get('metadata',{}).get('desc_str') or node['text'])+('#r'+reason if reason else '')+hint,choices)
                 action=dict(chapter=c['id'],node=row['node'],state=row['state'])
                 if node['action'] == 'give':
                     return self.delivery_panel(c, node, row)
@@ -750,7 +760,10 @@ class Campaign:
                     choices.append(('观看相关过场',dict(op='movie',**action)))
                 if node['action']=='battle':choices.append(('整理状态，准备挑战',dict(op='recover',**action)))
                 choices.extend([('查看当前进度',dict(op='hub')),('其他事务',dict(op='service'))])
-                return self.menu(nid,c['name']+'·'+node['title']+'#r'+node['text'],choices)
+                description = node['text']
+                if c['id'] in TRIALS and row['node'] + 1 == len(c['nodes']) and rule and rule.start_level is not None:
+                    description += f'#r确认后将从{rule.start_level}级开始，当前经验清空，属性点按新等级重新分配。'
+                return self.menu(nid,c['name']+'·'+node['title']+'#r'+description,choices)
         elif key==(2008,5672) and not any(chapter in CHAPTERS for chapter in s['campaign']['runs']):
             self.validate_npc(nid)
             return self.menu(nid,'欢迎来到三界。准备好开始你的西游之旅了吗？',[('开始新手历练',dict(op='accept',chapter='newbie',node=0,state='none')),('其他事务',dict(op='service'))])
@@ -838,7 +851,7 @@ class Campaign:
                 from native946_tasks import TaskJournal
                 return TaskJournal(self.g).catalog(nid)
             self.g._campaign_bypass=True
-            try:return self.g.world_npc_look(nid,include_story=False)
+            try:return self.g.world_npc_look(nid,include_mount_guide=False)
             finally:self.g._campaign_bypass=False
         if op=='hub':return self.hub(nid)
         if op == 'visit_carter':
@@ -884,12 +897,7 @@ class Campaign:
         if op=='travel':return self.travel(c['giver'] if row['state']=='available' else node['target'])
         if op=='open':return self.look((c['giver'] if row['state']=='available' else node['target'])['npc'])
         if op=='cultivate':
-            if not self.near(c['giver']):raise ValueError('请在剧情领取人处完成修行。')
-            with self.p.transaction() as db:
-                s=self.p._snapshot(db)
-                if not cultivation_transition(c,s):raise ValueError('当前不符合下一剧情的修行条件。')
-                m=c['metadata'];db.execute('UPDATE cultivation_state SET rebirth=?,ascension=?,sanctification=? WHERE character_id=?',(m['min_rei'],m['min_fly'],m['min_feng'],self.p.cid))
-            return (self.close_menu(), self.refreshed('修行境界已提升，达到所需等级后即可领取下一章。'))
+            raise ValueError('请完成相应的修行试炼后再领取主线剧情。')
         if row['state']!='active' or not self.near(node['target']) or nid!=node['target']['npc']:raise ValueError('请前往当前阶段的剧情联系人处。')
         if op=='movie':return self.movie(node)
         if op=='recover':
@@ -911,6 +919,8 @@ class Campaign:
 from native946_wilderness import WildBattle,enter_shared_battle
 
 class CampaignBattle(WildBattle):
+    charge_guardian_participation_on_retreat = False
+
     def __init__(self,leader,games,chapter,node_index):
         data = chapter_for(leader.progression.snapshot()['campaign']['runs'][chapter])
         self.chapter_data=data

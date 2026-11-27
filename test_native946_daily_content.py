@@ -76,10 +76,13 @@ class DailyContentTests(unittest.TestCase):
         game._world_bucket = None
 
     def open_npc(self, scene, nid):
+        reply = self.talk(scene,nid)
+        return menu(next(p for p in reply if mid(p) == 1025))[1]
+
+    def talk(self, scene, nid):
         npc = world().npc(scene, nid)
         self.position(self.a, scene, *load_map(scene).nearest_walkable(npc['x'] // 20, npc['y'] // 20))
-        reply = self.call(self.a, 1034, nid)
-        return menu(next(p for p in reply if mid(p) == 1025))[1]
+        return self.call(self.a, 1034, nid)
 
     def choose(self, nid, choice):
         response = self.a.receive(1032, MessageReader(bytes([choice]) + number(nid)))
@@ -95,22 +98,28 @@ class DailyContentTests(unittest.TestCase):
             return db.execute('SELECT sanjie FROM native_npc_quest_wallet WHERE character_id=?',
                               (self.a.character['id'],)).fetchone()[0]
 
-    def test_exchange_redeems_existing_points_once_and_creates_real_equipment(self):
-        nid = 4101
+    def test_exchange_uses_native_panels_without_unverified_offers(self):
         self.set_points(2000)
         choices = self.open_npc(2001, 4102)
         self.assertIn(2966, [mid(p) for p in self.choose(4102, choices.index('前往吕毅兑换三界令') + 1)])
-        options = self.open_npc(2001, nid)
-        slot = next(i for i, label in enumerate(options, 1) if label.startswith('国寺法带'))
-        self.assertTrue(any(mid(p) == 786 for p in self.choose(nid, slot)))
-        self.choose(nid, slot)
-        self.assertEqual(self.points(), 100)
-        state = self.a.progression.snapshot()
-        item = next(i for i in state['items'] if i['type'] == 11685)
-        self.assertEqual(state['equipment'][item['id']]['properties'], {'防御': 178, '敏捷': 7})
-        self.assertEqual(state['equipment'][item['id']]['slot'], 6)
+        before = self.a.progression.snapshot()['items']
+        for scene, npc, panel in ((2001,4101,1686),(2006,4220,1686),(2001,5500,1694)):
+            with self.subTest(scene=scene,npc=npc):
+                reply = self.talk(scene,npc)
+                self.assertNotIn(1025,[mid(p) for p in reply])
+                r = MessageReader(next(p for p in reply if mid(p) == panel)[3:])
+                self.assertEqual(r.integer(),npc)
+                if panel == 1686:
+                    self.assertEqual(r.integer(),2)
+                self.assertEqual(r.take(1),b'\0')
+                r.finish()
+                self.assertEqual(self.choose(npc,1),())
+                self.assertEqual(self.a.dialog_actions,[])
+        self.call(self.a,1714,5500,6021,1,1)
+        self.assertEqual(self.points(),2000)
+        self.assertEqual(self.a.progression.snapshot()['items'],before)
 
-    def test_native_dialogue_exchanges_and_digs_super_map(self):
+    def test_unverified_exchange_is_closed_and_owned_super_map_still_digs(self):
         from native946_inventory_features import give
         from native946_ordinary_treasure import ADVANCED, SUPER
 
@@ -118,10 +127,11 @@ class DailyContentTests(unittest.TestCase):
         p = self.a.progression
         with p.transaction() as db:
             give(db,p,ADVANCED['item'],SUPER['advanced_cost'])
-        options = self.open_npc(scene,nid)
-        self.choose(nid,options.index('兑换超级藏宝图')+1)
+            give(db,p,SUPER['item'])
+        self.assertEqual([mid(p) for p in self.talk(scene,nid)],[1183,100])
+        self.assertEqual(self.choose(nid,2),())
         state = p.snapshot()
-        self.assertFalse(any(i['type']==ADVANCED['item'] for i in state['items']))
+        self.assertEqual(sum(i['amount'] for i in state['items'] if i['type']==ADVANCED['item']),SUPER['advanced_cost'])
         iid = next(i['id'] for i in state['items'] if i['type']==SUPER['item'])
         self.position(self.a,*destination(iid))
         result = self.call(self.a,807,p.cid,iid)
@@ -147,15 +157,12 @@ class DailyContentTests(unittest.TestCase):
         scene,nid,_ = CONTACTS[0]
         self.assertNotIn(CONTACTS[0][2]+'（本服）',self.open_npc(scene,nid))
 
-    def test_exchange_full_bag_fails_without_spending_points(self):
+    def test_stale_exchange_menu_cannot_spend_points(self):
         self.set_points(2000)
-        self.open_npc(2001, 4101)
-        with self.a.progression.transaction() as db:
-            cid = self.a.character['id']
-            for slot in range(1, 25):
-                db.execute('INSERT OR IGNORE INTO inventory(character_id,type,page,slot,amount) VALUES(?,4000,8,?,1)',
-                           (cid, slot))
-        self.assertIn(98, [mid(p) for p in self.choose(4101, 2)])
+        self.talk(2001,4101)
+        self.a.dialog_actions = [dict(kind='sanjie_exchange',item=11685)]
+        self.a.menu('旧兑换对话',['旧商品'],4101)
+        self.assertIn(100,[mid(p) for p in self.choose(4101,1)])
         self.assertEqual(self.points(), 2000)
         self.assertNotIn(11685, [i['type'] for i in self.a.progression.snapshot()['items']])
 

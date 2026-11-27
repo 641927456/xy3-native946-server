@@ -19,8 +19,14 @@ import native946_inventory as inventory_controls
 
 DATA = json.loads(Path(__file__).with_name('native946_progression_data.json').read_text(encoding='utf8'))
 STACK_LIMITS=json.loads(Path(__file__).with_name('native946_inventory_data.json').read_text('utf8'))['stack_limits']
-for _meta in training.DATA['neidan_meta'].values():
-    DATA['items'][str(_meta['item_type'])]={key:_meta[key] for key in ('name','icon','desc')}
+# In 946 three bag items have different names from their installed skills.
+NEIDAN_BAG_NAMES = {91009: '定神思', 91010: '守灵台', 91508: '潜形匿迹'}
+for _prefix, _group in zip(('低级内丹·', '高级内丹·'), training.DATA['new_neidan']['NewNeidanIds'], strict=True):
+    for _sid, _config in _group.items():
+        _kind = _config['ItemType']
+        _meta = training.DATA['neidan_meta'][_sid]
+        DATA['items'][str(_kind)] = dict(name=_prefix + NEIDAN_BAG_NAMES.get(_kind, _meta['name']),
+                                        icon=_meta['icon'], desc=_meta['desc'], max_stack=_meta['stack'])
 DATA['items'].update(legacy_neidan.DATA['items'])
 from native946_guardian_jade import ITEMS as GUARDIAN_CULTIVATION_ITEMS
 for _kind,_meta in GUARDIAN_CULTIVATION_ITEMS.items():
@@ -51,6 +57,8 @@ for _kind, (_name, _icon, _resource, _level, _points) in RESERVE_FOODS.items():
         desc=f'使用后{RESERVE_RESOURCES[_resource]}储备+{_points}，战斗外自动恢复。使用等级：{_level}。'))
 from native946_newbie_rewards import ITEMS as NEWBIE_AWARD_ITEMS
 DATA['items'].update(NEWBIE_AWARD_ITEMS)
+_growth_equipment = json.loads(Path(__file__).with_name('native946_growth_battle_data.json').read_text('utf8'))
+DATA['items'].update(_growth_equipment['first_charge']['equipment'])
 QUEST_ID = 910001
 QUEST_NAME = '初试身手'
 # Base recovery values from the 946 item descriptions.
@@ -118,7 +126,9 @@ GEAR = {5000: (1, {'defense': 2}), 5003: (3, {'hpmax':20, 'defense':3}),
         5023: (5, {'speed': 2})}
 SKILLS = {6100: {'level': 1, 'mana': 8, 'cast_id': DATA['skills']['6100']['cast_id']},
           6101: {'level': 2, 'mana': 12, 'cast_id': DATA['skills']['6101']['cast_id']}}
-from native946_role_battle import DATA as ROLE_COMBAT_DATA, NIUDAO_XIAOSHI
+from native946_role_battle import DATA as ROLE_COMBAT_DATA, LIULI_LAMP, NIUDAO_XIAOSHI
+from native946_role_artifacts import ACTIVE_PAGE as ACTIVE_ARTIFACT_PAGE, STORAGE_PAGE as ARTIFACT_STORAGE_PAGE, MODERN_ARTIFACTS
+DATA['items'].update({str(kind): row for kind, row in MODERN_ARTIFACTS.items()})
 for _sid,_profile in ROLE_COMBAT_DATA['profiles'].items():
     if _profile['source'] != 'starter':
         SKILLS.setdefault(int(_sid),_profile)
@@ -133,11 +143,11 @@ def numbers(mid, *values):
 def level_up_cost(level, target, *, cultivation=None):
     # The published 1–100 character table matches (grade + 1)^3 + 50
     # in every row. The 947 unreborn panels agree at their displayed precision.
-    # Other stages and grades have no verified experience table here.
+    # Extend this curve to the 946 unreborn cap. Later stages use the local fallback.
     advanced = any(cultivation.get(key,0) for key in ('rebirth','ascension','sanctification')) if cultivation else False
     if advanced:
         return sum(rank*100 for rank in range(level,target))
-    return sum((rank+1)**3+50 if 1<=rank<=100 else rank*100 for rank in range(level,target))
+    return sum((rank+1)**3+50 for rank in range(level,target))
 
 
 def lua_data(value):
@@ -164,6 +174,9 @@ class Progression:
         self.known_items = set()
         self._known_item_positions = {}
         self._known_item_quantities = None
+        from native946_neidan import reconcile_level_caps
+
+        self.neidan_level_updates = reconcile_level_caps(self)
         # Existing characters need no schema writes on login. Repeating DDL
         # here competes with gameplay commits while other peers are entering.
         with self.transaction(write=False) as db:
@@ -208,7 +221,12 @@ class Progression:
                                  '(SELECT 1 FROM skill_shortcuts WHERE character_id=p.character_id AND slot=0) AND EXISTS '
                                  '(SELECT 1 FROM native_role_system_state WHERE character_id=p.character_id '
                                  "AND system='starter_skills')",(self.cid,)).fetchone()
-        if ready:return
+            repair_skills = ready and self._missing_level_spells(db)
+        if ready:
+            if repair_skills:
+                with self.transaction() as db:
+                    self._learn_level_spells(db)
+            return
         with self.transaction() as db:
             db.executescript('''
                 CREATE TABLE IF NOT EXISTS progression (
@@ -267,6 +285,7 @@ class Progression:
             db.execute('UPDATE OR IGNORE skill_shortcuts SET slot=1 WHERE character_id=? AND slot=0',(self.cid,))
             db.execute('DELETE FROM skill_shortcuts WHERE character_id=? AND slot=0',(self.cid,))
             self._initialize_starter_skills(db, created)
+            self._learn_level_spells(db)
             row=db.execute('SELECT c.level,p.formula_version FROM characters c JOIN progression p ON p.character_id=c.id '
                            'WHERE c.id=?',(self.cid,)).fetchone()
             if not row['formula_version']:
@@ -318,6 +337,20 @@ class Progression:
                     db.execute('DELETE FROM skill_shortcuts WHERE character_id=? AND skill_id=6100', (self.cid,))
         save(db, self.cid, 'starter_skills', {})
 
+    def _missing_level_spells(self, db):
+        from native946_school import level_spells
+
+        role = db.execute('SELECT level,race,sex FROM characters WHERE id=?', (self.cid,)).fetchone()
+        learned = {row[0] for row in db.execute(
+            'SELECT skill_id FROM learned_skills WHERE character_id=?', (self.cid,))}
+        return [skill for skill in level_spells(db, self.cid, role) if skill not in learned]
+
+    def _learn_level_spells(self, db):
+        skills = self._missing_level_spells(db)
+        if skills:
+            db.executemany('INSERT INTO learned_skills VALUES(?,?,0) ON CONFLICT(character_id,skill_id) DO NOTHING',
+                           ((self.cid, skill) for skill in skills))
+
     @contextmanager
     def transaction(self, write=True):
         if write:self._cached_snapshot=None
@@ -331,10 +364,7 @@ class Progression:
                 authorized.add(identity)
             yield db
 
-    def _snapshot(self, db):
-        row=dict(db.execute('SELECT c.*,p.cor,p.mag,p.strength,p.speed,p.points,p.hp,p.mp,p.disposition,p.formula_version FROM characters c '
-                            'JOIN progression p ON p.character_id=c.id WHERE c.id=?',(self.cid,)).fetchone())
-        row['equipment_page']=inventory_controls.active_page(db,self.cid)
+    def inventory_rows(self, db):
         from native946_mall_bags import pages as bag_pages
         from native946_role_baby_tools import pages as baby_pages
         guardian_pages=[]
@@ -342,10 +372,20 @@ class Progression:
             guardian_pages=[r[0] for r in db.execute('SELECT DISTINCT page FROM inventory WHERE character_id=? AND id IN '
                                                      '(SELECT item_id FROM native_guardian_equipment)',(self.cid,))]
         visible_pages=(*inventory_controls.EQUIP_PAGES,*bag_pages(db,self.cid,True),*guardian_pages,*range(25,30),*range(5800,5816),*range(7000,7004),*range(7100,7104),*baby_pages(db,self.cid))
-        row['items']=[dict(r) for r in db.execute('SELECT * FROM inventory WHERE character_id=? AND page IN ('+','.join('?' for _ in visible_pages)+') ORDER BY id',(self.cid,*visible_pages))]
+        items=[dict(r) for r in db.execute(
+            'SELECT * FROM inventory WHERE character_id=? AND (page IN ('+','.join('?' for _ in visible_pages)+
+            ') OR (page IN (?,?) AND type IN ('+','.join('?' for _ in MODERN_ARTIFACTS)+'))) ORDER BY id',
+            (self.cid,*visible_pages,ACTIVE_ARTIFACT_PAGE,ARTIFACT_STORAGE_PAGE,*MODERN_ARTIFACTS))]
         from native946_inventory_locks import records as item_locks
         locks=item_locks(db,self.cid)
-        for item in row['items']:item.update(locks.get(item['id'],dict(lock=0,lock_block_time=0)))
+        for item in items:item.update(locks.get(item['id'],dict(lock=0,lock_block_time=0)))
+        return items
+
+    def _snapshot(self, db):
+        row=dict(db.execute('SELECT c.*,p.cor,p.mag,p.strength,p.speed,p.points,p.hp,p.mp,p.disposition,p.formula_version FROM characters c '
+                            'JOIN progression p ON p.character_id=c.id WHERE c.id=?',(self.cid,)).fetchone())
+        row['equipment_page']=inventory_controls.active_page(db,self.cid)
+        row['items']=self.inventory_rows(db)
         bank=db.execute('SELECT balance FROM npc_bank_accounts WHERE character_id=?',(self.cid,)).fetchone()
         row['bank_balance']=bank[0] if bank else 0
         row['skills']={r['skill_id']:r['rank'] for r in db.execute('SELECT * FROM learned_skills WHERE character_id=?',(self.cid,))}
@@ -438,6 +478,7 @@ class Progression:
         row.update(battle_effects(db,self.cid))
         for name,skill in (('绝情鞭',128),('金箍儿',131)):
             if row['role_artifacts'].get(name):row['skills'].setdefault(skill,1)
+        if lamp_level:=row['role_artifacts']['琉璃灯']:row['skills'][LIULI_LAMP]=lamp_level
         from native946_role_battle import current_vim
         row['vim']=current_vim(role_state(db,self.cid,'tianji',{}))
         from native946_role_battle import vim_limit
@@ -474,9 +515,11 @@ class Progression:
             s=self._snapshot(db)
             target = s['level'] + 1 if target is None else target
             increase = target - s['level']
-            from native946_cultivation import level_cap
+            from native946_cultivation import FLIGHT_LIMIT, level_cap
             cap=level_cap(s)
             if not s['level'] < target <= cap:
+                if target > cap and s['ascension'] and not s['sanctification'] and cap == FLIGHT_LIMIT:
+                    raise ValueError('飞升160级后，请到西梁国主处完成凝气化神再升级。')
                 raise ValueError('已达到当前可升等级上限。')
             cost = level_up_cost(s['level'], target, cultivation=s)
             if s['experience'] < cost:
@@ -484,6 +527,7 @@ class Progression:
             db.execute('UPDATE characters SET level=?,experience=experience-? WHERE id=?',(target,cost,self.cid))
             db.execute('UPDATE progression SET cor=cor+?,mag=mag+?,strength=strength+?,speed=speed+?,points=points+? '
                        'WHERE character_id=?',(increase,increase,increase,increase,increase*4,self.cid))
+            self._learn_level_spells(db)
             after=self._snapshot(db)
             db.execute('UPDATE progression SET hp=?,mp=? WHERE character_id=?',
                        (min(after['hpmax'],s['hp']+after['hpmax']-s['hpmax']),
@@ -503,6 +547,7 @@ class Progression:
         return increased
 
     def learn(self, skill, count=1):
+        if skill == LIULI_LAMP:raise ValueError('琉璃灯由装备提供，不需要学习。')
         if skill not in SKILLS or count!=1:raise ValueError('当前训练不支持该技能。')
         with self.transaction() as db:
             s=self._snapshot(db);rank=s['skills'].get(skill,0)
@@ -535,10 +580,12 @@ class Progression:
                            (self.cid,slot,skill))
 
     def free_bag_slot(self,snapshot=None):
-        if snapshot is None:snapshot=self.snapshot()
         from native946_mall_bags import pages
-        with self.transaction(write=False) as db:normal=pages(db,self.cid)
-        occupied={(i['page'],i['slot']) for i in snapshot['items']}
+        with self.transaction(write=False) as db:
+            normal=pages(db,self.cid)
+            items=snapshot['items'] if snapshot is not None else db.execute(
+                'SELECT page,slot FROM inventory WHERE character_id=?',(self.cid,))
+            occupied={(i['page'],i['slot']) for i in items}
         for page in normal:
             for slot in range(1,25):
                 if (page,slot) not in occupied:return page,slot
@@ -559,26 +606,40 @@ class Progression:
     def move_item(self, item_id, page, slot, expected_page=None, *, stack=True):
         with self.transaction() as db:
             from native946_mall_bags import pages as bag_pages
-            normal=bag_pages(db,self.cid);withdraw=bag_pages(db,self.cid,True)
+            bag_destinations=bag_pages(db,self.cid);bag_sources=bag_pages(db,self.cid,True)
+            item=db.execute('SELECT * FROM inventory WHERE id=? AND character_id=?',(item_id,self.cid)).fetchone()
+            if not item or (expected_page is not None and item['page']!=expected_page):raise ValueError('物品位置已变化。')
+            if {page, item['page']} & {ACTIVE_ARTIFACT_PAGE, ARTIFACT_STORAGE_PAGE}:
+                from native946_role_artifacts import move_artifact
+                return move_artifact(db,self.cid,item,page,slot,bag_destinations,bag_sources)
             from native946_fishing import PAGES as FISH_PAGES,validate_position
             from native946_role_baby_tools import pages as baby_pages,validate_position as validate_baby_position
-            normal=(*normal,*FISH_PAGES,*baby_pages(db,self.cid));withdraw=(*withdraw,*FISH_PAGES,*baby_pages(db,self.cid))
+            children=baby_pages(db,self.cid)
+            normal=(*bag_destinations,*FISH_PAGES,*children);withdraw=(*bag_sources,*FISH_PAGES,*children)
             if not ((page in normal and 1<=slot<=24) or (page in inventory_controls.EQUIP_PAGES and slot in inventory_controls.EQUIP_SLOTS)):raise ValueError('目标位置无效或物品栏未开启。')
-            before=self._snapshot(db)
-            item=db.execute('SELECT * FROM inventory WHERE id=? AND character_id=?',(item_id,self.cid)).fetchone()
-            if not item or item['page'] not in (*inventory_controls.EQUIP_PAGES,*withdraw) or (expected_page is not None and item['page']!=expected_page):raise ValueError('物品位置已变化。')
+            bag_only=item['page'] in bag_sources and page in bag_destinations
+            before=None if bag_only else self._snapshot(db)
+            if item['page'] not in (*inventory_controls.EQUIP_PAGES,*withdraw):raise ValueError('物品位置已变化。')
             validate_position(db,self.cid,item['type'],page,slot)
             validate_baby_position(db,self.cid,item['type'],page,slot)
-            if page in baby_pages(db,self.cid) and item['amount']!=1:raise ValueError('请先把孩子装备拆分为单件。')
+            if page in children and item['amount']!=1:raise ValueError('请先把孩子装备拆分为单件。')
             if page in inventory_controls.EQUIP_PAGES:self.validate_equipment(before,dict(item),slot,page)
             target=db.execute('SELECT * FROM inventory WHERE character_id=? AND page=? AND slot=?',(self.cid,page,slot)).fetchone()
-            if target and target['id']==item_id:return
+            changed={item_id}
+            if target and target['id']==item_id:return changed
             if target:
+                changed.add(target['id'])
                 validate_position(db,self.cid,target['type'],item['page'],item['slot'])
                 validate_baby_position(db,self.cid,target['type'],item['page'],item['slot'])
                 if stack and item['page'] in withdraw and page in normal and target['type']==item['type']:
-                    maximum=self.stack_limit(dict(item),before)
-                    flags={i['id']:(i.get('lock',0),i.get('lock_block_time',0)) for i in before['items']}
+                    from native946_inventory_locks import records as item_locks
+                    flags=item_locks(db,self.cid)
+                    stack_state=before
+                    if stack_state is None:
+                        equipped=db.execute('SELECT item_id FROM native_equipment WHERE character_id=? AND item_id=?',
+                                            (self.cid,item_id)).fetchone()
+                        stack_state={'equipment':{item_id} if equipped else ()}
+                    maximum=self.stack_limit(item,stack_state)
                     if flags.get(item_id)!=flags.get(target['id']):maximum=1
                     if str(item['type']) in INVENTORY_FEATURE_DATA['glyph_slots']:
                         levels={r['item_id']:r['level'] for r in db.execute('SELECT item_id,level FROM native_glyph_item_levels WHERE character_id=? AND item_id IN (?,?)',(self.cid,item_id,target['id']))}
@@ -590,14 +651,16 @@ class Progression:
                             db.execute('UPDATE inventory SET amount=amount+? WHERE id=?',(amount,target['id']))
                             if amount==item['amount']:db.execute('DELETE FROM inventory WHERE id=?',(item_id,))
                             else:db.execute('UPDATE inventory SET amount=amount-? WHERE id=?',(amount,item_id))
-                        return
+                        return changed
                 if item['page'] in withdraw and item['page'] not in normal:raise ValueError('到期百纳袋只能取出，不能交换存入。')
                 if item['page'] in inventory_controls.EQUIP_PAGES:self.validate_equipment(before,dict(target),item['slot'],item['page'])
                 db.execute('UPDATE inventory SET page=-1,slot=-1 WHERE id=?',(item_id,))
                 db.execute('UPDATE inventory SET page=?,slot=? WHERE id=?',(item['page'],item['slot'],target['id']))
             db.execute('UPDATE inventory SET page=?,slot=? WHERE id=?',(page,slot,item_id))
-            after=self._snapshot(db)
-            db.execute('UPDATE progression SET hp=?,mp=? WHERE character_id=?',(min(before['hp'],after['hpmax']),min(before['mp'],after['mpmax']),self.cid))
+            if before is not None:
+                after=self._snapshot(db)
+                db.execute('UPDATE progression SET hp=?,mp=? WHERE character_id=?',(min(before['hp'],after['hpmax']),min(before['mp'],after['mpmax']),self.cid))
+            return changed
 
     @staticmethod
     def stack_limit(item,snapshot):
@@ -765,13 +828,20 @@ class Progression:
                 lock=i.get('lock',0), lock_block_time=i.get('lock_block_time',0)))
         return records
 
-    def item_packets(self, s=None, *, item_ids=None):
+    def item_packets(self, s=None, *, item_ids=None, pages=None):
         if item_ids is not None and not item_ids:return ()
-        if s is None:s=self.snapshot()
         from native946_mall_bags import pages as bag_pages
         from native946_temp_inventory import rows as temporary_items
+        previous=getattr(self,'_known_item_positions',{})
         with self.transaction(write=False) as db:
-            items = [*s['items'], *map(dict, temporary_items(db, self.cid)), *npc_services.warehouse_rows(db, self.cid)]
+            inventory=s['items'] if s is not None else self.inventory_rows(db)
+            items = [*inventory, *map(dict, temporary_items(db, self.cid)), *npc_services.warehouse_rows(db, self.cid)]
+            if pages is not None:
+                # Include IDs formerly on these pages so the client can clear
+                # a stale grid entry when an item is removed or relocated.
+                item_ids={i['id'] for i in items if i['page'] in pages}
+                item_ids.update(iid for iid,(page,_) in previous.items() if page in pages)
+                if not item_ids:return ()
             if item_ids is not None:items=[i for i in items if i['id'] in item_ids]
             records = self.item_records(db, items)
             quantities = {row['id']:(row['type'],row['amount']) for row in db.execute(
@@ -779,7 +849,6 @@ class Progression:
             effect_pages = bag_pages(db, self.cid)
         ids={i['id'] for i in items}
         positions={i['id']:(i['page'],i['slot']) for i in items}
-        previous=getattr(self,'_known_item_positions',{})
         known=self.known_items if item_ids is None else self.known_items & item_ids
         relocated={i for i in ids & known if previous.get(i)!=positions[i]}
         # c_item_update deletes the old grid before adding the new one. During
@@ -830,6 +899,9 @@ class Progression:
         if item['type']==6052:
             with self.transaction(write=False) as db:meta=legacy_neidan.item_metadata(db,item_id) or meta
         desc=meta['desc']
+        from native946_role_artifacts import BOX_RULES, box_description
+        if item['type'] in BOX_RULES:
+            desc+=box_description(item['type'])
         from native946_neidan import ITEM_TYPES as NEW_NEIDAN_ITEMS, MAX_LEVEL_PREVIEWS
         preview=MAX_LEVEL_PREVIEWS.get(NEW_NEIDAN_ITEMS.get(item['type']))
         if preview:
@@ -863,6 +935,9 @@ class Progression:
         if instance:
             desc+='#r'+equipment.description(instance)
             desc+=f"#r【耐久】{instance['durability']}/{instance['max_durability']}"
+        elif sample := equipment.CBG_GEAR['fairy'].get(str(item['type'])):
+            desc+='#r【同编号五阶仙器基础属性参考】#r'+'#r'.join(
+                equipment.property_lines(sample['properties'], sample['percent']))
         active_traits=refinement['traits'] if not refinement['expires'] or refinement['expires']>int(time()) else ()
         score=guardian_score or item_score(instance,starter,gems,active_traits)
         if score:desc+='#r#G装备评价采用本机计分。#n'

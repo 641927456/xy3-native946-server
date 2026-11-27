@@ -4,7 +4,7 @@ from random import choice
 
 from native946_codec import packet
 from native946_training import DATA
-REFERENCE_WIRE_VERSION=3
+REFERENCE_WIRE_VERSION=4
 
 CONFIG=DATA['new_neidan']
 META={int(key):value for key,value in DATA['neidan_meta'].items()}
@@ -21,7 +21,8 @@ WRITES={753,755,765,766,767,5226,5227}
 MAX_SUMMON_EXPERIENCE=9_000_000_000
 ENERGY_PER_ITEM=1000
 MAX_ENERGY=6000
-LEVEL_CAPS=(102,122,142,180)
+# 946 encyclopedia 101608 ties rebirth thresholds to guardian levels.
+LEVEL_CAPS = (100, 120, 140, 180)
 STAT_EFFECTS = {
     236: ('mpmax','initiative'), 237: ('hpmax','initiative'),
     238: ('hpmax','attack'), 239: ('attack','initiative'), 240: ('hpmax','mpmax'),
@@ -134,9 +135,60 @@ def threshold(level,stage):
     return (level**3+50)*(106+min(stage,2)*24)*7//1000
 
 
+def _over_cap_rows(db, cid):
+    tables = (
+        ('legacy_neidan', 'rebirth', 'summons', 'summon_id', ('summon_id', 'kind')),
+        ('legacy_neidan_items', 'rebirth', 'inventory', 'item_id', ('item_id',)),
+        ('native_new_neidan', 'stage', 'summons', 'summon_id', ('summon_id', 'kind')),
+    )
+    present = {row[0] for row in db.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name IN "
+        "('legacy_neidan','legacy_neidan_items','native_new_neidan','inventory','summons')")}
+    for table, stage, owner_table, owner_key, keys in tables:
+        # Progression can create pill tables before guardian storage is initialized.
+        if table not in present or owner_table not in present:
+            continue
+        rows = db.execute(f'SELECT n.* FROM {table} n JOIN {owner_table} o ON o.id=n.{owner_key} '
+                          f'WHERE o.character_id=? AND n.{stage} BETWEEN 0 AND 2 '
+                          f'AND n.level>CASE n.{stage} WHEN 0 THEN ? WHEN 1 THEN ? ELSE ? END',
+                          (cid, *LEVEL_CAPS[:3])).fetchall()
+        for row in rows:
+            yield table, stage, keys, row
+
+
+def reconcile_level_caps(progression):
+    """Return the retired levels' XP to the pill on first login or reload."""
+    with progression.transaction(write=False) as db:
+        if not any(_over_cap_rows(db, progression.cid)):
+            return ()
+
+    from native946_neidan_legacy import threshold as legacy_threshold
+
+    guardians = set()
+    with progression.transaction() as db:
+        for table, stage_key, keys, row in _over_cap_rows(db, progression.cid):
+            stage = row[stage_key]
+            cap = LEVEL_CAPS[stage]
+            current_threshold = legacy_threshold if stage_key == 'rebirth' else threshold
+            refund = sum(current_threshold(level, stage) for level in range(cap, min(row['level'], cap + 2)))
+            condition = ' AND '.join(f'{key}=?' for key in keys)
+            values = tuple(row[key] for key in keys)
+            if stage_key == 'rebirth':
+                db.execute(f'UPDATE {table} SET level=?,experience=experience+?,expnext=? WHERE {condition}',
+                           (cap, refund, current_threshold(cap, stage), *values))
+            else:
+                db.execute(f'UPDATE {table} SET level=?,experience=experience+? WHERE {condition}',
+                           (cap, refund, *values))
+            if 'summon_id' in keys:
+                guardians.add(row['summon_id'])
+    return tuple(sorted(guardians))
+
+
 def grow(row,experience):
-    row=dict(row,experience=row['experience']+experience)
     cap=LEVEL_CAPS[row['stage']]
+    if row['level']>=cap:
+        return dict(row)
+    row=dict(row,experience=row['experience']+experience)
     while row['level']<cap and row['experience']>=threshold(row['level'],row['stage']):
         row['experience']-=threshold(row['level'],row['stage'])
         row['level']+=1

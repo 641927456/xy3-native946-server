@@ -9,16 +9,38 @@ from importlib import reload
 from contextlib import contextmanager, nullcontext
 from copy import deepcopy
 
-from native946_codec import packet, screen_notice, text_notice
+from native946_codec import experience_notice_lines, packet, screen_notice, text_notice
 from native946_map import load_map
 from native946_storage import StorageBusy, transaction as storage_transaction
+
+_durable_writer = sys.modules.get('native946_durable_writer')
+if _durable_writer is not None and not hasattr(_durable_writer.DurableWriter, 'flush_idle'):
+    reload(_durable_writer).refresh_registered_writers()
+
+# The listener warms world data before it loads the gameplay module.
+_world = sys.modules.get('native946_world')
+if _world is not None and getattr(_world, 'NPC_VISIBILITY_VERSION', 0) < 1:
+    reload(_world)
+if _world is not None and _world.world().data.get('route_revision', 0) < 1:
+    _world.world.cache_clear()
+    _world.world().warm()
+
 import native946_battle_actions as _battle_actions
-if getattr(_battle_actions,'REFERENCE_WIRE_VERSION',0)<11:reload(_battle_actions)
+if getattr(_battle_actions,'REFERENCE_WIRE_VERSION',0)<12:reload(_battle_actions)
 from native946_battle_actions import BattleActions
 _role_battle=sys.modules.get('native946_role_battle')
-if _role_battle is not None and (getattr(_role_battle,'GUARDIAN_PASSIVE_WIRE_VERSION',0)<3 or getattr(_role_battle,'PRESENTATION_WIRE_VERSION',0)<4 or getattr(_role_battle,'WIRE_VERSION',0)<16 or getattr(_role_battle,'MEDICINE_WIRE_VERSION',0)<1):reload(_role_battle)
+if _role_battle is not None and (getattr(_role_battle,'GUARDIAN_PASSIVE_WIRE_VERSION',0)<3 or getattr(_role_battle,'PRESENTATION_WIRE_VERSION',0)<4 or getattr(_role_battle,'WIRE_VERSION',0)<24 or getattr(_role_battle,'MEDICINE_WIRE_VERSION',0)<1):reload(_role_battle)
 _bell=sys.modules.get('native946_zhuziguo_bell')
 if _bell is not None and getattr(_bell,'PROTECTION_WIRE_VERSION',0)<1:reload(_bell)
+# The recommendation panel may have imported the old score handler at startup.
+_liveness = sys.modules.get('native946_liveness')
+_liveness_stale = _liveness is not None and getattr(_liveness, 'WIRE_VERSION', 0) < 1
+if _liveness_stale:
+    reload(_liveness)
+_task_recommendations = sys.modules.get('native946_task_recommendations')
+if _task_recommendations is not None and (
+        _liveness_stale or getattr(_task_recommendations, 'WIRE_VERSION', 0) < 2):
+    reload(_task_recommendations)
 
 # The existing controller reloads this module on its owning socket thread.
 # Refresh already imported reference features without replacing sessions,
@@ -35,14 +57,17 @@ _shops=sys.modules.get('native946_shops')
 if _shops is not None and getattr(_shops,'REFERENCE_WIRE_VERSION',0)<8:reload(_shops)
 _growth_battle=sys.modules.get('native946_growth_battle')
 if _growth_battle is not None and getattr(_growth_battle,'ICON_LIST_VERSION',0)<3:reload(_growth_battle)
-for _feature in ('native946_book_combat','native946_refinement','native946_fashion_refinement','native946_fashion','native946_cosmetics','native946_hero_titles','native946_equipment','native946_party','native946_workshops','native946_crafting','native946_task_chain',
+_reserve_food = sys.modules.get('native946_reserve_food')
+if _reserve_food is not None and getattr(_reserve_food, 'SLOT_STORAGE_VERSION', 0) < 1:
+    reload(_reserve_food)
+for _feature in ('native946_book_combat','native946_refinement','native946_fashion_refinement','native946_fashion','native946_cosmetics','native946_nice_ids','native946_mall_mounts','native946_mount_spaces','native946_hero_titles','native946_equipment','native946_party','native946_workshops','native946_crafting','native946_task_chain',
                  'native946_npc_quests','native946_pawnshop','native946_npc_services','native946_guardian_passives','native946_guardian_innate','native946_guardian_ui','native946_neidan','native946_neidan_legacy','native946_skillbooks','native946_guardian_magic','native946_guardian_lottery','native946_guardian_acquisition','native946_guardian_channels','native946_campaign'):
     _loaded=sys.modules.get(_feature)
     _battle_base_stale=(_feature=='native946_npc_quests' and _loaded is not None and
                        'native946_wilderness' in sys.modules and hasattr(_loaded,'QuestBattle') and
                        _loaded.QuestBattle.__bases__[0] is not sys.modules['native946_wilderness'].WildBattle)
     _minimum=5 if _feature=='native946_guardian_acquisition' else 2 if _feature=='native946_guardian_channels' else 5 if _feature=='native946_skillbooks' else 13 if _feature=='native946_guardian_ui' else 6 if _feature in ('native946_crafting','native946_party','native946_npc_services') else 5
-    _minimum=2 if _feature=='native946_task_chain' else max(_minimum,{'native946_crafting':11,'native946_party':8,'native946_equipment':8,'native946_workshops':9,'native946_skillbooks':4,'native946_npc_quests':11}.get(_feature,0))
+    _minimum=2 if _feature=='native946_task_chain' else max(_minimum,{'native946_crafting':11,'native946_party':8,'native946_equipment':8,'native946_workshops':9,'native946_skillbooks':4,'native946_npc_quests':12}.get(_feature,0))
     if _feature=='native946_task_chain' and _loaded is not None and 'native946_wilderness' in sys.modules:
         _battle_base_stale=hasattr(_loaded,'ChainBattle') and _loaded.ChainBattle.__bases__[0] is not sys.modules['native946_wilderness'].WildBattle
     if _feature=='native946_guardian_magic':_minimum=5
@@ -53,29 +78,47 @@ for _feature in ('native946_book_combat','native946_refinement','native946_fashi
         if _loaded is not None and 'native946_wilderness' in sys.modules:
             _battle_base_stale=_loaded.CampaignBattle.__bases__[0] is not sys.modules['native946_wilderness'].WildBattle
     if _feature in ('native946_fashion','native946_cosmetics','native946_hero_titles'):_minimum=2
-    if _feature in ('native946_refinement','native946_fashion_refinement'):_minimum=1
+    if _feature in ('native946_refinement','native946_fashion_refinement','native946_nice_ids','native946_mount_spaces'):_minimum=1
+    if _feature=='native946_mall_mounts':_minimum=4
     if _feature=='native946_cosmetics':_minimum=9
     if _feature=='native946_pawnshop':_minimum=1
-    if _feature=='native946_npc_services':_minimum=24
+    if _feature=='native946_npc_services':_minimum=25
     if _feature=='native946_book_combat':_minimum=6
-    if _feature=='native946_neidan':_minimum=3
-    if _feature=='native946_neidan_legacy':_minimum=7
-    if _feature=='native946_party':_minimum=22
+    if _feature=='native946_neidan':_minimum=4
+    if _feature=='native946_neidan_legacy':_minimum=8
+    if _feature=='native946_party':_minimum=29
     if _feature=='native946_guardian_lottery':_minimum=9
     elif _feature in ('native946_guardian_acquisition','native946_guardian_channels'):
-        _minimum=max(_minimum,{'native946_guardian_acquisition':7,'native946_guardian_channels':4}[_feature])
+        _minimum=max(_minimum,{'native946_guardian_acquisition':8,'native946_guardian_channels':4}[_feature])
     _inventory_pages_stale=(_feature=='native946_equipment' and _loaded is not None and getattr(_loaded,'INVENTORY_PAGE_VERSION',0)<1)
     _acquisition_exports_stale=(_feature=='native946_guardian_acquisition' and _loaded is not None and not hasattr(_loaded,'WRITES'))
     _gem_catalog_stale=_feature=='native946_cosmetics' and _realm_gems_stale
-    if _loaded is not None and (getattr(_loaded,'REFERENCE_WIRE_VERSION',0)<_minimum or _battle_base_stale or _inventory_pages_stale or _acquisition_exports_stale or _gem_catalog_stale):
+    _loaded_version=getattr(_loaded,'REFERENCE_WIRE_VERSION',0)
+    if _loaded is not None and (_loaded_version<_minimum or _battle_base_stale or _inventory_pages_stale or _acquisition_exports_stale or _gem_catalog_stale):
         reload(_loaded)
         if _feature=='native946_party':
             with _loaded._LOCK:
-                for _service in tuple(_loaded._SERVICES.values()):_service.__class__=_loaded.PartyService
+                for _service in tuple(_loaded._SERVICES.values()):
+                    _service.__class__=_loaded.PartyService
+                    # Repair clients that were connected before the handoff fix.
+                    if _loaded_version < 29:
+                        for _game in tuple(_service.games.values()):
+                            if _service.online(_game.character['id']) is _game:
+                                _game._team_scene_resync_pending=True
+
+# Group constellation battles inherit WildBattle through AfeiBattle.
+_group_battle = sys.modules.get('native946_constellation_battle')
+if _group_battle is not None:
+    from native946_wilderness import WildBattle as _wild_battle_base
+    if _group_battle.GroupBattle.__mro__[2] is not _wild_battle_base:
+        _afei_battle = sys.modules['native946_afei_expansion']
+        if _afei_battle.AfeiBattle.__bases__[0] is not _wild_battle_base:
+            reload(_afei_battle)
+        reload(_group_battle)
 
 for _feature in ('native946_gear_services','native946_gear_sockets','native946_guardian_equipment'):
     _loaded=sys.modules.get(_feature)
-    _minimum_version=7 if _feature=='native946_guardian_equipment' else 1
+    _minimum_version={'native946_gear_services':2,'native946_gear_sockets':1,'native946_guardian_equipment':7}[_feature]
     if _loaded is not None and (_realm_gems_stale or getattr(_loaded,'REFERENCE_WIRE_VERSION',0)<_minimum_version):reload(_loaded)
 _guardian_score=sys.modules.get('native946_guardian_score')
 if _guardian_score is not None:reload(_guardian_score)
@@ -164,8 +207,11 @@ class NativeGameplay(BattleActions):
         from native946_cosmetics import Cosmetics
         Cosmetics(self).refresh()
         from native946_world import world
-        self._world_visible=set(world().nearby(character['map_id'],character['x'],character['y']))
-        self._world_bucket=(character['map_id'],character['x']//16,character['y']//16)
+        catalog = world()
+        sid, x, y = character['map_id'], character['x'], character['y']
+        closed = catalog.closed_event_npcs(sid)
+        self._world_visible = set(catalog.nearby(sid, x, y)) - closed
+        self._world_bucket = (sid, x//16, y//16, closed, catalog.npc_directions.get(sid, {}))
         from native946_party import service
         from native946_temp_inventory import open_session
         party = service(characters.database)
@@ -278,25 +324,76 @@ class NativeGameplay(BattleActions):
         return packet(1025, [("array", "npc_chat"), ("array", "string"), "number", "number"],
                       [[{"chat_msg": message, "speaker": speaker}], list(options), npc_id,1])
 
-    def sync_world_npcs(self,force=False):
+    def close_npc_dialogue(self):
+        self.dialog_open = False
+        self.dialog_actions = []
+        self.dialog_npc = None
+        return packet(1183, ['string'], ['dlg_npc_chat'])
+
+    def append_npc_menu_option(self, nid, reply, label, action):
+        from native946_game_login import message_id
+        from native946_login import MessageReader
+
+        if not isinstance(reply, bytes) or not reply.startswith(message_id(1025)):
+            return reply
+        reader = MessageReader(reply[3:])
+        chats = [dict(chat_msg=reader.string().decode('gb18030'), speaker=reader.integer())
+                 for _ in range(reader.take(1)[0])]
+        options = [reader.string().decode('gb18030') for _ in range(reader.take(1)[0])]
+        callback, flag = reader.integer(), reader.integer()
+        reader.finish()
+        if callback != nid or len(options) != len(self.dialog_actions) or len(options) >= 254:
+            return reply
+        options.append(label)
+        self.dialog_actions.append(action)
+        self.dialog_open = True
+        return packet(1025, [('array', 'npc_chat'), ('array', 'string'), 'number', 'number'],
+                      [chats, options, callback, flag])
+
+    def sync_static_npcs(self, force=False, *, relocated=False):
         from native946_world import world
-        catalog=world();c=self.character;sid=c['map_id'];bucket=(sid,c['x']//16,c['y']//16)
-        if not force and bucket==self._world_bucket:return ()
-        visible=set() if force else set(self._world_visible)
-        nearby=catalog.nearby(sid,c['x'],c['y'])
-        retained={nid for nid in visible if catalog.npc(sid,nid) is not None and
-                  max(abs(catalog.npc(sid,nid)['x']//20-c['x']),abs(catalog.npc(sid,nid)['y']//20-c['y']))<=96}
-        packets=[numbers(1604,nid) for nid in sorted(visible-retained)]
-        packets.extend(catalog.npc_packet(sid,nid) for nid in sorted(set(nearby)-retained))
-        self._world_visible=retained|set(nearby);self._world_bucket=bucket
+        catalog = world()
+        sid, x, y = (self.character[k] for k in ('map_id', 'x', 'y'))
+        closed = catalog.closed_event_npcs(sid)
+        directions = catalog.npc_directions.get(sid, {})
+        bucket = (sid, x//16, y//16, closed, directions)
+        previous = self._world_bucket
+        if not force and not relocated and bucket == previous:
+            return ()
+        visible = set() if force else self._world_visible
+        nearby = set(catalog.nearby(sid, x, y)) - closed
+        retained = {nid for nid in visible - closed if (npc := catalog.npc(sid, nid)) is not None and
+                    max(abs(npc['x']//20-x), abs(npc['y']//20-y)) <= 96}
+        # Existing connections may still have the four-field bucket from before a hot reload.
+        previous_directions = previous[4] if previous and previous[0] == sid and len(previous) == 5 else {}
+        refacing = {nid for nid in retained & (previous_directions.keys() | directions.keys())
+                    if previous_directions.get(nid, 4) != directions.get(nid, 4)}
+        packets = [numbers(1604, nid) for nid in sorted((visible - retained) | refacing)]
+        packets.extend(catalog.npc_packet(sid, nid) for nid in sorted((nearby - retained) | refacing))
+        self._world_visible = retained | nearby
+        self._world_bucket = bucket
+        if self.dialog_npc in closed:
+            packets.append(self.close_expired_npc_dialog())
+        return tuple(packets)
+
+    def close_expired_npc_dialog(self):
+        self.npc_service_session = None
+        return self.close_npc_dialogue()
+
+    def sync_world_npcs(self,force=False,*,relocated=False):
+        previous = self._world_bucket
+        packets = self.sync_static_npcs(force, relocated=relocated)
+        if not force and not relocated and previous == self._world_bucket:
+            return packets
         from native946_npc_quests import Quests
         from native946_fishing import Fishing
         from native946_star_challenge import StarChallenge
         from native946_afei_expansion import AfeiWorld
         from native946_constellations import Constellations
+        from native946_timed_npcs import scene_packets as timed_npc_packets
         return (*packets,*Quests(self).scene_packets(force),*Fishing(self).scene_packets(force),
                 *StarChallenge(self).scene_packets(force),*AfeiWorld(self).scene_packets(force),
-                *Constellations(self).scene_packets(force))
+                *Constellations(self).scene_packets(force),*timed_npc_packets(self,force))
 
     def scene_objects(self):
         from native946_world import world
@@ -308,6 +405,21 @@ class NativeGameplay(BattleActions):
                 world().portal_packet(self.character['map_id']),
                 *(self.party_service.scene_players(self) if hasattr(self,'party_service') else ()),*Fishing(self).scene_fishers())
 
+    def travel_scene_packets(self, *, reposition=False):
+        from native946_cosmetics import Cosmetics
+        from native946_fishing import Fishing
+
+        with storage_transaction(self.characters.database):
+            if reposition:
+                c = self.character
+                # 946 c_nobj_goto moves the existing hero and stands its waypoint at the destination.
+                goto = packet(1606, ['number', 'word', 'word'], [c['id'], c['x'], c['y']])
+                return (goto, *self.sync_world_npcs(relocated=True),
+                        *self.party_service.scene_players(self, relocated=True),
+                        *Fishing(self).scene_fishers(), *self.sync_summon_scene())
+            return (*self.restore_scene(), *self.scene_objects(), *self.sync_summon_scene(),
+                    *Cosmetics(self).visual_packets(scene_only=True))
+
     def change_scene(self,route,request_key):
         if self.battle is not None:raise ValueError('战斗中不能传送。')
         old=self.character['map_id'];target=route['to'];grid=load_map(target)
@@ -316,18 +428,32 @@ class NativeGameplay(BattleActions):
         revision=self.characters.change_scene(self.character['owner'],self.character['id'],old,target,x,y,
                                              self.character.get('position_revision',0))
         self.character.update(map_id=target,x=x,y=y,position_revision=revision)
+        if old != target:
+            self._encounter_steps = 0
         self.grid=grid;self.npc_position=self.practice_npc_position()
         self.dialog_open=False;self.dialog_actions=[];self.dialog_npc=None;self.npc_service_session=None
-        self.last_path={(x,y)};self._shown_summon_id=None
-        self._world_visible=set();self._world_bucket=None
+        self.last_path={(x,y)}
+        # The native goto handler can refuse a team-controlled scene object.
+        reposition = old == target and not self.character.get('team_leader')
+        if not reposition:
+            self._shown_summon_id=None
+            self._world_visible=set();self._world_bucket=None
         self._arrival_guard=(x,y);self._last_transition=request_key
         self.last_event={'action':'scene_changed','from_scene':old,'to_scene':target,'position':[x,y],'route_id':route['id']}
-        return (packet(1183,['string'],['dlg_npc_chat']),*self.restore_scene(),*self.scene_objects(),*self.sync_progression())
+        return (packet(1183,['string'],['dlg_npc_chat']),*self.travel_scene_packets(reposition=reposition))
 
-    def world_npc_look(self,nid,*,include_story=True,include_school_visit=True):
+    def world_npc_look(self,nid,*,include_mount_guide=True,include_school_visit=True):
+        from native946_timed_npcs import ENTRANCE_IDS, look as look_timed_npc
+        if nid in ENTRANCE_IDS:return look_timed_npc(self,nid)
+        from native946_world import world
+        catalog = world()
+        c = self.character
+        if not catalog.event_npc_is_open(c['map_id'], nid):
+            return None
         from native946_npc_quests import Quests
         from native946_dungeon_routes import DungeonRoute, ENTRY_KEYS
-        stage=DungeonRoute(self).look(nid)
+        dungeon=DungeonRoute(self)
+        stage=dungeon.look(nid)
         if stage is not None:return stage
         quests=Quests(self)
         if include_school_visit:
@@ -337,37 +463,51 @@ class NativeGameplay(BattleActions):
             from native946_campaign import Campaign
             campaign=Campaign(self).look(nid)
             if campaign is not None:
-                scene=self.character['map_id']
-                if (scene,nid) in ENTRY_KEYS:
-                    from native946_activities import Activities
-                    from native946_world import world
-                    campaign=Activities(self).attach_menu(world().npc(scene,nid),campaign)
-                return campaign
+                return dungeon.attach_entry(nid,campaign)
         from native946_task_chain import TaskChain
         chain=TaskChain(self).look(nid)
         if chain is not None:return chain
         task=quests.look(nid)
         if task is not None:return task
-        from native946_world import world
-        catalog=world();c=self.character;npc=catalog.npc(c['map_id'],nid)
+        npc = catalog.npc(c['map_id'], nid)
         if npc is None:return None
         if max(abs(npc['x']//20-c['x']),abs(npc['y']//20-c['y']))>12:
             return self.menu('请走近一些再交谈。',npc_id=nid)
-        from native946_tasks import TaskJournal
-        def with_story(reply):
-            from native946_activities import Activities
-            reply=Activities(self).attach_menu(npc,reply)
-            return TaskJournal(self).attach_menu(npc,reply) if include_story else reply
+        from native946_local_guides import mount_option
+        key = c['map_id'], nid
+        local_mount = mount_option(self, key) if include_mount_guide else None
+        from native946_tasks import FIVE_AGGREGATES_NPC
+
+        def with_npc_options(reply):
+            reply=dungeon.attach_entry(nid,reply)
+            if key == FIVE_AGGREGATES_NPC:
+                reply = self.append_npc_menu_option(nid, reply, '查看化境·五蕴领取条件',
+                                                    dict(kind='story', op='five_aggregates_check'))
+            return self.append_npc_menu_option(nid, reply, *local_mount) if local_mount else reply
+
         routes=catalog.available_transports(c['map_id'],nid,c)
         self.dialog_actions=[row['trans_index'] for row in routes]
         self.last_event={'action':'npc_dialogue','npc_id':nid}
-        if routes:return with_story(self.menu('请选择要前往的地方：',[catalog.transport_label(row) for row in routes],nid))
+        if routes:return with_npc_options(self.menu('请选择要前往的地方：',
+                                                    [catalog.transport_label(row) for row in routes],nid))
         from native946_npc_services import NpcServices
         service_menu=NpcServices(self).menu(npc)
-        if service_menu is not None:return with_story(service_menu)
-        if npc['npc_type']==2:return with_story(self.menu('当前没有可用的传送目的地。',npc_id=nid))
-        message=npc.get('desc') or f"这里是{catalog.scene(c['map_id'])['scene_name']}，路上小心。"
-        return with_story(self.menu(message,npc_id=nid))
+        if service_menu is not None:return with_npc_options(service_menu)
+        saved_dungeon=dungeon.resume(nid)
+        if saved_dungeon is not None:return saved_dungeon
+        from native946_activities import Activities, npc_activity_names, unavailable_npc_notice
+        mijing=Activities(self).mijing_entrance(*key)
+        if mijing is not None:return with_npc_options(mijing)
+        activities=npc_activity_names(c['map_id'],nid)
+        if activities and key not in ENTRY_KEYS:
+            return unavailable_npc_notice(self,'、'.join(activities)+'暂未开放。')
+        if npc['npc_type']==2 and key not in ENTRY_KEYS and not local_mount:
+            return unavailable_npc_notice(self,'当前没有可用的传送目的地。')
+        message=npc.get('desc') or ''
+        if message or key in ENTRY_KEYS or local_mount or key == FIVE_AGGREGATES_NPC:
+            return with_npc_options(self.menu(message,npc_id=nid))
+        if self.dialog_npc is not None:
+            return self.close_npc_dialogue()
 
     def fighter(self, fid, role, name, camp, warrior_type, slot=1, level=1, *, mid=2147):
         args = [0] * 24
@@ -404,6 +544,7 @@ class NativeGameplay(BattleActions):
         from native946_cosmetics import Cosmetics
         from native946_role_battle import fighter_entry,solo_fighters
         from native946_guardian_magic import skills_packet as guardian_skills_packet
+        from native946_world import world
         Cosmetics(self).refresh()
         cid = self.character["id"]
         stats = self.progression.snapshot()
@@ -430,7 +571,7 @@ class NativeGameplay(BattleActions):
             packet(1183, ["string"], ["dlg_skill_panel_new"]),
             packet(2171, ["number", "number", "number", "byte", "number", "string", "number",
                           "number", "number", ("array", "weapon2_skill")],
-                   [2201, 0, 0, 0, 0, "训练木偶", 0, 100, 100, []]),
+                   [world().battle_map(self.character['map_id']), 0, 0, 0, 0, "训练木偶", 0, 100, 100, []]),
             self.fighter(cid, self.character["role_id"], self.character["name"], 4, 1,level=stats['level']),
             numbers(2148, cid, stats['hp'], stats['hpmax'], stats['hpmax'], stats['mp'], stats['mpmax'], stats['mpmax'], 6, 10, 0),
             *fighter_entry(solo_fighters(self)[cid],self.battle['id']),
@@ -446,7 +587,7 @@ class NativeGameplay(BattleActions):
             numbers(2135,1), numbers(2151,cid,input_seconds,0), numbers(2139,2),
         )
 
-    def finish_battle(self, victory, *, completed=False):
+    def finish_battle(self, victory, *, completed=False, drawing_timed_out=False):
         battle = self.battle
         if battle is None:
             return None
@@ -462,16 +603,19 @@ class NativeGameplay(BattleActions):
             from native946_reserve_food import restore_after_battle
             with self.progression.transaction() as db:
                 heal_after_battle(db, {self.progression.cid: self})
-                restore_after_battle(db, self, battle.get('participants', ()))
+                guardian = battle.get('pet')
+                restore_after_battle(db, self, guardian['id'] if guardian else None)
         self.battle = None
         self._shown_summon_id = None  # The native scene switch cleared world actors.
         self.last_event = {"action": "battle_finished", "character_id": self.character["id"],
                            "victory": victory, "experience": 20 if victory else 0, "gold": 5 if victory else 0}
-        # Both manual escape and a finished animation ACK leave the native
-        # draw queue idle. c_war_end pauses receive processing before a new
-        # start_draw could arrive, so use the native self-starting exit.
-        ending=(numbers(2146),)
-        reward = (screen_notice('获得人物经验#Y20#n，金钱#Y5#n。'),) if victory else ()
+        from native946_battle_actions import QUEUED_BATTLE_EXIT
+        ending = QUEUED_BATTLE_EXIT if drawing_timed_out else (numbers(2146),)
+        reward = ()
+        if victory:
+            lines = experience_notice_lines(self.last_event['experience'])
+            lines.append(f'金钱#Y{self.last_event["gold"]}#n。')
+            reward = (screen_notice('#r'.join(lines)),)
         prefix=(packet(1183,['string'],['dlg_npc_chat']),*ending)
         return self.defer_packets(lambda:(*prefix,*self.restore_scene(),*self.scene_objects(),*self.sync_progression(),*reward),
                                  fallback=lambda:(*prefix,*self.restore_scene(),*reward))
@@ -527,6 +671,44 @@ class NativeGameplay(BattleActions):
         ended.append(actor)
         return (numbers(2152,actor),)
 
+    def sync_scene_day_effect(self):
+        from native946_world import DEFAULT_SCENE_STATUS, SCENE_DAY, SCENE_NIGHT, world
+
+        if self.battle is not None or getattr(self, '_cinematic_pending', None):
+            return ()
+        sid = self.character['map_id']
+        phase = world().scene_day_effect(sid)
+        if phase == DEFAULT_SCENE_STATUS:
+            return ()
+        previous = getattr(self, '_scene_day_effect', None)
+        self._scene_day_effect = (sid, phase)
+        if previous == self._scene_day_effect or (previous != (sid, SCENE_NIGHT) and phase == SCENE_DAY):
+            return ()
+        # 452 c_doomrim_effect updates the current terrain or lighting in place.
+        notice = '夜幕降临。' if phase == SCENE_NIGHT else '天亮了。'
+        return (packet(452, ['number', 'string'], [phase, notice]),)
+
+    def movement_path(self, old, start, directions):
+        try:
+            return self.grid.movement_path(old, start, directions)
+        except ValueError:
+            from native946_map import load_night_terrain
+            from native946_world import NIGHT_MAPS, SCENE_NIGHT, world
+
+            sid = self.character['map_id']
+            night = getattr(self, '_scene_day_effect', None) == (sid, SCENE_NIGHT)
+            scene = world().scenes.get(sid)
+            terrain = NIGHT_MAPS.get(scene['map_id']) if scene else None
+            if terrain is None or (not night and self.grid.walkable(*old)):
+                raise
+            # The stock client may keep its day terrain when Night Effect is off.
+            # Validate the whole movement against one terrain. At dawn a player
+            # standing on a night-only cell may leave it for a valid day cell.
+            path = load_night_terrain(terrain).movement_path(old, start, directions)
+            if not night and not self.grid.walkable(*path[-1]):
+                raise
+            return path
+
     def tick(self, now=None):
         if not hasattr(self,'party_service'):
             from native946_party import service
@@ -538,6 +720,8 @@ class NativeGameplay(BattleActions):
             if self.character['id'] in self.party_service.battles:
                 return (*portrait_updates,*(self.party_service.tick(self,now) or ())) or None
             pending=self.party_service.tick(self,now)
+            from native946_wilderness import pending_team_experience_popup
+            team_popup = pending_team_experience_popup(self, now)
             reply=self._tick_local(now)
             from native946_premium_items import expire_auto_medical
             status_updates = expire_auto_medical(self)
@@ -546,14 +730,32 @@ class NativeGameplay(BattleActions):
                 school_updates = School(self).auto_tick(now) if getattr(self,'_auto_school',None) else ()
             except StorageBusy:
                 school_updates = ()
-            return (*portrait_updates,*pending,*(reply if isinstance(reply,tuple) else (reply,) if reply else ()),
-                    *status_updates,*school_updates) or None
+            npc_updates = self.sync_static_npcs() if self.battle is None else ()
+            neidan_updates = self.sync_corrected_neidan_levels() if self.battle is None else ()
+            return (*portrait_updates,*pending,*team_popup,*(reply if isinstance(reply,tuple) else (reply,) if reply else ()),
+                    *status_updates,*school_updates,*npc_updates,*neidan_updates,*self.sync_scene_day_effect()) or None
 
-    def advance_solo_round(self):
+    def sync_corrected_neidan_levels(self):
+        pending = getattr(self.progression, 'neidan_level_updates', ())
+        if not pending:
+            return ()
+        try:
+            available = {pet['id'] for pet in self.summons.snapshot()}
+            packets = tuple(self.summons.neidan_packet(sid) for sid in pending if sid in available)
+        except StorageBusy:
+            return ()
+        self.progression.neidan_level_updates = ()
+        return packets
+
+    def advance_solo_round(self, *, drawing_timed_out=False):
         battle=self.battle
         if battle is None or battle['phase']!='drawing':return None
+        if not drawing_timed_out and not battle.get('round_end_received'):return None
         if battle['victory'] or battle['hp']==0:
-            return self.finish_battle(battle['victory'],completed=True)
+            return self.finish_battle(battle['victory'], completed=True, drawing_timed_out=drawing_timed_out)
+        if drawing_timed_out:
+            battle['late_round_ends'] = battle.get('late_round_ends', 0) + 1
+        battle.pop('round_end_received', None)
         battle['round']+=1
         battle['phase']='input'
         battle['orders']={}
@@ -571,26 +773,42 @@ class NativeGameplay(BattleActions):
         """Socket-thread timer: a native countdown alone only closes its UI."""
         if self.battle is None:
             from native946_inventory_features import tick as inventory_tick
-            try:
-                from native946_star_challenge import StarChallenge
-                from native946_afei_expansion import AfeiWorld, ghost_tick
-                from native946_constellations import Constellations
-                changes=(*(inventory_tick(self) or ()), *StarChallenge(self).tick(),
-                         *AfeiWorld(self).tick(), *Constellations(self).tick(), *ghost_tick(self))
-                expires=self.character.get('showid_expires',0)
-                if expires:
-                    from time import time
-                    if expires<=time():
-                        from native946_nice_ids import NiceIds
-                        return (*changes,*NiceIds(self).refresh_identity()) or None
-                return changes or None
-            except StorageBusy:return None
+            from native946_star_challenge import StarChallenge
+            from native946_afei_expansion import AfeiWorld, ghost_tick
+            from native946_constellations import Constellations
+            from native946_timed_npcs import scene_packets as timed_npc_packets
+            from native946_mall_mounts import expire_dye
+            from native946_mount_spaces import check_guild_access
+
+            changes = []
+            ticks = (lambda: timed_npc_packets(self), lambda: inventory_tick(self), StarChallenge(self).tick, AfeiWorld(self).tick,
+                     Constellations(self).tick, lambda: ghost_tick(self), lambda: expire_dye(self),
+                     lambda: check_guild_access(self))
+            for tick in ticks:
+                try:
+                    changes.extend(tick() or ())
+                except StorageBusy:
+                    # Each service tracks what has already been sent to this client.
+                    # Its completed deltas must survive contention in a different service.
+                    continue
+            expires = self.character.get('showid_expires', 0)
+            if expires:
+                from time import time
+                if expires <= time():
+                    from native946_nice_ids import NiceIds
+                    try:
+                        changes.extend(NiceIds(self).refresh_identity())
+                    except StorageBusy:
+                        pass
+            return tuple(changes) or None
         battle=self.battle
         if battle['phase']=='drawing':
-            deadline=battle.get('input_deadline')
-            if deadline is None or (monotonic() if now is None else now)<deadline:return None
+            waiting = not battle.get('round_end_received')
+            deadline = battle.get('input_deadline')
+            if waiting and (deadline is None or (monotonic() if now is None else now) < deadline):
+                return None
             try:
-                with self.operation(write=True):return self.advance_solo_round()
+                with self.operation(write=True):return self.advance_solo_round(drawing_timed_out=waiting)
             except StorageBusy:return None
         if battle['phase']!='input' or battle.get('input_timeout_sent'):
             return None
@@ -645,9 +863,9 @@ class NativeGameplay(BattleActions):
         if effect:replies.append(numbers(2162,target,effect))
         if miss:replies.append(numbers(2144,target))
         else:replies.extend((numbers(2164,target,-damage,1,0), numbers(2158,target,1,hp)))
-        if mp is not None:replies.append(numbers(2158,actor,4,mp))
         if hp==0:replies.append(numbers(2142,target,2))  # native WAR_DIE_DEAD_BODY
         replies.append(numbers(2126,2))
+        if mp is not None:replies.insert(0,numbers(2158,actor,4,mp))
         return replies
 
     def native_default_attack(self, target, *, pet=False):
@@ -720,7 +938,9 @@ class NativeGameplay(BattleActions):
         # A lock error or invalid trailing fields cannot leave half a reward,
         # changed battle state, or stale item-delta cache behind.
         names=('battle','dialog_open','dialog_actions','dialog_npc','npc_service_session','workshop_query_until','workshop_production_session','cosmetic_quote','cosmetic_cart','cosmetic_dye','cosmetic_weapon','cosmetic_extension','cosmetic_carve','inventory_lock_session','last_path','_background_round','_shown_summon_id','baby_halo_choice',
-               '_world_visible','_world_bucket','_quest_visible','_arrival_guard','_last_transition','npc_position',
+               '_world_visible','_world_bucket','_quest_visible','_timed_activity_npc','_arrival_guard','_last_transition','npc_position',
+               '_scene_day_effect',
+               '_star_visible','_afei_visible','_sigil_visible','_encounter_steps',
                'equipment_plan_confirm','fishing_wake','fishing_bite_sent','fishing_initialized','fish_markers','fish_marker_map','inventory_expiry_check',
                'guardian_egg_session','guardian_source_session','guardian_event_session',
                'hero_point_quote','hero_resist_session','hero_resist_reset','song_firework_item')
@@ -797,6 +1017,8 @@ class NativeGameplay(BattleActions):
         writes={273,275,5418,5419,739,740,741,3420,3421,748,749,750,752,753,755,767,764,775,796,798,799,803,795,805,807,802,882,883,884,1033,1483,1484,1492,1493,1980,
                 842,843,844,1350,1703,1716,1764,1765,2487,1643,1644,1645,1032,2176,2177,2178,2181,2182,2183,2184,2185,3819}
         writes.update(QUICK_MEDICINE_REQUESTS)
+        from native946_guardian_chamber import WINDOW_BUY
+        writes.add(WINDOW_BUY)
         writes.add(SEND_FIREWORK)
         from native946_achievements import WRITES as ACHIEVEMENT_WRITES
         writes.update(ACHIEVEMENT_WRITES)
@@ -867,6 +1089,21 @@ class NativeGameplay(BattleActions):
         original_payload=reader.data[reader.offset:]
         committed=False
         try:
+            if mid == 2184 and not _storage_retry:
+                reader.finish()
+                self.last_event = None
+                battle = self.battle
+                # Background acceptance can emit input-only ACKs before the real draw.
+                if battle and battle.get('guardian_acceptance') and battle.get('_guardian_input_draw_acks', 0):
+                    battle['_guardian_input_draw_acks'] -= 1
+                    return None
+                if battle and battle.get('late_round_ends', 0):
+                    battle['late_round_ends'] -= 1
+                    return None
+                if not battle or battle['phase'] != 'drawing':
+                    return None
+                # Retain the received ACK if the write transaction must retry.
+                battle['round_end_received'] = True
             # A successful transport receipt is checked before pin_position
             # reserves another revision or opens a writer transaction.
             if self.transport_retry(mid,reader):
@@ -1157,6 +1394,9 @@ class NativeGameplay(BattleActions):
                     self.summons.neidan_packet(sid),*self.summons.info_packets(sid)))
             self.summons.get(sid)
             raise ValueError('该内丹操作暂不可用，本次未消耗资源。')
+        from native946_guardian_chamber import GuardianChamber, WINDOW_REQUESTS
+        if mid in WINDOW_REQUESTS:
+            return GuardianChamber(self).native_request(mid,reader)
         if mid == 1485:
             from native946_school import School
             stunt=reader.integer();reader.finish()
@@ -1178,6 +1418,9 @@ class NativeGameplay(BattleActions):
             if sid!=self.character['map_id']:raise ValueError('请等待当前地图加载完成。')
             from native946_world import world
             route=world().physical_route(sid,x,y,(self.character['x'],self.character['y']))
+            if route['id']=='mount_space_exit':
+                from native946_mount_spaces import exit_space
+                return exit_space(self,key)
             return self.change_scene(route,key)
         if mid==1645:
             nid,index=reader.integer(),reader.integer();reader.finish()
@@ -1208,10 +1451,36 @@ class NativeGameplay(BattleActions):
             elif mid == 764:
                 argument = [reader.integer() for _ in range(4)]
             reader.finish()
+            from native946_summons import RELEASE
+            if mid == 750 and argument == RELEASE:
+                if self.battle is not None:
+                    raise ValueError('战斗中无法放生守护。')
+                from native946_guardian_score import highest_score
+                from native946_progression import DATA as PROGRESSION_DATA
+                from native946_reserve_food import sync as reserve_packet
+
+                pet = self.summons.release(sid)
+                with self.progression.transaction(write=False) as db:
+                    score = highest_score(db, self.progression.cid)
+                self.last_event = {'action':'summon_released', 'message_id':mid, 'summon_id':sid}
+                return (
+                    *((numbers(718, sid, 0),) if pet['Fight'] else ()),
+                    *((numbers(719, sid, 0),) if pet['Show'] else ()),
+                    packet(714, ['summon_list', 'number'], [pet, 2]),
+                    *(self.sync_summon_scene() if pet['Show'] else ()),
+                    *((reserve_packet(self, None),) if pet['Fight'] else ()),
+                    numbers(695, int(PROGRESSION_DATA['attributes']['SummonScore']), score),
+                )
             self.summons.get(sid)  # Check ownership before every read or write.
             if mid in (750,752,764,775) and self.battle is not None:
                 raise ValueError('战斗中不能修改守护状态、姓名或属性。')
-            if mid == 750:self.summons.status(sid, argument)
+            if mid == 750:
+                from native946_reserve_food import restore_guardian_slot
+
+                with self.progression.transaction() as db:
+                    self.summons.status(sid, argument)
+                    if argument == 1:
+                        restore_guardian_slot(db, self, self.summons.get(sid))
             elif mid == 752:self.summons.rename(sid, argument)
             elif mid == 764:self.summons.allocate(sid, argument)
             elif mid == 775:self.summons.level_up(sid)
@@ -1273,24 +1542,32 @@ class NativeGameplay(BattleActions):
                 self.progression.learn(skill,times)
             elif mid in (803,795):
                 source,source_slot,destination,slot=[reader.integer() for _ in range(4)]
+                reader.finish()
                 if source == TEMP_PAGE:
-                    reader.finish()
                     from native946_temp_inventory import take_slot, move_packets, CAPACITY
                     if not 1 <= source_slot <= CAPACITY:
                         raise ValueError('摘星袋格子无效。')
                     moved = take_slot(self.progression, source_slot, None if (destination, slot) == (8, -1) else (destination, slot))
                     return self.defer_packets(lambda: move_packets(self.progression, moved))
-                snapshot=self.progression.snapshot()
-                item=next((i for i in snapshot['items'] if i['page']==source and i['slot']==source_slot),None)
+                from native946_inventory import EQUIP_PAGES, active_page
+                from native946_mall_bags import pages as bag_pages
+                with self.progression.transaction(write=False) as db:
+                    cid=self.progression.cid
+                    item=next((i for i in self.progression.inventory_rows(db)
+                               if i['page']==source and i['slot']==source_slot),None)
+                    ordinary_move=source in bag_pages(db,cid,True) and destination in bag_pages(db,cid)
+                    equipped=active_page(db,cid) if source in EQUIP_PAGES or destination in EQUIP_PAGES else None
                 if item is None:raise ValueError('原位置已没有该物品。')
                 if source in (*range(25,30),*range(5800,5816)) or destination in (*range(25,30),*range(5800,5816)):
-                    reader.finish()
                     Cosmetics(self).move(item['id'],destination,slot)
                     return self.defer_packets(lambda:(*self.progression.item_packets(),*Cosmetics(self).visual_packets()))
                 if slot==-1 and destination==8:
-                    destination,slot=self.progression.free_bag_slot(snapshot)
-                self.progression.move_item(item['id'],destination,slot,source,stack=mid==803)
-                appearance_changed=source==snapshot['equipment_page'] or destination==snapshot['equipment_page']
+                    destination,slot=self.progression.free_bag_slot()
+                changed=self.progression.move_item(item['id'],destination,slot,source,stack=mid==803)
+                if ordinary_move:
+                    self.last_event={'action':'progression_changed','message_id':mid}
+                    return self.progression.item_packets(item_ids=changed)
+                appearance_changed=equipped in (source,destination)
             elif mid==805:
                 item,page,slot,amount=[reader.integer() for _ in range(4)]
                 self.progression.split(item,page,slot,amount)
@@ -1301,6 +1578,10 @@ class NativeGameplay(BattleActions):
                 from native946_inventory_features import ITEM_TYPES as INVENTORY_FEATURE_TYPES,use as inventory_feature_use
                 feature_snapshot=self.progression.snapshot()
                 feature_item=next((i for i in feature_snapshot['items'] if i['id']==item),None)
+                from native946_double_time import MEDICINES, RESTORE, use_medicine
+                if feature_item and (feature_item['type'] in MEDICINES or feature_item['type'] == RESTORE):
+                    if target not in (0, self.character['id']):raise ValueError('请由人物使用催长丹。')
+                    return use_medicine(self, item)
                 from native946_anniversary_cards import CARD_ITEMS as ANNIVERSARY_CARD_ITEMS, reject_card_use
                 if feature_item and feature_item['type'] in ANNIVERSARY_CARD_ITEMS:
                     reject_card_use(feature_snapshot['level'])
@@ -1401,12 +1682,13 @@ class NativeGameplay(BattleActions):
                     *((numbers(1966,910001),) if mid==1980 else ()))
         if mid==801:
             page=reader.integer();reader.finish()
-            if page == TEMP_PAGE:
-                return self.progression.item_packets()
+            from native946_role_artifacts import ACTIVE_PAGE, STORAGE_PAGE
+            if page in (TEMP_PAGE, ACTIVE_PAGE, STORAGE_PAGE):
+                return self.progression.item_packets(pages={page})
             from native946_mall_bags import pages
             with self.progression.transaction(write=False) as db:
                 if page not in pages(db,self.progression.cid,True):raise ValueError('当前背包页尚未开放。')
-            return self.progression.item_packets()
+            return self.progression.item_packets(pages={page})
         if mid==796:
             page=reader.integer();reader.finish()
             if self.battle is not None:raise ValueError('战斗中不能切换装备。')
@@ -1451,8 +1733,7 @@ class NativeGameplay(BattleActions):
                     raise ValueError("Movement unavailable")
                 if self._arrival_guard is not None and max(abs(start[k]-self._arrival_guard[k]) for k in (0,1))>12:
                     raise ValueError('Stale movement from the previous scene')
-                prefix = self.grid.route(old, start)
-                path = prefix[:-1] + self.grid.path(start, route)
+                path = self.movement_path(old, start, route)
             except ValueError as error:
                 self.last_event = {"action": "movement_rejected", "character_id": self.character["id"],
                                    "reason": str(error), "speed": speed, "point": list(start),
@@ -1502,12 +1783,15 @@ class NativeGameplay(BattleActions):
                              ('开始基础训练',quest_label,'学习和提升技能','休息恢复气血法力','守护管理','内丹训练（参考规则）','成长大作战','原版剧情与任务目录'))
         if mid == 1032:
             choice = reader.take(1)[0]; callback = reader.integer(); reader.finish()
+            if callback == self.dialog_npc:
+                from native946_world import world
+                if not world().event_npc_is_open(self.character['map_id'], callback):
+                    return self.close_expired_npc_dialog()
             # Native byte(-1) is 255. Cancellation is never option zero or
             # the first action, and a stale dialog cannot cancel a newer one.
             if choice==255:
                 if callback!=getattr(self,'dialog_npc',None):return None
-                self.dialog_open=False;self.dialog_actions=[];self.dialog_npc=None
-                return packet(1183,['string'],['dlg_npc_chat'])
+                return self.close_npc_dialogue()
             if self.dialog_open and callback==getattr(self,'dialog_npc',None) and 1<=choice<=len(self.dialog_actions):
                 action=self.dialog_actions[choice-1]
                 if isinstance(action,dict) and action.get('kind')=='reserve_food':
@@ -1695,7 +1979,7 @@ class NativeGameplay(BattleActions):
             if operation == 2:
                 if not self.battle or self.battle['phase']!='input':return None
                 self.order_actor(pet=True)
-                return self.finish_battle(False)
+                return self.finish_battle(False, completed=True)
             raise ValueError('当前支持守护普通攻击和防御。')
         if mid == 2185:
             operation,skill,target = [reader.integer() for _ in range(3)]; reader.finish()
@@ -1713,7 +1997,8 @@ class NativeGameplay(BattleActions):
             if self.battle is None:
                 return None
             if operation==7:return self.change_battle_guardian()
-            return self.finish_battle(False) if operation == 2 else self.attack(defend=True) if operation == 1 else None
+            if operation == 2:return self.finish_battle(False, completed=True)
+            return self.attack(defend=True) if operation == 1 else None
         if mid==3819:
             reader.finish()
             battle=self.battle
@@ -1730,10 +2015,5 @@ class NativeGameplay(BattleActions):
             return (numbers(3818,0),numbers(5349),numbers(2151,actor,remaining,0),numbers(2139,2))
         if mid == 2184:
             reader.finish()
-            # Opt-in background acceptance flushes input through the native
-            # renderer. Its ordered input-only ACKs cannot finish a real round.
-            if self.battle and self.battle.get('guardian_acceptance') and self.battle.get('_guardian_input_draw_acks',0):
-                self.battle['_guardian_input_draw_acks']-=1
-                return None
             return self.advance_solo_round()
         return None

@@ -170,6 +170,20 @@ def practice_limit(snapshot):
     return 10000 + 5000 * (snapshot['rebirth'] + snapshot['ascension'])
 
 
+def level_spells(db, cid, role):
+    from native946_role_battle import profile
+
+    # The first five slots are the regular spells from info_school_skill.
+    # Keep their existing learning levels and eligibility in the skill catalog.
+    for branch in learning_schools(db, cid):
+        for skill in SKILLS[branch]:
+            meta = profile(skill)
+            if (meta and meta['source'] == 'school' and role['level'] >= meta['level']
+                    and meta['race'] in (0, role['race'])
+                    and (not meta.get('sex') or meta['sex'] == role['sex'])):
+                yield skill
+
+
 def skill_rows(master, snapshot):
     from native946_role_battle import profile
 
@@ -503,7 +517,8 @@ class School:
                 raise ValueError('本服飞行特技尚未解锁该落点。')
             return self.fly_to(scene,nid,index)
         npc = world().npc(scene,nid) if allowed else None
-        points = [dict(x=npc['x'],y=npc['y'],idx=1,level=2)] if npc else []
+        # dlg_current_map derives the index from ipairs and reads x/y as a pair.
+        points = [[npc['x'],npc['y']]] if npc else []
         return packet(1762,['number','string',('array','number')],[scene,lua_data(points),[2] if points else []])
 
     def fly_to(self, scene, nid, destination):
@@ -519,7 +534,9 @@ class School:
         npc=catalog.npc(scene,nid)
         arrival=load_map(scene).nearest_walkable(npc['x']//20,npc['y']//20)
         if (origin,self.game.character['x'],self.game.character['y'])==(scene,*arrival):return ()
-        return self.game.change_scene(dict(id='school-flight',to=scene,arrival=arrival),(origin,scene,destination,'school-flight'))
+        replies = self.game.change_scene(dict(id='school-flight',to=scene,arrival=arrival),
+                                         (origin,scene,destination,'school-flight'))
+        return (*replies,*self.progression.skill_packets())
 
     def flight_origin_available(self):
         from native946_world import world
@@ -638,8 +655,8 @@ class School:
         if value.get('school_day_done'):
             if auto:
                 self.game._auto_school = None
-                return (screen_notice('当日师门已全部完成，结束自动师门。'),)
-            return ()
+                return (screen_notice('#Y当日师门已全部完成,结束自动师门#n'),)
+            return (screen_notice('#Y当日师门已全部完成#n'),)
         if auto:
             auto['route'] = None
             auto['next'] = monotonic() + 1.5

@@ -5,10 +5,11 @@ reference daily flows remain clearly identified; no missing activity grants
 acceptance, completion, entry or rewards through this module.
 """
 from pathlib import Path
-from datetime import datetime,timezone,timedelta
+from datetime import datetime,time,timezone,timedelta
 import json
+import re
 
-from native946_codec import packet
+from native946_codec import packet, screen_notice
 from native946_codec import text_notice
 
 DATA=json.loads(Path(__file__).with_name('native946_activity_data.json').read_text('utf8'))
@@ -25,21 +26,82 @@ for _rid,_record in tuple(RECORDS.items()):
 EXTRA_NAMES=sorted(set(RULES['by_name'])-{r['name'] for r in RECORDS.values()})
 CALLBACK=900100
 PAGE_SIZE=7
-REQUESTS={1448,1987,1988,1989,3705,3707,3742}
+MIJING_SHOP_EXCHANGE=3988
+MIJING_SHOP_OPEN=3989
+OPEN_BOSS_RECORDS=2412
+REQUESTS={1448,1987,1988,1989,OPEN_BOSS_RECORDS,3705,3707,3742,MIJING_SHOP_EXCHANGE,MIJING_SHOP_OPEN}
 VISITOR_ACTIVITY=74
-VISITOR_GIVER=(2001,7510)
+DEMON_CHALLENGE=82
+SUMMON_MIJING=98
+REINCARNATION_TOWER=111
+ACTIVITY_TIMEZONE=timezone(timedelta(hours=8))
+DEMON_BOSSES=RULES['demon_bosses']
+DEMON_RECORD_IDS={str(row['record_id']):row['record_id'] for row in DEMON_BOSSES}
 VISITOR_MIN_TEAM=3
 VISITOR_MIN_LEVEL=RULES['visitor_matching']['minimum_level']
 NPC_RECORDS={}
+NPC_ENTRY_RECORDS={}
 for _row in RECORDS.values():
+    # The activity catalogue also contains name-only navigation candidates.
+    # They cannot establish that a particular NPC hosts the activity.
+    _entry_ids={int(value) for value in re.findall(r'#c\((\d+)\)#(?:R|G)(?:#u)?[^#]+',_row['tips'])}
+    _aim=_row['auto_path_aim'].strip()
+    if _aim.isascii() and _aim.isdigit():
+        _entry_ids.add(int(_aim))
+    _entry_ids.difference_update((0,900))
     for _npc in _row['locations']:
-        NPC_RECORDS.setdefault((_npc['scene'],_npc['npc']),[]).append(_row['id'])
+        _key=(_npc['scene'],_npc['npc'])
+        NPC_RECORDS.setdefault(_key,[]).append(_row['id'])
+        if _npc['npc'] in _entry_ids:
+            NPC_ENTRY_RECORDS.setdefault(_key,[]).append(_row['id'])
 
 
 def notice(text):return text_notice(text)
 
 
-def calendar_day():return datetime.now(timezone(timedelta(hours=8))).date()
+def npc_activity_names(scene, npc):
+    from native946_dungeons import NPC_RECORDS as DUNGEON_NPCS, RECORDS as DUNGEON_RECORDS
+
+    key = (scene, npc)
+    names = [RECORDS[rid]['name'] for rid in NPC_ENTRY_RECORDS.get(key, ())]
+    names.extend(DUNGEON_RECORDS[rid]['Name'] for rid in DUNGEON_NPCS.get(key, ()))
+    return tuple(dict.fromkeys(names))
+
+
+def unavailable_npc_notice(game, message):
+    return game.close_npc_dialogue(), screen_notice(message, optimize_display=True)
+
+
+def calendar_day():return datetime.now(ACTIVITY_TIMEZONE).date()
+
+
+def demon_victories(progression):
+    # Read the server's persisted results. The settlement key is
+    # demon:<946 record ID>:<unique result ID>, with one result per participant.
+    with progression.transaction(write=False) as db:
+        rows = db.execute("SELECT battle_id FROM battle_results WHERE character_id=? AND owner=? "
+                          "AND victory=1 AND battle_id GLOB 'demon:*'", (progression.cid, progression.owner))
+        wins = set()
+        for (key,) in rows:
+            _, _, remainder = key.partition(':')
+            record_id, _, result_id = remainder.partition(':')
+            if result_id and record_id in DEMON_RECORD_IDS:
+                wins.add(DEMON_RECORD_IDS[record_id])
+        return wins
+
+
+def demon_guide_text(wins):
+    now = datetime.now(ACTIVITY_TIMEZONE)
+    opening = now.replace(minute=30, second=0, microsecond=0)
+    if now.minute >= 30:
+        opening += timedelta(hours=1)
+    lines = ['降魔挑战首领指引', '以下九个首领均为「化境·五蕴」前置。每小时第30分钟接受挑战，单人或组队均可。',
+             f'原版下一次开放时刻 {opening:%H:%M}，本机已记录 {len(wins)}/{len(DEMON_BOSSES)}。']
+    for row in DEMON_BOSSES:
+        marker = ' [已击败]' if row['record_id'] in wins else ''
+        lines.append(f'{row["name"]}：{row["scene_name"]}（{row["x"]},{row["y"]}）{marker}')
+    lines.append('本机降魔首领刷新及战斗尚未开放。')
+    return '#r'.join(lines)
 
 
 def calendar_records(day):
@@ -51,6 +113,18 @@ def calendar_records(day):
             r['weekday']!=day.isoweekday(),r['weekday']!=11,r['id']))
         result.append((source,candidates[0] if candidates else None))
     return result
+
+
+def navigation_targets(row):
+    if row['id'] in (SUMMON_MIJING,REINCARNATION_TOWER):
+        from native946_dungeons import BY_NAME, ENTRANCES
+
+        return ENTRANCES[BY_NAME[row['name']]['Index']]
+    return [target for target in row['locations'] if target['reachable']]
+
+
+def reward_name(kind):
+    return RULES['item_metadata'].get(str(kind), {}).get('name') or f'奖励编号 {kind}'
 
 
 def rule_pages(row):
@@ -85,6 +159,26 @@ def rule_pages(row):
             rewards=[RULES['item_metadata'].get(str(v[0]),{}).get('name',str(v[0]))+'×'+str(v[1]) for v in stage['Reward']]
             lines.append(str(stage['Score'])+'积分：'+'、'.join(rewards))
         pages.append('原版积分奖励：#r'+'#r'.join(lines)+'#r完整活动流程尚未接通，当前没有可领取的有效活动积分。')
+    if name=='轮回炼狱':
+        pages.append(f"每日开放时段：{base['BeginTime'].strip()}–{base['EndTime'].strip()}。"
+                     f"#r每层{base['LevelMonsterCount']}关，通关一层后可选择是否增加负面词条。")
+        lines=[f"{box['ScoreRequire']}积分：{reward_name(box['ItemType'])}"
+               for box in special['ChestConfig']]
+        pages.append('原版积分宝箱预览（每赛季每档一次）#r'+'#r'.join(lines))
+        lines=[]
+        for rank in special['RankConfig']:
+            first,last=rank['StartPos'],rank['EndPos']
+            place=str(first) if first==last else f'{first}–{last}'
+            kind,amount,_=rank['Item']
+            lines.append(f'第{place}名：{reward_name(kind)}×{amount}')
+        pages.append('946 原版排行奖励预览#r'+'#r'.join(lines))
+    if name=='玄天幻境':
+        pages.append(base['DifficultyHelp']+'#r'+base['RankRewardTips'])
+        goods=special['ScoreShopConfig']
+        for start in range(0,len(goods),8):
+            lines=[f"{item['Score']}积分：{reward_name(item['ItemType'])}"
+                   for item in goods[start:start+8]]
+            pages.append('原版积分商店预览#r'+'#r'.join(lines))
     if name=='百年后的来客':
         # Official notices 6355_832052, 6355_833156, 6355_965293 and
         # 6355_1164509. The current group-finder rule is in INFO_TEAM_PLATFORM_3.
@@ -124,6 +218,28 @@ def guide_pages(row):
         if isinstance(monsters,dict):monsters=monsters.values()
         tips=list(dict.fromkeys(m['Tips'] for m in monsters if m.get('Tips')))
         pages.extend('原版守卫说明：#r'+tip for tip in tips)
+    if row['name']=='轮回炼狱':
+        for variants in special['ThemeConfig']:
+            theme=variants[0]
+            pages.append(theme['Name']+'#r'+theme['Desc'])
+        pages.append('原版词条库设有普通和困难选项，实际组合及对应关卡以赛季配置为准。')
+        from native946_dungeons import pages as document_pages
+
+        labels={0:'未选',1:'普通',2:'困难'}
+        buffs=sorted(special['BuffConfig'].values(),key=lambda buff:buff['Index'])
+        pages.extend(document_pages('#r'.join(f"{labels[buff['HardFlag']]} · {buff['Name']}：{buff['Desc']}"
+                                               for buff in buffs)))
+    if row['name']=='玄天幻境':
+        currency=special['BaseConfig']['CurrencyType']
+        for index,monster in enumerate(special['MonsterConfig'],1):
+            lines=[f"第{index}关：{monster['DungeonName']}",
+                   '普通特性：'+monster['DungeonDesc'], '困难特性：'+monster['HardDungeonDesc']]
+            for key,label in (('FirstRewardShow','普通首通'), ('HardFirstRewardShow','困难首通'),
+                              ('RepeatRewardShow','普通复通'), ('HardRepeatRewardShow','困难复通')):
+                rewards='、'.join(f'{amount}点幻境积分' if kind==currency else f'{reward_name(kind)}×{amount}'
+                                 for kind,amount,*_ in monster[key])
+                lines.append(label+'奖励预览：'+rewards)
+            pages.append('#r'.join(lines))
     return pages
 
 
@@ -132,12 +248,29 @@ class Activities:
 
     def receive(self,mid,reader):
         if mid not in REQUESTS:return False,None
+        if mid==MIJING_SHOP_EXCHANGE:
+            reader.integer()
+            reader.integer()
+            reader.finish()
+            return True,notice('玄天幻境积分商店目前开放展示，兑换尚未接通。')
+        if mid==MIJING_SHOP_OPEN:
+            from native946_npc_services import NpcServices
+
+            reader.finish()
+            target=navigation_targets(RECORDS[SUMMON_MIJING])[0]
+            if self.g.character['map_id']!=target['scene']:
+                raise ValueError('请到不周山的陌上岚化身处查看积分商店。')
+            NpcServices(self.g).validate(target['npc'])
+            return True,self.mijing_score_shop()
         if mid==3705:
             index=reader.integer();reader.finish()
             if not 1<=index<=len(RULES['special']['宝象国降妖']['StageRewardConfig']):
                 raise ValueError('阶段奖励编号无效。')
             return True,notice('尚未完成宝象国降妖有效轮次，不能领取阶段奖励。完整活动流程尚未接通。')
         reader.finish()
+        if mid==OPEN_BOSS_RECORDS:
+            # 946 c_open_taskrank opens the original panel and populates its victory badges.
+            return True,packet(2410,[('array','number')],[sorted(demon_victories(self.p))])
         if mid==1448:return True,self.today()
         if mid==3742:return True,self.baoxiang_rewards()
         if mid==3707:return True,notice('尚无宝象国降妖有效排名，不能领取排名奖励。完整活动流程尚未接通。')
@@ -254,12 +387,19 @@ class Activities:
             text+='#r普通藏宝图（6020）已接入。50级可到长安第一楼找陈小知领强盗任务，获得宝图后右键查看地点。'
         elif rid==81:
             text+='#r每整点刷新星宿，保留15分钟。可前往傲来国1级地劣星，或查阅各地图其他星宿。编队参考阿飞，属性及奖池为本机规则。'
+        elif rid==39:
+            text+='#r#r可由守洞老猴进入水帘洞，和各层传送人对话往返灵泉洞、云霄径及翠石峰。四层均可通过暗雷胜利提升师门法术熟练度，组队胜利可获得额外经验。'
         else:
             missing={'原版奖励与日次结算':'服务端奖励与日次结算处理',
                      '活动实例及战斗配置':'服务端活动实例与战斗处理'}
             text+='#r#r接入状态：待接通。缺少：'+'、'.join(missing.get(v,v) for v in row['missing'])+'。'
-        targets=[n for n in row['locations'] if n['reachable']]
-        choices=[('前往'+n['name'],dict(op='navigate',id=rid,target=i)) for i,n in enumerate(targets[:4])]
+        targets=navigation_targets(row)
+        from native946_world import world
+        catalog = world()
+        choices=[('前往'+n['name'],dict(op='navigate',id=rid,target=i)) for i,n in enumerate(targets[:4])
+                 if catalog.event_npc_is_open(n['scene'], n['npc'])]
+        if targets and not choices:
+            text += '#r当前活动 NPC 未开放。'
         if current_dungeon is not None:
             choices.append(('副本专用说明与奖励展示',dict(op='dungeon_detail',dungeon=current_dungeon['Index'])))
         if rid==73:choices.append(('前往陈小知处领取普通藏宝图任务',dict(op='treasure_giver')))
@@ -268,6 +408,8 @@ class Activities:
             choices.append(('各地图星宿列表',dict(op='afei_list',page=0,stars=True)))
             choices.append(('前往陆伯言查询星宿称谓',dict(op='star_titles')))
         if rid==VISITOR_ACTIVITY:choices.append(('检查当前队伍条件',dict(op='visitor_readiness')))
+        if rid==DEMON_CHALLENGE:choices.append(('查看降魔首领指引',dict(op='demon_guide')))
+        choices.extend(self.mijing_choices(rid))
         if rule_pages(row):choices.append(('原版条件、规则与奖励说明',dict(op='rules',id=rid,page=0)))
         if guide_pages(row):choices.append(('原版关卡与怪物图鉴',dict(op='guide',id=rid,page=0)))
         from native946_dungeon_dialogues import CATALOG as DUNGEON_DIALOGUES
@@ -284,6 +426,100 @@ class Activities:
             if active:choices.append(('查看当前任务详情',dict(op='task_detail',task=930000+active['id'])))
         choices.append(('返回活动与任务总目录',dict(op='root')))
         return self._menu(text,choices,nid)
+
+    def mijing_entrance(self,scene,npc):
+        for rid in NPC_ENTRY_RECORDS.get((scene,npc),()):
+            if rid not in (SUMMON_MIJING,REINCARNATION_TOWER):
+                continue
+            name=RECORDS[rid]['name']
+            base=RULES['special'][name]['BaseConfig']
+            if rid==SUMMON_MIJING:
+                text,label=base['SignNpcHeadMsg'],base['SignNpcMenu5']
+            else:
+                text,label=name,base['NpcMenu2']
+            return self._menu(text+'#r当前开放玩法资料，战斗及奖励结算待接通。',
+                              [(label,dict(op='rules',id=rid,page=0)),
+                               ('关卡与奖励预览',dict(op='detail',id=rid)),
+                               *self.mijing_choices(rid)],npc)
+
+    def mijing_choices(self, rid):
+        if rid==REINCARNATION_TOWER:
+            return [('检查当前队伍条件',dict(op='tower_readiness'))]
+        if rid==SUMMON_MIJING:
+            base=RULES['special']['玄天幻境']['BaseConfig']
+            return [('检查守护出战条件',dict(op='mijing_readiness')),
+                    (base['SignNpcMenu3'],dict(op='mijing_shop'))]
+        return []
+
+    def tower_readiness(self, nid):
+        from native946_training import grade_number, state as training_state
+
+        cfg=RULES['special']['轮回炼狱']['BaseConfig']
+        start=time.fromisoformat(cfg['BeginTime'].strip())
+        end=time.fromisoformat(cfg['EndTime'].strip())
+        is_open=start<=datetime.now(ACTIVITY_TIMEZONE).time()<end
+        count=cfg['TeamNumLimit']
+        lines=['轮回炼狱队伍检查',
+               f'活动时段 {start:%H:%M}–{end:%H:%M}，当前{"开放" if is_open else "未开放"}。',
+               f'本赛季须固定{count}人组队，每人飞升140级以上。']
+        party=self.g.party_service
+        with self.p.transaction(write=False) as db:
+            team=party.team(self.p.cid,db)
+            if team is None:
+                lines.append(f'当前未组队，需要{count}人组队。')
+            elif team['leader_id']!=self.p.cid:
+                lines.append('请由当前队长检查可参战队员。')
+            else:
+                members=team['members']
+                ready={game.character['id'] for game in party.participants(self.g)}
+                lines.append(f'队伍 {len(members)}/{count} 人，可跟随参战 {len(ready)}/{count} 人。')
+                absent=[row['name'].replace('#','＃') for row in members if row['character_id'] not in ready]
+                below=[row['name'].replace('#','＃') for row in members
+                       if grade_number(row,training_state(db,row['character_id']))<cfg['GradeLimit']]
+                if absent:
+                    lines.append('当前无法跟随参战：'+'、'.join(absent)+'。')
+                if below:
+                    lines.append('等级未达标：'+'、'.join(below)+'。')
+                if is_open and len(members)==len(ready)==count and not below:
+                    lines.append('当前队伍满足人数、等级、时段和跟随条件。')
+        lines.append('此处仅检查当前队伍。赛季登记、进场及结算待接通。')
+        return self._menu('#r'.join(lines),[('返回活动详情',dict(op='detail',id=REINCARNATION_TOWER))],nid)
+
+    def mijing_readiness(self, nid):
+        from native946_training import grade_number
+
+        cfg=RULES['special']['玄天幻境']['BaseConfig']
+        now=datetime.now(ACTIVITY_TIMEZONE).hour
+        is_open=cfg['OpenTimeHour']<=now<cfg['EndTimeHour']
+        maximum=len(cfg['SlotUnlock'])
+        current=self.p.snapshot()
+        level_ok=grade_number(current,current['cultivation_state'])>=cfg['GradeLimit']
+        solo=self.g.party_service.team(self.p.cid) is None
+        carried=self.g.summons.snapshot()
+        living=[guardian for guardian in carried if guardian['hp']>0]
+        lines=['玄天幻境守护出战检查',
+               f'活动时段 {cfg["OpenTimeHour"]:02d}:00–{cfg["EndTimeHour"]:02d}:00，当前{"开放" if is_open else "未开放"}。',
+               '封圣140级门槛'+('已达标。' if level_ok else '未达标。'),
+               '当前为单人。' if solo else '当前仍在队伍，玄天幻境为单人活动。',
+               f'当前携带 {len(carried)} 只守护，其中 {len(living)} 只气血大于零。每场可派 1–{maximum} 只。']
+        if living:
+            lines.append('有气血的携带守护：'+'、'.join(
+                guardian['name'].replace('#','＃') for guardian in living[:maximum])+'。')
+        else:
+            lines.append('请携带至少一只有气血的守护。')
+        if is_open and level_ok and solo and living:
+            lines.append('当前满足时段、等级、单人和守护携带条件。')
+        lines.append('此处仅检查出战条件。布阵及战斗待接通。')
+        return self._menu('#r'.join(lines),[('返回活动详情',dict(op='detail',id=SUMMON_MIJING))],nid)
+
+    def mijing_score_shop(self):
+        if self.g.battle:
+            raise ValueError('请先结束当前战斗。')
+        # 3983 forwards score and the two unpacked purchase tables to the native
+        # mall. The client supplies names, costs and order from ScoreShopConfig.
+        return (self.g.close_npc_dialogue(),
+                packet(3983,['number','string','string'],[0,'{}','{}']),
+                notice('玄天幻境积分商店预览。挑战积分与兑换待接通。'))
 
     def rules(self,rid,page=0,nid=CALLBACK,guide=False):
         row=RECORDS.get(rid)
@@ -340,37 +576,6 @@ class Activities:
         text+='#r当前仅开放条件检查，活动领取和发奖待接通。'
         return self._menu(text,[('返回活动详情',dict(op='detail',id=VISITOR_ACTIVITY))],nid)
 
-    def attach_menu(self,npc,reply):
-        from native946_login import MessageReader
-        from native946_game_login import message_id
-        from native946_dungeons import NPC_RECORDS as DUNGEON_NPCS
-        from native946_dungeon_routes import ENTRY_KEYS
-        activity_ids=NPC_RECORDS.get((npc['scene_id'],npc['npc_id']))
-        dungeon_ids=DUNGEON_NPCS.get((npc['scene_id'],npc['npc_id']))
-        if not (activity_ids or dungeon_ids) or not isinstance(reply,bytes) or not reply.startswith(message_id(1025)):
-            return reply
-        r=MessageReader(reply[3:])
-        chats=[dict(chat_msg=r.string().decode('gb18030'),speaker=r.integer()) for _ in range(r.take(1)[0])]
-        choices=[r.string().decode('gb18030') for _ in range(r.take(1)[0])]
-        callback,flag=r.integer(),r.integer();r.finish()
-        if len(choices)!=len(self.g.dialog_actions) or len(choices)>=252:return reply
-        if activity_ids:
-            self.g.dialog_actions.append(dict(kind='activity',op='list',section='npc',page=0))
-            choices.append('原版活动说明与接入状态')
-        if dungeon_ids:
-            self.g.dialog_actions.append(dict(kind='activity',op='dungeon_list',section='npc',page=0))
-            choices.append('副本说明与入口')
-        route_key=ENTRY_KEYS.get((npc['scene_id'],npc['npc_id']))
-        if route_key is not None:
-            from native946_dungeons import RECORDS as DUNGEON_RECORDS
-            self.g.dialog_actions.append(dict(kind='dungeon_route',op='show',key=route_key))
-            choices.append(DUNGEON_RECORDS[route_key]['Name']+'（本机战斗流程）')
-        if (npc['scene_id'],npc['npc_id'])==VISITOR_GIVER:
-            self.g.dialog_actions.append(dict(kind='activity',op='visitor_readiness'))
-            choices.append('检查百年后的来客队伍条件')
-        self.g.dialog_open=True
-        return packet(1025,[('array','npc_chat'),('array','string'),'number','number'],[chats,choices,callback,flag])
-
     def execute(self,nid,action):
         if self.g.battle:raise ValueError('请先结束当前战斗。')
         if nid!=CALLBACK:
@@ -421,6 +626,16 @@ class Activities:
             if nid!=CALLBACK and VISITOR_ACTIVITY not in NPC_RECORDS.get((self.g.character['map_id'],nid),()):
                 raise ValueError('请在苍穹月处检查队伍条件。')
             return self.visitor_readiness(nid)
+        if op=='demon_guide':
+            return self._menu(demon_guide_text(demon_victories(self.p)),
+                              [('返回活动详情',dict(op='detail',id=DEMON_CHALLENGE))],nid)
+        if op in ('tower_readiness','mijing_readiness','mijing_shop'):
+            rid=REINCARNATION_TOWER if op=='tower_readiness' else SUMMON_MIJING
+            if nid!=CALLBACK and rid not in NPC_ENTRY_RECORDS.get((self.g.character['map_id'],nid),()):
+                raise ValueError('请从对应的副本入口办理。')
+            if op=='tower_readiness':return self.tower_readiness(nid)
+            if op=='mijing_readiness':return self.mijing_readiness(nid)
+            return self.mijing_score_shop()
         if op=='rules':return self.rules(action['id'],action.get('page',0),nid)
         if op=='guide':return self.rules(action['id'],action.get('page',0),nid,guide=True)
         if op=='baoxiang_rewards':return self.baoxiang_rewards()
@@ -433,9 +648,12 @@ class Activities:
         if op=='navigate':
             row=RECORDS.get(action['id'])
             if row is None:raise ValueError('活动不存在。')
-            targets=[n for n in row['locations'] if n['reachable']];index=action['target']
+            targets=navigation_targets(row);index=action['target']
             if type(index) is not int or not 0<=index<len(targets):raise ValueError('活动领取人无效。')
             n=targets[index]
             from native946_navigation import npc_auto_trace
+            from native946_world import world
+            if not world().event_npc_is_open(n['scene'], n['npc']):
+                raise ValueError('这个活动 NPC 当前未开放。')
             return (packet(1183,['string'],['dlg_npc_chat']),npc_auto_trace(n['scene'],n['x'],n['y'],n['npc'],n['name']))
         raise ValueError('此活动操作尚未接通，任务、物品和奖励均未改变。')

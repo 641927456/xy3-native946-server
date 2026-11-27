@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 from native946_growth import guardian_growth, species
-from native946_guardian_chamber import AVAILABLE
+import native946_guardian_chamber as guardian_chamber
 
 
 RULES = json.loads(Path(__file__).with_name('native946_guardian_score_rules.json').read_text('utf8'))
@@ -28,14 +28,14 @@ def skill_score(db, pet):
     from native946_guardian_innate import records
     from native946_innate_training import jing_books, trained_records, visible_innate
     from native946_neidan_legacy import raw_list as pill_records
-    from native946_skillbooks import raw_list as book_records
+    from native946_skillbooks import effective_books
 
     sid = pet['id']
     upgrades=jing_books(db,sid)
     hidden={entry['base'] for entry in upgrades}
-    learned = [row for row in book_records(db, sid) if row['skill'] not in hidden]
+    learned = [row for row in effective_books(db, pet) if row['skill'] not in hidden]
     learned_ids = {row['skill'] for row in learned}
-    training = trained_records(db, sid)
+    training = trained_records(db, sid, pet['level'])
     innate_records = records(dict(pet, innate_training=training,jing_books=upgrades), excluded=learned_ids)
     innate = visible_innate(db, dict(pet, innate_skills=innate_records))
     trained = [training[row['stunt_id']] for row in innate if row['stunt_id'] in training]
@@ -89,5 +89,5 @@ def highest_score(db, cid):
     # Progression can send attributes before the guardian subsystem creates its tables.
     if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='summons'").fetchone():
         return 0
-    pets = db.execute('SELECT * FROM summons WHERE character_id=? AND ' + AVAILABLE, (cid,)).fetchall()
+    pets = db.execute('SELECT * FROM summons WHERE character_id=? AND ' + guardian_chamber.AVAILABLE, (cid,)).fetchall()
     return max((total(db, dict(pet)) for pet in pets), default=0)

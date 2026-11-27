@@ -317,7 +317,7 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(self.send(3482, ['number'], [aid])[0], replies[0])
         self.assertEqual(self.p.snapshot()['skills'], claimed)
 
-    def test_optional_third_rebirth_can_ascend_at_mainline_handoff(self):
+    def test_mainline_and_stale_dialogue_cannot_award_ascension(self):
         chapter = CHAPTERS['111553']
         with self.p.transaction() as db:
             db.execute("UPDATE native_campaign_runs SET state='completed',node=22 WHERE character_id=?", (self.p.cid,))
@@ -332,13 +332,27 @@ class CampaignTests(unittest.TestCase):
         with self.p.transaction() as db:
             db.execute('UPDATE characters SET level=140 WHERE id=?', (self.p.cid,))
         self.open_current()
+        self.assertFalse(any(action['op'] == 'cultivate' for action in self.g.dialog_actions))
+        self.g.dialog_actions.append(dict(kind='campaign', op='cultivate', chapter=chapter['id'], node=0, state='available'))
         reply = self.choose('cultivate')
-        self.assertTrue(any(value.startswith(message_id(1590)) for value in reply))
+        self.assertTrue(reply.startswith(message_id(98)))
         saved = self.p.snapshot()
-        self.assertEqual((saved['rebirth'], saved['ascension'], saved['sanctification'], saved['level']), (2, 1, 0, 140))
-        self.open_current()
-        self.choose('accept')
-        self.assertEqual(current(self.p.snapshot())['state'], 'active')
+        self.assertEqual((saved['rebirth'], saved['ascension'], saved['sanctification'], saved['level']), (3, 0, 0, 140))
+        self.assertEqual(current(saved)['state'], 'available')
+
+    def test_newbie_story_cannot_raise_character_stage_caps(self):
+        self.assertEqual(level_up_cost(99, 100), 100**3 + 50)
+        for rebirth, cap in ((0, 100), (1, 120), (2, 140)):
+            with self.subTest(rebirth=rebirth):
+                cost = level_up_cost(cap - 1, cap, cultivation={'rebirth': rebirth})
+                with self.p.transaction() as db:
+                    db.execute('UPDATE cultivation_state SET rebirth=? WHERE character_id=?', (rebirth, self.p.cid))
+                    db.execute('UPDATE characters SET level=?,experience=? WHERE id=?', (cap - 1, 10000000, self.p.cid))
+                self.assertEqual(self.g.auto_level(), 1)
+                self.assertTrue(self.send(748).startswith(message_id(98)))
+                saved = self.p.snapshot()
+                self.assertEqual((saved['level'], saved['experience']), (cap, 10000000 - cost))
+                self.assertEqual(current(saved)['chapter'], 'newbie')
 
     def test_review_chapter_award_requires_completed_group_and_remembers_each_claim(self):
         def complete(key):
@@ -529,7 +543,7 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(tuple(self.g.character[k] for k in ('map_id', 'x', 'y')), position)
         self.assertEqual(current(self.p.snapshot())['node'], 1)
         self.assertFalse(self.g.dialog_open)
-        self.send(1034, ['number'], [npc])
+        self.open_current()
         self.choose('hub')
         self.choose('travel')
         target = CHAPTERS['newbie']['nodes'][1]['target']
@@ -565,8 +579,8 @@ class CampaignTests(unittest.TestCase):
         self.qualify(key);self.complete_current()
         self.assertEqual(len(self.p.snapshot()['campaign']['pending']),2)
         with self.p.transaction() as db:db.execute('DELETE FROM inventory WHERE character_id=? AND page=8 AND slot IN (23,24)',(self.p.cid,))
-        npc = c['nodes'][-1]['target']['npc']
-        self.send(1034, ['number'], [npc])
+        self.open_current()
+        npc = self.g.dialog_npc
         self.choose('hub')
         selection = next(i for i, action in enumerate(self.g.dialog_actions, 1) if action['op'] == 'claim')
         self.choose('claim')
@@ -613,9 +627,20 @@ class CampaignTests(unittest.TestCase):
         for _ in CHAPTERS['newbie']['nodes']:self.complete_current()
         for key in DATA['mainline_order']:
             self.open_current()
-            if any(a.get('op')=='cultivate' for a in self.g.dialog_actions):self.choose('cultivate')
             c=CHAPTERS[key]
             s=self.p.snapshot()
+            stage_gate = tuple(c['metadata']['min_'+stage] for stage in ('rei','fly','feng'))
+            actual = tuple(s[stage] for stage in ('rebirth','ascension','sanctification'))
+            # Cultivation trials are exercised separately. Seed their completed
+            # stage here to keep this test focused on mainline settlement.
+            if any(value < gate for value, gate in zip(actual, stage_gate)):
+                with self.p.transaction() as db:
+                    db.execute('UPDATE cultivation_state SET rebirth=?,ascension=?,sanctification=? WHERE character_id=?',
+                               (*stage_gate, self.p.cid))
+                    if stage_gate[1]:
+                        db.execute("INSERT OR IGNORE INTO native_campaign_runs VALUES(?,'222374',3,'completed',?,0)",
+                                   (self.p.cid, DATA['version']))
+                s=self.p.snapshot()
             required=level_up_cost(s['level'],c['metadata']['min_grade'],cultivation=s)
             # This tests all story nodes. Earn the level gate's shortfall
             # outside the story, then level up through the native request.
@@ -665,7 +690,10 @@ class CultivationQuestTests(unittest.TestCase):
 
     def level(self, value):
         with self.p.transaction() as db:
+            delta = value - db.execute('SELECT level FROM characters WHERE id=?', (self.p.cid,)).fetchone()[0]
             db.execute('UPDATE characters SET level=? WHERE id=?', (value, self.p.cid))
+            db.execute('UPDATE progression SET cor=cor+?,mag=mag+?,strength=strength+?,speed=speed+?,points=points+? '
+                       'WHERE character_id=?', (delta, delta, delta, delta, delta * 4, self.p.cid))
 
     def open_trial_node(self):
         chapter, node, row = stage(self.p.snapshot(), True)
@@ -673,20 +701,28 @@ class CultivationQuestTests(unittest.TestCase):
         self.send(1034, ['number'], [node['target']['npc']])
         return chapter, node, row
 
-    def test_four_cultivation_quests_run_from_native_acceptance_through_promotion(self):
+    def test_cultivation_quests_run_from_native_acceptance_through_promotion(self):
         from native946_campaign import TRIALS, task_details
+        from native946_cultivation import level_cap
 
-        for key, entry, finish, expected, fights in (
-            ('912101', 98, 100, (1, 0, 0), 4),
-            ('912201', 118, 120, (2, 0, 0), 6),
-            ('111321', 138, 140, (2, 1, 0), 9),
-            ('222400', 165, 165, (2, 1, 1), 7),
+        for key, entry, finish, expected, fights, start_level, resistance in (
+            ('912101', 98, 100, (1, 0, 0), 4, 30, 30),
+            ('912201', 118, 120, (2, 0, 0), 6, 45, 46),
+            ('111321', 138, 140, (2, 1, 0), 9, 120, 65),
+            ('222374', 160, 160, (2, 1, 0), 1, None, 0),
+            ('222400', 165, 165, (2, 1, 1), 7, None, 45),
         ):
             with self.subTest(chapter=key):
                 chapter = TRIALS[key]
                 self.level(entry)
+                if key == '222374':
+                    with self.p.transaction() as db:
+                        db.execute('UPDATE characters SET experience=20000 WHERE id=?', (self.p.cid,))
+                    self.assertEqual(level_cap(self.p.snapshot()), 160)
+                    self.assertTrue(self.send(748).startswith(message_id(98)))
+                    self.assertEqual(self.g.auto_level(), 0)
                 self.teleport(chapter['giver'])
-                if key in ('912101', '222400'):
+                if key in ('912101', '222374', '222400'):
                     self.send(1034, ['number'], [chapter['giver']['npc']])
                     self.choose('accept')
                 else:
@@ -716,7 +752,7 @@ class CultivationQuestTests(unittest.TestCase):
                             self.level(finish)
                             self.open_trial_node()
                         reply = self.choose('complete')
-                        if idx == len(chapter['nodes']) - 1:
+                        if idx == len(chapter['nodes']) - 1 and key != '222374':
                             self.assertTrue(any(value.startswith(message_id(1590)) for value in reply))
                     xp += node['reward']['experience']
                     gold += node['reward']['gold']
@@ -724,18 +760,28 @@ class CultivationQuestTests(unittest.TestCase):
                 self.assertEqual(battles, fights)
                 self.assertEqual(tuple(saved[k] for k in ('rebirth','ascension','sanctification')), expected)
                 self.assertEqual(self.g.character['appearance']['halo'], 101 if expected[2] else 100 if expected[1] else 0)
-                self.assertGreaterEqual(saved['level'], finish)
+                if start_level is not None:
+                    self.assertEqual((saved['level'], saved['experience']), (start_level, chapter['nodes'][-1]['reward']['experience']))
+                    self.assertEqual(saved['points'], 4 * start_level + 60 * sum(expected[:2]))
+                else:
+                    self.assertGreaterEqual(saved['level'], finish)
                 self.assertEqual(saved['gold'], initial['gold'] + gold)
                 self.assertLessEqual(saved['experience'], initial['experience'] + xp)
-                self.assertGreaterEqual(saved['points'] - initial['points'], 60 if key == '222400' else 0)
+                if key == '222400':
+                    self.assertGreaterEqual(saved['points'] - initial['points'], 60)
                 self.assertEqual(saved['cultivation_state']['earned_points'] - initial['cultivation_state']['earned_points'],
-                                 45 if key == '222400' else 0)
+                                 resistance)
                 self.assertEqual(saved['campaign']['runs'][key]['state'], 'completed')
                 self.assertEqual(saved['campaign']['items'], [])
                 self.assertIsNone(current(saved, True))
                 self.assertEqual(current(saved)['node'], 0)
                 self.assertFalse(self.campaign.advance(key, len(chapter['nodes']) - 1))
                 self.assertEqual(self.p.snapshot()['experience'], saved['experience'])
+                if key == '222374':
+                    self.assertEqual(level_cap(saved), 180)
+                    self.assertEqual((saved['level'], saved['experience']), (160, 20000))
+                    self.send(748)
+                    self.assertEqual(self.p.snapshot()['level'], 161)
 
     def test_old_store_keeps_mainline_and_resumes_trial_after_leaving_a_battle(self):
         from native946_campaign import TRIALS

@@ -1,0 +1,410 @@
+{
+  "source": "946 configs.wdf f18c9529 and 7b1cf8c1",
+  "derived": {
+    "hpmpadd1": "math.min(math.max(0.125*(4*grade+120)/math.max(grade*10,10),0),math.max(0.125*(mag-grade+cor-grade)/math.max(grade*10,10),0))",
+    "hpmpadd2": "math.min(math.max(0.5*(4*grade+120)/math.max(grade*10,10),0),math.max(0.5*(mag-grade+cor-grade+str-grade)/math.max(grade*10,10),0))",
+    "hpmpadd3": "math.min(math.max((4*grade+120)/math.max(grade*10,10),0),math.max((mag-grade+cor-grade)/math.max(grade*10,10),0))"
+  },
+  "skills": {
+    "1": {
+      "命中率": "math.max((math.max(math.min(70*(1+(3*math.pow(practice1,0.25)/100))*10,(0.22*grade+68)*10)+(addpoisonrate-repoisonb)*10,0)+igpoison*8),math.max(200-0.8*repoisonb,10))*(1+hpmpadd1)",
+      "毒伤害": "math.max((2*(10+practice1/1000+grade))*(1000+addpoisonatt)/1000*(1+2*hpmpadd1)-repoisonattb,1)",
+      "目标个数": "3",
+      "持续回合": "math.floor(2*(math.pow(practice1,0.3)*0.08+1))"
+    },
+    "2": {
+      "命中率": "math.max((math.max(math.min(85*(1+(3*math.pow(practice2,0.28)/100))*10,(0.32*grade+85)*10)+(addpoisonrate-repoisonb)*8,0)+igpoison*8),math.max(300-0.8*repoisonb,20))*(1+hpmpadd1)",
+      "毒伤害": "math.max((3*(80+practice2/250+grade))*(1000+addpoisonatt)/1000*(1+2*hpmpadd1)-repoisonattb,1)",
+      "目标个数": "1",
+      "持续回合": "math.floor(2*(math.pow(practice2,0.3)*0.08+1))"
+    },
+    "3": {
+      "命中率": "math.max((math.max(math.min(77*(1+(3*math.pow(practice3,0.3)/100))*10*(1+0.15*(practice1/30000)),(0.34*grade+78)*10)+(addpoisonrate-repoisonb)*8,0)+igpoison*8),math.max(250-0.8*repoisonb,20))*(1+hpmpadd1)",
+      "毒伤害": "math.max((3*(50+practice3/300+grade)*(1+0.12*(practice1/30000)))*(1000+addpoisonatt)/1000*(1+2*hpmpadd1)-repoisonattb,1)",
+      "目标个数": "3+math.min(math.floor(practice3/3000),1)+math.min(math.floor(practice3/9000),1)",
+      "持续回合": "math.floor(2*(math.pow(practice3,0.3)*0.08+1))"
+    },
+    "4": {
+      "命中率": "math.max((math.max(math.min(100*(1+(3*math.pow(practice4,0.29)/100))*10*(1+0.15*(practice2/30000)),(0.42*grade+98)*10)+math.max(practice4-20000,0)/62.5+(addpoisonrate-repoisonb)*8,0)+igpoison*8),math.max(300-0.8*repoisonb,50))*(1+hpmpadd1)",
+      "毒伤害": "math.max((5*(75+practice4/300+grade+fly*math.max(grade-120,0)*2)*(1+0.2*(practice2/30000)))*(1000+addpoisonatt)/1000*(1+2*hpmpadd1)-repoisonattb,1)",
+      "目标个数": "1",
+      "持续回合": "math.floor(3*(math.pow(practice4,0.3)*0.07+1))"
+    },
+    "5": {
+      "命中率": "math.max((math.max(math.min(91*(1+(3*math.pow(practice5,0.28)/100))*10,(0.34*grade+88)*10)+math.max(practice5-20000,0)/100+(addpoisonrate-repoisonb)*8,0)+igpoison*8),math.max(280-0.8*repoisonb,50))*(1+hpmpadd1)",
+      "毒伤害": "math.max((4*(70+practice5/250+grade+fly*math.max(grade-120,0)*2.5)*(1+0.15*practice3/30000))*(1000+addpoisonatt)/1000*(1+2*hpmpadd1)-repoisonattb,1)",
+      "目标个数": "4+math.min(math.floor((practice5+3000)/4000),2)+math.min(math.floor(practice5/11000),1)",
+      "持续回合": "3+math.min(math.floor(practice5/1000),2)+math.min(math.floor((practice5+3000)/11000),2)"
+    },
+    "11": {
+      "命中率": "math.max((math.max(math.min(65*(1+(3*math.pow(practice1,0.25)/100))*10,(0.16*grade+65)*10)+(addfaintrate-refaintb)*10,0)+math.max(igfaint-math.max(refaintb-150,0)*0.15,0)*8),math.max(80-0.8*refaintb,1))*(1+hpmpadd1)",
+      "目标个数": "3",
+      "持续回合": "math.floor(2*(math.pow(practice1,0.3)*0.08+1))"
+    },
+    "12": {
+      "命中率": "math.max((math.max(math.min(80*(1+(3*math.pow(practice2,0.28)/100))*10,(0.26*grade+80)*10)+(addfaintrate-refaintb)*8,0)+math.max(igfaint-math.max(refaintb-150,0)*0.15,0)*8),math.max(100-0.8*refaintb,5))*(1+hpmpadd1)",
+      "目标个数": "1",
+      "持续回合": "math.floor(2*(math.pow(practice2,0.3)*0.08+1))"
+    },
+    "13": {
+      "命中率": "math.max((math.max(math.min(70*(1+(3*math.pow(practice3,0.3)/100))*10*(1+0.15*(practice1/30000)),(0.26*grade+74)*10)+(addfaintrate-refaintb)*8,0)+math.max(igfaint-math.max(refaintb-150,0)*0.15,0)*8),math.max(120-0.8*refaintb,10))*(1+hpmpadd1)",
+      "目标个数": "3+math.min(math.floor(practice3/3000),1)+math.min(math.floor(practice3/9000),1)",
+      "持续回合": "math.floor(2*(math.pow(practice3,0.3)*0.08+1))"
+    },
+    "14": {
+      "命中率": "math.max((math.max(math.min(95*(1+(3*math.pow(practice4,0.29)/100))*10*(1+0.15*(practice2/30000)),(0.35*grade+98)*10)+math.max(practice4-20000,0)/62.5+(addfaintrate-refaintb)*8,0)+math.max(igfaint-math.max(refaintb-150,0)*0.15,0)*8),math.max(240-0.8*refaintb,50))*(1+hpmpadd1)",
+      "目标个数": "1",
+      "持续回合": "math.floor(3*(math.pow(practice4,0.3)*0.07+1))"
+    },
+    "15": {
+      "命中率": "math.max((math.max(math.min(85*(1+(3*math.pow(practice5,0.3)*0.81666/100))*10,(0.29*grade+85)*10)+math.max(practice5-20000,0)/100+(addfaintrate-refaintb)*8,0)+math.max(igfaint-math.max(refaintb-150,0)*0.15,0)*8),math.max(200-0.8*refaintb,30))*(1+hpmpadd1)",
+      "目标个数": "4+math.min(math.floor((practice5+3000)/4000),2)+math.min(math.floor(practice5/11000),1)",
+      "持续回合": "3+math.min(math.floor(practice5/1000),2)+math.min(math.floor((practice5+3000)/11000),2)"
+    },
+    "21": {
+      "命中率": "math.max((math.max(math.min(60*(1+(3*math.pow(practice1,0.25)/100))*10,(0.16*grade+61)*10)+(adddisorderrate-redisorderb)*10,0)+math.max(igdisorder-math.max(redisorderb-150,0)*0.1,0)*8),math.max(80-0.8*redisorderb,1))*(1+hpmpadd1)",
+      "目标个数": "3",
+      "持续回合": "math.floor(2*(math.pow(practice1,0.3)*0.06+1))"
+    },
+    "22": {
+      "命中率": "math.max((math.max(math.min(75*(1+(3*math.pow(practice2,0.28)/100))*10,(0.23*grade+78)*10)+(adddisorderrate-redisorderb)*8,0)+math.max(igdisorder-math.max(redisorderb-150,0)*0.1,0)*8),math.max(100-0.8*redisorderb,5))*(1+hpmpadd1)",
+      "目标个数": "1",
+      "持续回合": "math.floor(2*(math.pow(practice2,0.3)*0.06+1))"
+    },
+    "23": {
+      "命中率": "math.max((math.max(math.min(67*(1+(3*math.pow(practice3,0.3)/100))*10*(1+0.15*(practice1/30000)),(0.23*grade+71)*10)+(adddisorderrate-redisorderb)*8,0)+math.max(igdisorder-math.max(redisorderb-150,0)*0.1,0)*8),math.max(120-0.8*redisorderb,10))*(1+hpmpadd1)",
+      "目标个数": "2+math.min(math.floor(practice3/1000),1)+math.min(math.floor(practice3/9000),1)",
+      "持续回合": "math.floor(2*(math.pow(practice3,0.3)*0.06+1))"
+    },
+    "24": {
+      "命中率": "math.max((math.max(math.min(90*(1+(3*math.pow(practice4,0.29)/100))*10*(1+0.15*(practice2/30000)),(0.33*grade+92)*10)+math.max(practice4-20000,0)/62.5+(adddisorderrate-redisorderb)*8,0)+math.max(igdisorder-math.max(redisorderb-150,0)*0.1,0)*8),math.max(240-0.8*redisorderb,50))*(1+hpmpadd1)",
+      "目标个数": "1",
+      "持续回合": "math.min(math.floor(3*(math.pow(practice4,0.3)*0.05+1)),5)"
+    },
+    "25": {
+      "命中率": "math.max((math.max(math.min(80*(1+(3*math.pow(practice5,0.3)*0.81666/100))*10,(0.25*grade+82)*10)+math.max(practice5-20000,0)/100+(adddisorderrate-redisorderb)*8,0)+math.max(igdisorder-math.max(redisorderb-150,0)*0.1,0)*8),math.max(200-0.8*redisorderb,30))*(1+hpmpadd1)",
+      "目标个数": "3+math.min(math.floor((practice5+3000)/4000),2)",
+      "持续回合": "3+math.min(math.floor((practice5+4000)/5000),2)"
+    },
+    "31": {
+      "命中率": "math.max((math.max(math.min(65*(1+(3*math.pow(practice1,0.25)/100))*10,(0.16*grade+65)*10)+(addsealrate-resealb)*10,0)+math.max(igseal-math.max(resealb-150,0)*0.12,0)*8),math.max(80-0.8*resealb,1))*(1+hpmpadd1)",
+      "目标个数": "3",
+      "持续回合": "math.floor(2*(math.pow(practice1,0.3)*0.08+1))"
+    },
+    "32": {
+      "命中率": "math.max((math.max(math.min(80*(1+(3*math.pow(practice2,0.28)/100))*10,(0.26*grade+80)*10)+(addsealrate-resealb)*8,0)+math.max(igseal-math.max(resealb-150,0)*0.12,0)*8),math.max(100-0.8*resealb,5))*(1+hpmpadd1)",
+      "目标个数": "1",
+      "持续回合": "math.floor(2*(math.pow(practice2,0.3)*0.08+1))"
+    },
+    "33": {
+      "命中率": "math.max((math.max(math.min(70*(1+(3*math.pow(practice3,0.3)/100))*10*(1+0.15*(practice1/30000)),(0.26*grade+74)*10)+(addsealrate-resealb)*8,0)+math.max(igseal-math.max(resealb-150,0)*0.12,0)*8),math.max(120-0.8*resealb,10))*(1+hpmpadd1)",
+      "目标个数": "3+math.min(math.floor(practice3/3000),1)+math.min(math.floor(practice3/9000),1)",
+      "持续回合": "math.floor(2*(math.pow(practice3,0.3)*0.08+1))"
+    },
+    "34": {
+      "命中率": "math.max((math.max(math.min(95*(1+(3*math.pow(practice4,0.29)/100))*10*(1+0.15*(practice2/30000)),(0.35*grade+98)*10)+math.max(practice4-20000,0)/62.5+(addsealrate-resealb)*8,0)+math.max(igseal-math.max(resealb-150,0)*0.12,0)*8),math.max(240-0.8*resealb,50))*(1+hpmpadd1)",
+      "目标个数": "1",
+      "持续回合": "math.floor(3*(math.pow(practice4,0.3)*0.07+1))"
+    },
+    "35": {
+      "命中率": "math.max((math.max(math.min(85*(1+(3*math.pow(practice5,0.3)*0.81666/100))*10,(0.29*grade+85)*10)+math.max(practice5-20000,0)/100+(addsealrate-resealb)*8,0)+math.max(igseal-math.max(resealb-150,0)*0.12,0)*8),math.max(200-0.8*resealb,30))*(1+hpmpadd1)",
+      "目标个数": "4+math.min(math.floor((practice5+3000)/4000),2)+math.min(math.floor(practice5/11000),1)",
+      "持续回合": "3+math.min(math.floor(practice5/1000),2)+math.min(math.floor((practice5+3000)/11000),2)"
+    },
+    "41": {
+      "法术伤害": "(math.max(((practice1/100+grade*1+80)*0.85)+addfire-refireb,1)+math.min(((practice1/100+grade*1+80)*0.85),igfire))*(1+hpmpadd3)",
+      "狂暴率": "10*(25+practice1/5000)",
+      "目标个数": "3"
+    },
+    "42": {
+      "法术伤害": "(math.max(((practice2/40+grade*3+200)*0.85)+addfire-refireb,1)+math.min(((practice2/40+grade*3+200)*0.85),igfire))*(1+hpmpadd3)",
+      "狂暴率": "10*(25+practice2/5000)",
+      "目标个数": "1"
+    },
+    "43": {
+      "法术伤害": "(math.max(((practice3/50+grade*1.8+120)*(1+0.15*(1+practice1/30000))*0.85)+addfire-refireb,1)+math.min(((practice3/50+grade*1.8+120)*(1+0.15*(1+practice1/30000))*0.85),igfire))*(1+hpmpadd3)",
+      "狂暴率": "10*(25+practice3/5000)",
+      "目标个数": "3+math.min(math.floor(practice3/3000),1)+math.min(math.floor(practice3/10500),1)"
+    },
+    "44": {
+      "法术伤害": "(math.max(((practice4/25+3*grade+250+fly*(math.max(practice4-20000,0)/30+math.max(grade-120,0)*6))*(1+0.25*(1+practice2/30000))*0.85)+addfire-refireb,1)+math.min(((practice4/25+3*grade+250+fly*(math.max(practice4-20000,0)/30+math.max(grade-120,0)*6))*(1+0.25*(1+practice2/30000))*0.85),igfire))*(1+hpmpadd3)",
+      "狂暴率": "10*(25+practice4/5000)",
+      "目标个数": "1"
+    },
+    "45": {
+      "法术伤害": "(math.max(((practice5/25+3.5*grade+150+fly*(math.max(practice5-20000,0)/32+math.max(grade-120,0)*8))*0.85*(1+0.05*(1+practice3/30000)))+addfire-refireb,1)+math.min(((practice5/25+3.5*grade+150+fly*(math.max(practice5-20000,0)/32+math.max(grade-120,0)*8))*0.85*(1+0.05*(1+practice3/30000))),igfire))*(1+hpmpadd3)",
+      "狂暴率": "10*(25+practice5/5000)",
+      "目标个数": "4+math.min(math.floor(practice5/3000),1)"
+    },
+    "51": {
+      "法术伤害": "(math.max((practice1/100+grade*1+85)+addthunder-rethunderb,1)+math.min((practice1/100+grade*1+85),igthunder))*(1+hpmpadd3)",
+      "目标个数": "3"
+    },
+    "52": {
+      "法术伤害": "(math.max(((practice2/40+grade*3+200))+addthunder-rethunderb,1)+math.min(((practice2/40+grade*3+200)),igthunder))*(1+hpmpadd3)",
+      "目标个数": "1"
+    },
+    "53": {
+      "法术伤害": "(math.max(((practice3/50+grade*1.8+130)*(1+0.15*(1+practice1/30000)))+addthunder-rethunderb,1)+math.min(((practice3/50+grade*1.8+130)*(1+0.15*(1+practice1/30000))),igthunder))*(1+hpmpadd3)",
+      "目标个数": "3+math.min(math.floor(practice3/4000),1)+math.min(math.floor(practice3/10500),1)"
+    },
+    "54": {
+      "法术伤害": "(math.max(((practice4/25+grade*3+260+fly*(math.max(practice4-20000,0)/30+math.max(grade-120,0)*6))*(1+0.25*(1+practice2/30000)))+addthunder-rethunderb,1)+math.min(((practice4/25+grade*3+260+fly*(math.max(practice4-20000,0)/30+math.max(grade-120,0)*6))*(1+0.25*(1+practice2/30000))),igthunder))*(1+hpmpadd3)",
+      "目标个数": "1"
+    },
+    "55": {
+      "法术伤害": "(math.max(((practice5/25+3.5*grade+160+fly*(math.max(practice5-20000,0)/32+math.max(grade-120,0)*8))*(1+0.05*(1+practice3/30000)))+addthunder-rethunderb,1)+math.min(((practice5/25+3.5*grade+160+fly*(math.max(practice5-20000,0)/32+math.max(grade-120,0)*8))*(1+0.05*(1+practice3/30000))),igthunder))*(1+hpmpadd3)",
+      "目标个数": "4+math.min(math.floor(practice5/4000),1)"
+    },
+    "61": {
+      "法术伤害": "(math.max(((practice1/100+grade*1+80)*0.75)+addwind-rewindb,1)+math.min(((practice1/100+grade*1+80)*0.75),igwind))*(1+hpmpadd3)",
+      "连击率": "10*(30+practice1/5000)",
+      "目标个数": "3"
+    },
+    "62": {
+      "法术伤害": "(math.max(((practice2/40+grade*3+200)*0.75)+addwind-rewindb,1)+math.min(((practice2/40+grade*3+200)*0.75),igwind))*(1+hpmpadd3)",
+      "连击率": "10*(30+practice2/5000)",
+      "目标个数": "1"
+    },
+    "63": {
+      "法术伤害": "(math.max(((practice3/50+grade*1.8+120)*(1+0.15*(1+practice1/30000))*0.75)+addwind-rewindb,1)+math.min(((practice3/50+grade*1.8+120)*(1+0.15*(1+practice1/30000))*0.75),igwind))*(1+hpmpadd3)",
+      "连击率": "10*(30+practice3/5000)",
+      "目标个数": "3+math.min(math.floor(practice3/3000),1)+math.min(math.floor(practice3/10500),1)"
+    },
+    "64": {
+      "法术伤害": "(math.max(((practice4/25+grade*3+250+fly*(math.max(practice4-20000,0)/30+math.max(grade-120,0)*6))*(1+0.25*(1+practice2/30000))*0.75)+addwind-rewindb,1)+math.min(((practice4/25+grade*3+250+fly*(math.max(practice4-20000,0)/30+math.max(grade-120,0)*6))*(1+0.25*(1+practice2/30000))*0.75),igwind))*(1+hpmpadd3)",
+      "连击率": "10*(30+practice4/5000)",
+      "目标个数": "1"
+    },
+    "65": {
+      "法术伤害": "(math.max(((practice5/25+3.5*grade+150+fly*(math.max(practice5-20000,0)/32+math.max(grade-120,0)*8))*0.75*(1+0.05*(1+practice3/30000)))+addwind-rewindb,1)+math.min(((practice5/25+3.5*grade+150+fly*(math.max(practice5-20000,0)/32+math.max(grade-120,0)*8))*0.75*(1+0.05*(1+practice3/30000))),igwind))*(1+hpmpadd3)",
+      "连击率": "10*(30+practice5/5000)",
+      "目标个数": "4+math.min(math.floor(practice5/3000),1)"
+    },
+    "71": {
+      "法术伤害": "(math.max(((practice1/100+grade*1+80)*0.8)+addwater-rewaterb,1)+math.min(((practice1/100+grade*1+80)*0.8),igwater))*(1+hpmpadd3)",
+      "上限伤害": "(((practice1/100+grade*1+80)*0.25)+addwater1)*(1+hpmpadd3)",
+      "目标个数": "3"
+    },
+    "72": {
+      "法术伤害": "(math.max(((practice2/40+grade*2+200)*0.8)+addwater-rewaterb,1)+math.min(((practice2/40+grade*2+200)*0.8),igwater))*(1+hpmpadd3)",
+      "上限伤害": "(((practice2/40+grade*2+200)*0.25)+addwater1)*(1+hpmpadd3)",
+      "目标个数": "1"
+    },
+    "73": {
+      "法术伤害": "(math.max(((practice3/60+grade*1+120)*(1+0.15*(1+practice1/30000))*0.8)+addwater-rewaterb,1)+math.min(((practice3/60+grade*1+120)*(1+0.15*(1+practice1/30000))*0.8),igwater))*(1+hpmpadd3)",
+      "上限伤害": "(((practice3/60+grade*1+120)*(1+0.15*(1+practice1/30000))*0.25)+addwater1)*(1+hpmpadd3)",
+      "目标个数": "3+math.min(math.floor(practice3/4000),1)+math.min(math.floor(practice3/10500),1)"
+    },
+    "74": {
+      "法术伤害": "(math.max(((practice4/25+grade*2+250+fly*(math.max(practice4-20000,0)/40+math.max(grade-120,0)*6))*(1+0.25*(1+practice2/30000))*0.8)+addwater-rewaterb,1)+math.min(((practice4/25+grade*2+250+fly*(math.max(practice4-20000,0)/40+math.max(grade-120,0)*6))*(1+0.25*(1+practice2/30000))*0.8),igwater))*(1+hpmpadd3)",
+      "上限伤害": "(((practice4/25+grade*2+250+fly*(math.max(practice4-20000,0)/40+math.max(grade-120,0)*6))*(1+0.25*(1+practice2/30000))*0.25)+addwater1)*(1+hpmpadd3)",
+      "目标个数": "1"
+    },
+    "75": {
+      "法术伤害": "(math.max(((practice5/30+2*grade+150+fly*(math.max(practice5-20000,0)/32+math.max(grade-120,0)*8))*0.8*(1+0.05*(1+practice3/30000)))+addwater-rewaterb,1)+math.min(((practice5/30+2*grade+150+fly*(math.max(practice5-20000,0)/32+math.max(grade-120,0)*8))*0.8*(1+0.05*(1+practice3/30000))),igwater))*(1+hpmpadd3)",
+      "上限伤害": "(((practice5/30+2*grade+150+fly*(math.max(practice5-20000,0)/40+math.max(grade-120,0)*8))*0.25*(1+0.05*(1+practice3/30000)))+addwater1)*(1+hpmpadd3)",
+      "目标个数": "4+math.min(math.floor(practice5/4000),1)"
+    },
+    "81": {
+      "物理防御": "(100*(math.pow(practice1,0.35)*4/100+1))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "雷法防御": "(100*(math.pow(practice1,0.35)*4/100+1))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "人法抗性": "5*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "目标个数": "3"
+    },
+    "82": {
+      "物理防御": "(130*(math.pow(practice2,0.38)*8/100+2))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "雷法防御": "(120*(math.pow(practice2,0.38)*6/100+2))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "人法抗性": "8*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "目标个数": "1"
+    },
+    "83": {
+      "物理防御": "(120*(math.pow(practice3,0.37)*8/100+1.2)*(1+0.15*(practice1/30000)))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "雷法防御": "(110*(math.pow(practice3,0.38)*6/100+1.2)*(1+0.15*(practice1/30000)))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "人法抗性": "(6*(1+0.15*(practice1/30000)))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "目标个数": "3+math.min(math.floor(practice3/2000),1)+math.min(math.floor(practice3/8000),1)"
+    },
+    "84": {
+      "物理防御": "(160*(math.pow(practice4,0.39)*10/100+2.5)*(1+0.20*(practice2/30000)))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "雷法防御": "(150*(math.pow(practice4,0.38)*8/100+2.5)*(1+0.20*(practice2/30000)))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "人法抗性": "(12*(1+0.20*(practice2/30000)))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "目标个数": "1"
+    },
+    "85": {
+      "物理防御": "(130*(math.pow(practice5,0.40)*10/100+2))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "雷法防御": "(120*(math.pow(practice5,0.4)*0.9037*9/100+2))*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "人法抗性": "12*(1+adddefskill/1000)*(1+hpmpadd2)",
+      "目标个数": "4+math.min(math.floor((practice5+2000)/3000),2)+math.min(math.floor(practice5/10500),1)"
+    },
+    "91": {
+      "加攻程度": "(150*(math.pow(practice1,0.35)*5/100+1))*(1+addattskill/1000)*(1+hpmpadd2)",
+      "目标个数": "3",
+      "持续回合": "math.max(math.floor(2*(math.pow(practice1,0.35)*7/100+1))-math.floor(dodall/900),1)"
+    },
+    "92": {
+      "加攻程度": "(250*(math.pow(practice2,0.35)*5/100+1))*(1+addattskill/1000)*(1+hpmpadd2)",
+      "目标个数": "1",
+      "持续回合": "math.max(math.floor(2*(math.pow(practice2,0.35)*7/100+1))-math.floor(dodall/900),1)"
+    },
+    "93": {
+      "加攻程度": "(200*(math.pow(practice3,0.35)*5/100+1)*(1+0.1*(practice1/30000)))*(1+addattskill/1000)*(1+hpmpadd2)",
+      "目标个数": "3+math.min(math.floor(practice3/2000),1)+math.min(math.floor(practice3/8000),1)",
+      "持续回合": "math.max(math.floor(2*(math.pow(practice3,0.35)*7/100+1))-math.floor(dodall/900),1)"
+    },
+    "94": {
+      "加攻程度": "(300*(math.pow(practice4,0.35)*5/100+1)*(1+0.2*(practice2/30000)))*(1+addattskill/1000)*(1+hpmpadd2)",
+      "目标个数": "1",
+      "持续回合": "math.max(math.min(math.floor(3*(math.pow(practice4,0.35)*5/100+1)),7)-math.floor(dodall/900),1)"
+    },
+    "95": {
+      "加攻程度": "(250*(math.pow(practice5,0.4)*0.6027*5/100+1))*(1+addattskill/1000)*(1+hpmpadd2)",
+      "目标个数": "4+math.min(math.floor((practice5+2000)/3000),2)+math.min(math.floor(practice5/10500),1)",
+      "持续回合": "math.max(math.min(3+math.min(math.floor(practice5/1000),2)+math.min(math.floor(practice5/6000),2),7)-math.floor(dodall/900),1)"
+    },
+    "101": {
+      "加速程度": "(120)*(1+adddodskill/1000)*(1+hpmpadd2)",
+      "目标个数": "3",
+      "持续回合": "math.max(math.floor(2*(math.pow(practice1,0.35)*7/100+1))-math.floor(dodall/900),1)"
+    },
+    "102": {
+      "加速程度": "(160)*(1+adddodskill/1000)*(1+hpmpadd2)",
+      "目标个数": "1",
+      "持续回合": "math.max(math.floor(2*(math.pow(practice2,0.35)*7/100+1))-math.floor(dodall/900),1)"
+    },
+    "103": {
+      "加速程度": "(120+40*(practice1/30000))*(1+adddodskill/1000)*(1+hpmpadd2)",
+      "目标个数": "3+math.min(math.floor(practice3/2000),1)+math.min(math.floor(practice3/8000),1)",
+      "持续回合": "math.max(math.floor(2*(math.pow(practice3,0.35)*7/100+1))-math.floor(dodall/900),1)"
+    },
+    "104": {
+      "加速程度": "(200+80*(practice2/30000)+math.max(practice4-20000,0)/100)*(1+adddodskill/1000)*(1+hpmpadd2)",
+      "目标个数": "1",
+      "持续回合": "math.max(math.min(math.floor(3*(math.pow(practice4,0.35)*5/100+1)),7)-math.floor(dodall/600),1)"
+    },
+    "105": {
+      "加速程度": "(180+math.max(practice5-20000,0)/62.5)*(1+adddodskill/1000)*(1+hpmpadd2)",
+      "目标个数": "4+math.min(math.floor((practice5+2000)/3000),2)+math.min(math.floor(practice5/10500),1)",
+      "持续回合": "math.max(math.min(3+math.min(math.floor(practice5/1000),2)+math.min(math.floor(practice5/6000),2),7)-math.floor(dodall/600),1)"
+    },
+    "111": {
+      "震慑气血": "math.max(math.min(((120*(math.pow(practice1,0.35)*2/100+1))*(1+addabsorbskill/1000)-reabsorbb/(1+hpmpadd2)),450)*(1+hpmpadd2),0)",
+      "震慑法力": "180*(math.pow(practice1,0.35)*2/100+1)",
+      "目标个数": "3"
+    },
+    "112": {
+      "震慑气血": "math.max(math.min(((200*(math.pow(practice2,0.35)*2/100+1))*(1+addabsorbskill/1000)-reabsorbb/(1+hpmpadd2)),450)*(1+hpmpadd2),0)",
+      "震慑法力": "250*(math.pow(practice2,0.35)*2/100+1)",
+      "目标个数": "1"
+    },
+    "113": {
+      "震慑气血": "math.max(math.min(((150*(math.pow(practice3,0.35)*2/100+1)+40*(practice1/30000))*(1+addabsorbskill/1000)-reabsorbb/(1+hpmpadd2)),450)*(1+hpmpadd2),0)",
+      "震慑法力": "200*(math.pow(practice3,0.35)*2/100+1)+40*(practice1/30000)",
+      "目标个数": "3+math.min(math.floor(practice3/3000),1)+math.min(math.floor(practice3/9000),1)"
+    },
+    "114": {
+      "震慑气血": "math.max(math.min(((250*(math.pow(practice4,0.35)*2/100+1)+60*(practice2/30000))*(1+addabsorbskill/1000)-reabsorbb/(1+hpmpadd2)),450)*(1+hpmpadd2),0)",
+      "震慑法力": "320*(math.pow(practice4,0.35)*2/100+1)+60*(practice2/30000)",
+      "目标个数": "1"
+    },
+    "115": {
+      "震慑气血": "math.max(math.min(((200*(math.pow(practice5,0.4)*0.6027*2/100+1))*(1+addabsorbskill/1000)-reabsorbb/(1+hpmpadd2)),450)*(1+hpmpadd2),0)",
+      "震慑法力": "250*(math.pow(practice5,0.4)*0.6027*2/100+1)",
+      "目标个数": "4+math.min(math.floor((practice5+3000)/4000),2)+math.min(math.floor(practice5/10500),1)"
+    },
+    "6100": {
+      "基础伤害": "math.max(attall*0.5+1500*practice1/(25000/0.8)/2+grade*6+100-defallb,1)",
+      "目标个数": "3"
+    },
+    "6101": {
+      "基础伤害": "math.max(attall*0.5+1500*practice2/(25000/1.1)/2+grade*10+150-defallb,1)",
+      "目标个数": "1"
+    },
+    "6102": {
+      "基础伤害": "math.max(attall*0.5+1500*practice3/(25000/1)/2+grade*8+120-defallb,1)",
+      "目标个数": "3+math.min(math.floor(practice3/3000),1)+math.min(math.floor(practice3/10500),1)"
+    },
+    "6103": {
+      "基础伤害": "math.max(attall*0.5+1500*practice4/(25000/1.3)/2+grade*13+200-defallb,1)",
+      "目标个数": "1"
+    },
+    "6104": {
+      "基础伤害": "math.max(attall*0.5+1500*practice5/(25000/1.2)/2+grade*12+160-defallb,1)",
+      "目标个数": "4+math.min(math.floor(practice5/3000),1)"
+    },
+    "6107": {
+      "命中率": "math.min(practice1/(25000/150)/2+grade*0.5+20+addxiaorongrate,800)",
+      "目标个数": "3"
+    },
+    "6108": {
+      "命中率": "math.min(practice2/(25000/250)/2+grade*0.7+50+addxiaorongrate,800)",
+      "目标个数": "1"
+    },
+    "6109": {
+      "命中率": "math.min(practice3/(25000/200)/2+grade*0.6+40+addxiaorongrate,800)",
+      "目标个数": "2+math.min(math.floor(practice3/1000),1)+math.min(math.floor(practice3/9000),1)"
+    },
+    "6110": {
+      "命中率": "math.min(practice4/(25000/350)/2+grade*1.1+80+addxiaorongrate,800)",
+      "目标个数": "1"
+    },
+    "6111": {
+      "命中率": "math.min(practice5/(25000/300)/2+grade*0.9+60+addxiaorongrate,800)",
+      "目标个数": "3+math.min(math.floor((practice5+3000)/4000),2)"
+    },
+    "6114": {
+      "回血量": "math.min(hpmaxb*(practice1/(25000/120)/2+grade*0.4+80+addzaisheng)/1000,20000)",
+      "目标个数": "3",
+      "加血上限": "30*(practice1/25000)"
+    },
+    "6116": {
+      "回血量": "math.min(hpmaxb*(practice2/(25000/150)/2+grade*0.5+120+addzaisheng)/1000,20000)",
+      "目标个数": "1",
+      "加血上限": "60*(practice2/25000)"
+    },
+    "6118": {
+      "回血量": "math.min(hpmaxb*(practice3/(25000/140)/2+grade*0.45+100+addzaisheng)/1000,20000)",
+      "目标个数": "2+math.min(math.floor(practice3/1000),1)+math.min(math.floor(practice3/9000),1)",
+      "加血上限": "50*(practice3/25000)"
+    },
+    "6120": {
+      "回血量": "math.min(hpmaxb*(practice4/(25000/170)/2+grade*0.6+150+addzaisheng)/1000,20000)",
+      "目标个数": "1",
+      "加血上限": "80*(practice4/25000)"
+    },
+    "6122": {
+      "回血量": "math.min(hpmaxb*(practice5/(25000/160)/2+grade*0.55+130+addzaisheng)/1000,20000)",
+      "目标个数": "3+math.min(math.floor((practice5+3000)/4000),2)",
+      "加血上限": "70*(practice5/25000)"
+    },
+    "6128": {
+      "命中率": "math.max((practice1/(25000/500)/2+grade*1.7+200+addgushurate*4-regushub*9),0)",
+      "目标个数": "3",
+      "持续回合": "math.floor(2*(math.pow(practice1,0.3)*0.06+1))",
+      "反噬伤害": "math.min(practice1/(25000/100)/2+grade*0.4+50,700)"
+    },
+    "6129": {
+      "命中率": "math.max((practice2/(25000/800)/2+grade*2.5+300+addgushurate*4-regushub*9),0)",
+      "目标个数": "1",
+      "持续回合": "math.floor(2*(math.pow(practice2,0.3)*0.06+1))",
+      "反噬伤害": "math.min(practice2/(25000/170)/2+grade*0.7+100,700)"
+    },
+    "6130": {
+      "命中率": "math.max((practice3/(25000/700)/2+grade*2.3+250+addgushurate*4-regushub*9),0)",
+      "目标个数": "2+math.min(math.floor(practice3/1000),1)+math.min(math.floor(practice3/9000),1)",
+      "持续回合": "math.floor(2*(math.pow(practice3,0.3)*0.06+1))",
+      "反噬伤害": "math.min(practice3/(25000/150)/2+grade*0.6+80,700)"
+    },
+    "6131": {
+      "命中率": "math.max((practice4/(25000/1000)/2+grade*3.1+400+addgushurate*4-regushub*9),0)",
+      "目标个数": "1",
+      "持续回合": "math.min(math.floor(3*(math.pow(practice4,0.3)*0.05+1)),5)",
+      "反噬伤害": "math.min(practice4/(25000/220)/2+grade*0.9+150,700)"
+    },
+    "6132": {
+      "命中率": "math.max((practice5/(25000/850)/2+grade*2.7+350+addgushurate*4-regushub*9),0)",
+      "目标个数": "3+math.min(math.floor((practice5+3000)/4000),2)",
+      "持续回合": "3+math.min(math.floor((practice5+4000)/5000),2)",
+      "反噬伤害": "math.min(practice5/(25000/200)/2+grade*0.8+120,700)"
+    }
+  }
+}

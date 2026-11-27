@@ -163,15 +163,15 @@ class CultivationTests(unittest.TestCase):
         self.assertEqual(initial-game.battle['enemy_hp'],144)
         self.assertIn('144',self.p.skill_description(6100))
 
-    def test_neidan_requests_cannot_consume_items_with_unknown_effects(self):
+    def test_locked_high_slot_and_unknown_pill_requests_do_not_consume_items(self):
         sid=self.s.claim_starter()
         with self.p.transaction() as db:
-            db.execute('INSERT INTO inventory(character_id,type,page,slot,amount) VALUES(?,91001,8,6,2)',(self.p.cid,))
+            db.execute('INSERT INTO inventory(character_id,type,page,slot,amount) VALUES(?,91501,8,6,2)',(self.p.cid,))
         game=NativeGameplay(self.character,self.characters,lambda:())
-        before=self.p.snapshot();item=next(v for v in before['items'] if v['type']==91001)
+        before=self.p.snapshot();item=next(v for v in before['items'] if v['type']==91501)
         game.receive(807,MessageReader(number(sid)+number(item['id'])))
         self.assertEqual(self.p.snapshot(),before)
-        self.assertIn('尚未核实',game.last_event['reason'])
+        self.assertIn('槽位',game.last_event['reason'])
         for mid in (753,755,765,766,767,5227,5228,5229):
             game.receive(mid,MessageReader(number(sid)+number(999)))
             self.assertEqual(self.p.snapshot(),before)
@@ -208,9 +208,10 @@ class NeidanRulesTests(unittest.TestCase):
         self.assertEqual(neidan.effect_coefficient(236,5,[236],[236]),4)
         self.assertEqual(neidan.effect_coefficient(236,5,[237],[236]),3)
 
-    def test_unknown_level_effect_is_explicit(self):
-        for kind in neidan.META:
-            with self.assertRaisesRegex(ValueError,'尚未核实'):neidan.ensure_numeric_effect(kind)
+    def test_shield_breaker_matches_two_observed_ascended_first_rank_tooltips(self):
+        for level, expected in ((168,'{9.50}'),(180,'{10.00}')):
+            row = dict(kind=281,stage=3,level=level,advance=1)
+            self.assertEqual(neidan.description(row), expected)
 
 
 if __name__=='__main__':unittest.main()

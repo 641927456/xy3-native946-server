@@ -9,7 +9,7 @@ import json,re,secrets
 from native946_codec import packet
 from native946_codec import text_notice
 from native946_child_fashion import REQUESTS as CHILD_FASHION_REQUESTS
-from native946_classified_mall import REQUESTS as CLASSIFIED_REQUESTS, WRITES as CLASSIFIED_WRITES
+from native946_classified_mall import DATA as CLASSIFIED_MALL_DATA, REQUESTS as CLASSIFIED_REQUESTS, WRITES as CLASSIFIED_WRITES
 REFERENCE_WIRE_VERSION=9
 LOCAL_UNLIMITED_YUBO_ACCOUNTS={'123123123'}
 LOCAL_UNLIMITED_YUBO_BALANCE=2000000000
@@ -20,6 +20,8 @@ def unlimited_yubo(owner):
 
 
 DATA=json.loads(Path(__file__).with_name('native946_cosmetics_data.json').read_text('utf8'))
+for _kind, _meta in CLASSIFIED_MALL_DATA['items'].items():
+    DATA['items'].setdefault(_kind, _meta)
 from native946_refinement import DATA as REFINEMENT_DATA
 from native946_equipment import COMPLETION as GEAR_COMPLETION
 for _kind,_meta in GEAR_COMPLETION['items'].items():DATA['items'].setdefault(_kind,_meta)
@@ -38,6 +40,12 @@ for _kind,_meta in {**REFINEMENT_DATA['materials'],**REFINEMENT_DATA['fashion_it
                                        desc=_meta['desc'],max_stack=int(_meta['amount_max'])))
 from native946_nice_ids import ITEMS as NICE_ID_ITEMS
 DATA['items'].update(NICE_ID_ITEMS)
+import native946_mall_mounts as _mounts
+if getattr(_mounts,'REFERENCE_WIRE_VERSION',0)<4:
+    from importlib import reload as _reload
+    _reload(_mounts)
+DATA['items'].update(_mounts.ITEMS)
+DATA['goods'][str(_mounts.DYE_MATERIAL)] = {'yubo': _mounts.LOCAL_RULES['dye_yubo']}
 from native946_mall_event_boxes import ITEMS as EVENT_BOX_ITEMS
 for _kind,_meta in EVENT_BOX_ITEMS.items():DATA['items'].setdefault(_kind,_meta)
 from native946_fashion import Fashion,REQUESTS as FASHION_REQUESTS,WRITES as FASHION_WRITES,ITEMS as FASHION_ITEMS,record_use
@@ -207,7 +215,12 @@ def appearance(db,cid):
     saved=features(db,cid);ride=saved.get('ride',{}).get('value',0)
     totem=saved.get('totem_current',{}).get('value',0)
     values.update(left_totem=totem if 'totem:'+str(totem) in saved else 0,right_totem=0)
-    if ride and 'mount:'+str(ride) in saved:values['mount_shape']=USE_DATA['mounts'][ride-1]['shape']
+    if 1 <= ride <= len(USE_DATA['mounts']) and 'mount:'+str(ride) in saved:
+        from native946_mall_mounts import equipped_colors
+        values['mount_shape']=USE_DATA['mounts'][ride-1]['shape']
+        values.update(zip(('hcolor1','hcolor2','hcolor3'),equipped_colors(saved,ride)))
+        if dye := saved.get(f'mount_random_dye:{ride}'):
+            values['_mount_dye_expires'] = dye['expires']
     # Timed transformations supersede wearable models, with the saved normal
     # appearance retained so expiry can restore it without inventing gear.
     transformed=None
@@ -264,7 +277,10 @@ def numeric_table(text):
     return result
 
 class Cosmetics:
-    def __init__(self,game):self.g=game;self.p=game.progression
+    def __init__(self, game, *, sale_goods=None):
+        self.g = game
+        self.p = game.progression
+        self.sale_goods = SALE_GOODS if sale_goods is None else sale_goods
 
     def wallet(self,db):
         return wallet_balance(db, self.p.owner)
@@ -279,7 +295,7 @@ class Cosmetics:
     def refresh(self):
         with self.p.transaction(write=False) as db:self.g.character['appearance']=appearance(db,self.p.cid)
 
-    def visual_packets(self,recreate=False):
+    def visual_packets(self,recreate=False,*,scene_only=False):
         self.refresh();c=self.g.character;a=c['appearance']
         previous=getattr(self.g,'_published_cosmetic_appearance',None)
         stage_changed=previous is not None and any(
@@ -291,6 +307,9 @@ class Cosmetics:
                 *(packet(1621,['number']*3,[c['id'],index,a[name]]) for index,name in [(1,'shape'),(8,'halo'),(9,'foot_halo'),(10,'left_totem'),(11,'right_totem'),(12,'trace_halo'),(16,'team_flag')]),
                 packet(1622,['number','number','string'],[c['id'],20,a['follow_info']]),
                 packet(818,['number']*3,[a['color'+str(i)] for i in (1,2,3)]))
+        if scene_only:
+            # The scene header already creates the local actor using the current appearance.
+            return result[:-1]
         if recreate:
             from native946_characters import scene_actor_packet
             # A stage change needs the old scene object gone before c_create_player
@@ -320,10 +339,13 @@ class Cosmetics:
 
     def mall(self,selected=0,refresh=False):
         from native946_progression import lua_data
+        from native946_mall_uses import features, owned_mount_items
         with self.p.transaction(write=False) as db:
             yubo,coupon=self.wallet(db)
             now = time()
-            owned = mall_owned(r['type'] for r in self.items(db) if not r['expires'] or r['expires'] > now)
+            types = {r['type'] for r in self.items(db) if not r['expires'] or r['expires'] > now}
+            types.update(owned_mount_items(features(db, self.p.cid), DATA['items']))
+            owned = mall_owned(types)
         if refresh:return packet(3676,['number']*4+['string'],[yubo,coupon,0,0,lua_data(owned)])
         # The client catalog supplies names/prices. Omit default-zero flags so
         # the full 3,000+ item catalog stays inside the native string limit.
@@ -337,7 +359,7 @@ class Cosmetics:
         # carries only collection unlocks/rewards, independent of owned items.
         from native946_child_fashion import closet
         with self.p.transaction(write=False) as db:children=closet(db,self.p.cid)
-        return (*self.p.item_packets(),*((packet(3993,['string'],['dlg_fashion_closet']),) if open_panel else ()),
+        return (*self.p.item_packets(pages=(*PAGES,WEAR_PAGE)),*((packet(3993,['string'],['dlg_fashion_closet']),) if open_panel else ()),
                 Fashion(self.g).collection(),*FashionShop(self.g).frame_packets(),children)
 
     def skin_packet(self):
@@ -357,7 +379,7 @@ class Cosmetics:
         return packet(4825,['number','number'],[skill,SKIN_TYPES[(skill,row[0])] if row else 0])
 
     def _quantity(self,kind,amount):
-        meta=SALE_GOODS.get(str(sale_type(kind)))
+        meta=self.sale_goods.get(str(sale_type(kind)))
         if not meta:raise ValueError('该商品暂未开放购买。')
         if not 1<=amount<=24:raise ValueError('购买数量须为1至24。')
         return meta
@@ -406,7 +428,7 @@ class Cosmetics:
         with self.p.transaction() as db:
             if db.execute('SELECT 1 FROM cosmetic_orders WHERE id=?',(q['id'],)).fetchone():raise ValueError('该笔购买已经处理。')
             from native946_mall_checkout import plan,consume,fudou_cost
-            cost,deductions=plan(db,self.p.cid,orders,ticket)
+            cost,deductions=plan(db,self.p.cid,orders,ticket,sale_goods=self.sale_goods)
             coupon_cost=fudou_cost(orders) if coupon else 0
             if coupon and (not coupon_cost or ticket):raise ValueError('该订单不支持福豆支付或同时抵用外观券。')
             currency='coupon' if coupon else 'yubo'
@@ -739,6 +761,24 @@ class Cosmetics:
             result=self.buy(orders,coupon,ticket);self.g.cosmetic_cart=[]
             return (result,packet(3660,['string'],['{}']))
         if mid==3672:
-            kind,item=r.integer(),r.integer();r.finish();return self.skin_packet() if kind==4824 else self.closet(open_panel=True)
+            kind,item=r.integer(),r.integer();r.finish()
+            if kind == 2:
+                if item in (_mounts.DYE_MATERIAL, _mounts.DYE_SHORTCUT):
+                    return self.single_buy_offer(_mounts.DYE_MATERIAL, 1)
+                from native946_shops import Shops
+                return Shops(self.g).open_special(item=item)
+            if kind in (3, 5):
+                from native946_mall_uses import MallUses
+                return MallUses(self.g).weapon_open(None, 'weapons' if kind == 3 else 'weapon_color')
+            if kind == 4:
+                from native946_refinement import Refinement
+                return Refinement(self.g).open_halo()
+            if kind == 6:
+                from native946_nice_ids import NiceIds
+                return NiceIds(self.g).open(from_mall=True)
+            if kind == 7:
+                from native946_mall_uses import MallUses
+                return MallUses(self.g).mounts(3683)
+            return self.skin_packet() if kind==4824 else self.closet(open_panel=True)
         if mid==3679:r.string();r.finish();raise ValueError('请逐件购买套装部件，避免重复购买已拥有的部件。')
         raise ValueError('暂不支持该商城请求。')

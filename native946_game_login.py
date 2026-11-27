@@ -36,17 +36,23 @@ class NativeGameLogin:
         if self.gameplay is not None:
             from native946_cosmetics import Cosmetics
             Cosmetics(self.gameplay).refresh()
-        scene=world().scene(character['map_id'])
+        catalog = world()
+        sid = character['map_id']
+        scene = catalog.scene(sid)
+        day_effect = catalog.scene_day_effect(sid)
         speed = character.get('run_speed', DEFAULT_RUN_SPEED)
-        return (
+        packets = (
             message_id(1597) + pack("<HHH", character["map_id"], character["x"], character["y"])
             + string_field(scene['scene_name']) + pack("<H", scene['map_id'])
-            + self.number(0) + b"\x00" + self.number(8),
+            + self.number(0) + b"\x00" + self.number(day_effect),
             scene_actor_packet(character),
             message_id(1585) + self.number(character["id"]) + self.number(character["id"]),
             *((packet(1621, ['number'] * 3, [character['id'], 15, speed]),)
               if speed != DEFAULT_RUN_SPEED else ()),
         )
+        if self.gameplay is not None:
+            self.gameplay._scene_day_effect = (sid, day_effect)
+        return packets
 
     def refresh_character_store(self):
         """Keep the listener's existing store current after a module reload.
@@ -96,6 +102,8 @@ class NativeGameLogin:
                 raise AccountError(404,'找不到这个账号的角色。')
             LEASES.claim(self.characters.database,cid,self)
             character=self.characters.enter(self.username,cid)
+            from native946_mount_spaces import check_login
+            check_login(self.characters,character)
             grid=load_map(character['map_id'])
             if not grid.walkable(character['x'],character['y']):
                 x,y=grid.nearest_walkable(character['x'],character['y'])

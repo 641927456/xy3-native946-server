@@ -6,6 +6,7 @@ import unittest
 from local_accounts import LocalAccounts
 from native946_characters import scene_actor_packet
 from native946_codec import number
+from native946_game_login import NativeGameLogin
 from native946_gameplay import NativeGameplay
 from native946_login import MessageReader,string_field
 from native946_map import load_map
@@ -29,6 +30,35 @@ class TransportRetryTests(unittest.TestCase):
         npc=world().npc(route['from'],route['npc_id'])
         self.place(route['from'],load_map(route['from']).nearest_walkable(npc['x']//20,npc['y']//20))
         return route,number(route['npc_id'])+number(route['trans_index'])
+
+    def test_solo_same_map_teleport_moves_native_actor_and_refreshes_nearby_npcs(self):
+        route,request=self.prepare(36)
+        self.game.sync_world_npcs(force=True)
+        old_visible=set(self.game._world_visible)
+        reply=self.game.receive(1645,MessageReader(request))
+        self.assertEqual([mid(p) for p in reply[:2]],[1183,1606])
+        jump=MessageReader(reply[1][3:])
+        self.assertEqual(jump.integer(),self.game.character['id'])
+        self.assertEqual(jump.take(4),pack('<HH',*route['arrival']))
+        jump.finish()
+        self.assertTrue({1597,1593,695,789,1978,1206}.isdisjoint(map(mid,reply)))
+        new_visible=self.game._world_visible
+        removed={MessageReader(p[3:]).integer() for p in reply if mid(p)==1604}
+        self.assertTrue(old_visible-new_visible)
+        self.assertTrue(new_visible-old_visible)
+        self.assertTrue((old_visible-new_visible)<=removed)
+        self.assertEqual((self.stored()['x'],self.stored()['y']),tuple(route['arrival']))
+
+    def test_cross_map_teleport_rebuilds_scene_without_full_player_sync(self):
+        route,request=self.prepare(37)
+        reply=self.game.receive(1645,MessageReader(request))
+        ids=[mid(p) for p in reply]
+        self.assertEqual(ids[:4],[1183,1597,1590,1585])
+        self.assertIn(1593,ids)
+        self.assertIn(1621,ids)
+        self.assertTrue({1606,695,789,1978,1206}.isdisjoint(ids))
+        self.assertEqual((self.stored()['map_id'],self.stored()['x'],self.stored()['y']),
+                         (route['to'],*route['arrival']))
 
     def test_duplicate_npc_transport_is_silent_for_same_and_different_scenes(self):
         self.characters.enable_deferred_positions()
@@ -142,6 +172,7 @@ class PartyRelocationTests(unittest.TestCase):
             self.assertEqual(refresh.call_count,1)
         replies=self.svc.drain(self.b)
         self.assertNotIn(1608,[mid(p) for p in replies])
+        self.assertTrue({1606,695,789,1978,1206}.isdisjoint(map(mid,replies)))
         self.assertEqual((self.b.character['x'],self.b.character['y']),tuple(route['arrival']))
         saved=self.characters.list(self.b.character['owner'])[0]
         self.assertEqual((saved['map_id'],saved['x'],saved['y']),(route['to'],*route['arrival']))
@@ -194,6 +225,33 @@ class PartyRelocationTests(unittest.TestCase):
         self.assertCountEqual(remote_removed, removed)
         self.assertEqual(sum(mid(p)==1590 for p in arrived),2)
         self.assertNotIn(1608,[mid(p) for p in departed+arrived])
+
+    def bind_scene_headers(self, *games):
+        for game in games:
+            login = NativeGameLogin(None, None, number, None)
+            login.current_character = game.character
+            game.restore_scene = login.scene_packets
+
+    def test_team_members_are_created_after_the_scene_header_on_both_clients(self):
+        route, _ = self.prepare(77)
+        self.bind_scene_headers(self.a, self.b)
+        old_actor = self.peer(1, route['from'], tuple(route['source']))
+        old_actor_packet = scene_actor_packet(old_actor.character)
+        self.svc.enqueue(self.a, old_actor_packet)
+        self.b.character['appearance'] = {'mount_shape': 2510}
+
+        leader_replies = self.transport(route)
+        follower_replies = self.svc.drain(self.b)
+        self.assertLess(leader_replies.index(old_actor_packet), [mid(p) for p in leader_replies].index(1597))
+        for replies, observer, other in ((leader_replies, self.a, self.b), (follower_replies, self.b, self.a)):
+            with self.subTest(observer=observer.character['id']):
+                ids = [mid(p) for p in replies]
+                actor_packet = scene_actor_packet(other.character)
+                self.assertEqual(replies.count(actor_packet), 1)
+                self.assertLess(ids.index(1597), ids.index(1585))
+                self.assertLess(ids.index(1585), replies.index(actor_packet))
+                self.assertEqual((other.character['map_id'], other.character['x'], other.character['y']),
+                                 (route['to'], *route['arrival']))
 
     def test_movement_retry_cannot_turn_a_pending_warp_into_a_long_walk(self):
         route,point=self.prepare()

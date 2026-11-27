@@ -1,10 +1,13 @@
 """Native city knights, timed missions, alliances and bounded siege settlement."""
 import json,secrets
 from time import time
-from native946_role_systems import DATA,state,save,wire,text,notice,require,number,character,pay,take,count,counter
+from native946_premium_items import license_validity
+from native946_role_systems import DATA,state,save,wire,text,notice,require,number,character,pay,take,count,counter,day
 from native946_role_society import city,initialize_city,buildings,build_info,own_building,save as save_state
 
 NPC_CITY=900000001
+CITY_TASK_LICENSE = 'city_quick_task'
+KNIGHT_EXPERIENCE = {46634: 16000, 46988: 20000}
 def schema(db):
     for sql in (
       'CREATE TABLE IF NOT EXISTS native_coc_knights(sid TEXT PRIMARY KEY,character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,value TEXT NOT NULL)',
@@ -38,7 +41,9 @@ def listing(db,cid,page=1):
     rows=knights(db,cid);page=number(page,1,10,'侠客页');return wire(2845,cid,len(rows),page,max(1,(len(rows)+7)//8),text([wire_knight(k) for k in rows[(page-1)*8:page*8]]),1)
 def task_info(db,cid,s,bid):
     b=own_building(db,cid,bid);t=s['tasks'].get(str(bid),dict(selected=[],end=0,status=0));rows=[owned(db,cid,k) for k in t['selected']];remaining=max(0,t['end']-int(time()))
-    return wire(2847,bid,max(1,b['level']),[],2 if t['end'] and not remaining else 1 if t['end'] else 0,text([wire_knight(k) for k in rows]),[],sum(k['Grade']*k['StarLevel'] for k in rows),[0]*4,[100,10,100],'本机侠客任务：600秒，奖励100经验、10建造度和100凝元。',600,0,remaining,10,0,0)
+    now = int(time())
+    free_seconds = max(0, license_validity(db, cid, now, key=CITY_TASK_LICENSE) - now)
+    return wire(2847,bid,max(1,b['level']),[],2 if t['end'] and not remaining else 1 if t['end'] else 0,text([wire_knight(k) for k in rows]),[],sum(k['Grade']*k['StarLevel'] for k in rows),[0]*4,[100,10,100],'本机侠客任务：600秒，奖励100经验、10建造度和100凝元。',600,0,remaining,10,0,free_seconds)
 def busy(s,sid):return any(sid in t['selected'] and t['end'] for t in s['tasks'].values())
 def alliance(db,cid):
     row=db.execute('SELECT a.*,m.reward FROM native_coc_alliances a JOIN native_coc_alliance_members m ON m.alliance_id=a.id WHERE m.character_id=?',(cid,)).fetchone();return dict(row) if row else None
@@ -74,11 +79,22 @@ def receive(game,db,mid,a):
     if mid in (2865,2866,2867,2871,2872,2874,2881,2882,2883,2884,2896,2922,2938):
         k=owned(db,cid,a[0]);require(not busy(s,k['SId']),'侠客执行任务中。')
         require(not k.get('HomeOwner') or mid in (2883,2884,2938),'雇佣侠客只能参与攻城，不能转让、培养或流放。')
-        if mid==2883:return [wire(2837,k['SId'],[dict(key=46988,value=20000)],[dict(key=46988,value=count(db,cid,46988))])]
+        if mid==2883:
+            return [wire(2837, k['SId'],
+                         [dict(key=kind, value=experience) for kind, experience in KNIGHT_EXPERIENCE.items()],
+                         [dict(key=kind, value=count(db, cid, kind)) for kind in KNIGHT_EXPERIENCE])]
         if mid==2884:return [wire(2838,k['SId'],k['Type'],k['StarExp'],1000*(k['StarLevel']+1),k['StarLevel'],min(5,k['StarLevel']+1),[],[],text(knights(db,cid)),[dict(key=46988,value=20000)],k['Grade'],[dict(key=46988,value=count(db,cid,46988))])]
         if mid in (2865,2867):
-            require(a[1]==46988,'本机侠客培养使用凝气天书。');amount=number(a[2],1,99,'培养数量');take(db,cid,46988,amount)
-            field='Exp' if mid==2865 else 'StarExp';level='Grade' if mid==2865 else 'StarLevel';cap=100 if mid==2865 else 5;k[field]+=amount*20000
+            kind = a[1]
+            if mid==2865:
+                require(kind in KNIGHT_EXPERIENCE, '请选择可增加侠客经验的道具。')
+                experience = KNIGHT_EXPERIENCE[kind]
+            else:
+                require(kind==46988,'本机侠客升星使用凝气天书。')
+                experience = KNIGHT_EXPERIENCE[46988]
+            amount = number(a[2], 1, 99, '培养数量')
+            take(db, cid, kind, amount)
+            field='Exp' if mid==2865 else 'StarExp';level='Grade' if mid==2865 else 'StarLevel';cap=100 if mid==2865 else 5;k[field]+=amount*experience
             while k[level]<cap and k[field]>=1000*(k[level]+1):k[field]-=1000*(k[level]+1);k[level]+=1
         elif mid==2866:
             other=owned(db,cid,a[1]);require(other['SId']!=k['SId'] and not busy(s,other['SId']) and not other['BuildingId'] and not other.get('HomeOwner'),'请选择空闲的自有侠客。');k['StarExp']+=other['StarExp']+other['StarLevel']*1000;db.execute('DELETE FROM native_coc_knights WHERE sid=?',(other['SId'],))
@@ -105,7 +121,22 @@ def receive(game,db,mid,a):
         elif mid==2921:require(not t['end'],'任务已经开始。');t['selected']=[k['SId'] for k in knights(db,cid) if not busy(s,k['SId']) and k['Hp']>0 and not k.get('HomeOwner')][:4]
         elif mid==2897:
             require(not t['end'] and t['selected'],'请先选择空闲侠客。');counter(s,'task_count',10);t['end']=int(time())+600
-        elif mid in (2875,3536):require(t['end']>time(),'任务已完成或尚未开始。');pay(db,cid,(t['end']-int(time()))*10);t['end']=int(time())
+        elif mid in (2875,3536):
+            now = int(time())
+            require(t['end'] > now, '任务已完成或尚未开始。')
+            if license_validity(db, cid, now, key=CITY_TASK_LICENSE):
+                stamp = day()
+                if s.get('free_task_day') != stamp:
+                    s['free_task_day'] = stamp
+                    s['free_task_buildings'] = []
+                used = s['free_task_buildings']
+                # The same native request also handles paid acceleration.
+                # The licensed shortcut assumes a free completion.
+                require(bid not in used, '今天已免费完成过该建筑的任务，请等待当前任务结束。')
+                used.append(bid)
+            else:
+                pay(db, cid, (t['end'] - now) * 10)
+            t['end'] = now
         elif mid==2877:
             require(t['end'] and t['end']<=time(),'任务尚未结束或奖励已经领取。')
             for sid in t['selected']:

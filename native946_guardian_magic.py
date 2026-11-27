@@ -23,11 +23,11 @@ def prepared(pet,skill):
     rule=SKILLS.get(skill)
     row=next((r for r in pet.get('learned_books',[]) if r['skill']==skill),None)
     if row is None and any(r['stunt_id']==skill for r in pet.get('innate_skills',[])):
-        from native946_innate_effects import active_rule
+        from native946_innate_effects import XINYI_FOLLOW_UP, active_rule
         rule=active_rule(pet,skill)
         if rule is not None:return rule
         from native946_guardian_passives import RULES as PASSIVES
-        if skill in PASSIVES:raise ValueError('这是自动触发的天生被动技能，无须主动施放。')
+        if skill == XINYI_FOLLOW_UP or skill in PASSIVES:raise ValueError('这是自动触发的天生被动技能，无须主动施放。')
         raise ValueError('该天生技能的战斗效果尚待核实，本次未消耗法力。')
     if row is None or not rule or not rule.get('active'):raise ValueError('守护尚未学会此主动特技。')
     v=values(pet,row)
@@ -47,12 +47,14 @@ def combat_skills(pet):
 def skills_packet(pet):return packet(2149,['number',('array','attack_skill_info')],[pet['id'],combat_skills(pet)])
 
 def cast(game,pet,enemies,main,skill,rng):
+    from native946_innate_effects import roll_fire_critical, ordinary_fire_critical_damage
     v=prepared(pet,skill)
     targets=sorted((e for e in enemies if e['hp']>0 and not e.get('removed')),key=lambda e:(e['id']!=main,e['id']))[:v['targets']]
     if not targets:raise ValueError('当前没有可以施法的目标。')
-    pet['mp']-=v['mana'];result=[]
+    pet['mp']-=v['mana']
+    result=[packet(2158,['number']*3,[pet['id'],4,pet['mp']])]
     repeat=skill==339 and rng.randrange(1000)<v['proc_per_mille']
-    for turn in range(2 if repeat else 1):
+    for _ in range(2 if repeat else 1):
         living=[t for t in targets if t['hp']>0]
         if not living:break
         result.extend((packet(2126,['number'],[1]),
@@ -65,14 +67,14 @@ def cast(game,pet,enemies,main,skill,rng):
             damage=damage*(1000+value(pet,'XQAddHurtHpP')+value(pet,'RoleSpellMastery'))//1000
             damage=damage*max(0,1000-value(target,'XQSubHurtHpP'))//1000
             damage=damage*max(0,1000-value(target,'RoleElementReduction'))//1000
-            critical=skill==338 and rng.randrange(1000)<v['proc_per_mille']
-            if critical:damage=damage*3//2;result.append(packet(2162,['number','number'],[target['id'],1]))
+            if skill==338 and roll_fire_critical(target,v['proc_per_mille'],rng):
+                damage=ordinary_fire_critical_damage(target,damage)
+                result.append(packet(2162,['number','number'],[target['id'],1]))
             hit=min(damage,target['hp']);target['hp']-=hit
             result.extend((packet(2164,['number']*4,[target['id'],-hit,1,0]),packet(2158,['number']*3,[target['id'],1,target['hp']])))
             from native946_combat_control import wake
             result.extend(wake(target,hit))
             if target['hp']==0:result.append(packet(2142,['number','number'],[target['id'],2]))
-        if turn==0:result.append(packet(2158,['number']*3,[pet['id'],4,pet['mp']]))
         result.append(packet(2126,['number'],[2]))
     return result
 

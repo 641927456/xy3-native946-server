@@ -3,16 +3,21 @@ from time import time
 
 from native946_codec import packet
 from native946_growth import guardian_defaults,guardian_stats,species
-from native946_guardian_chamber import AVAILABLE, has_sale
+import native946_guardian_chamber as guardian_chamber
 
 
 STARTER_TYPE = 3197  # SUMMON_CALC_LIST and SHAPE_INFO: 猴儿精, native shape 3143.
 ATTRS = ('cor', 'mag', 'strength', 'speed')
-WIRE_VERSION = 21
+WIRE_VERSION = 23
 LEVEL_EXPERIENCE_FACTOR = 40
+STAGE_LEVEL_CAPS = (100, 120, 140)
+SANCTIFICATION_LEVEL_CAP = 185  # 化境守护样本仍以185作为基础等级，境阶单独显示。
 # The original list renderer reserves IDs <= 100000 for unlock-slot buttons.
 SUMMON_ID_MIN = 100001
 SUMMON_ID_MAX = 199999  # Bounded range reserved by this local server.
+RELEASE = 5  # SUMMON_SET_FREE in the 946 client.
+# 2026-05-20 classic maintenance notice, matched to the 946 species table.
+PROTECTED_RELEASE_TYPES = frozenset(range(3404, 3413))  # 蛋融融、小辣鸡、辣椒鸡
 
 
 def migrate_native_ids(db):
@@ -49,10 +54,20 @@ def numbers(mid, *values):
     return packet(mid, ['number'] * len(values), values)
 
 
-def guardian_level_cap(hero_level):
+def guardian_stage_level_cap(pet=None):
     from native946_wilderness import POLICY
 
-    return min(POLICY['guardian_max_level'], hero_level + 10)
+    if pet is None:
+        return STAGE_LEVEL_CAPS[0]
+    if pet['sanctification']:
+        return SANCTIFICATION_LEVEL_CAP
+    if pet['ascension']:
+        return POLICY['guardian_max_level']
+    return STAGE_LEVEL_CAPS[min(pet['rebirth'], len(STAGE_LEVEL_CAPS) - 1)]
+
+
+def guardian_level_cap(hero_level, pet=None):
+    return min(guardian_stage_level_cap(pet), hero_level + 10)
 
 
 class Summons:
@@ -126,7 +141,7 @@ class Summons:
                             min(updated['mpmax'],max(0,row['mp'])*updated['mpmax']//max(1,old_mpmax)),row['id']))
 
     def _owned(self, db, sid):
-        row = db.execute('SELECT * FROM summons WHERE id=? AND character_id=? AND '+AVAILABLE,
+        row = db.execute('SELECT * FROM summons WHERE id=? AND character_id=? AND '+guardian_chamber.AVAILABLE,
                          (sid, self.progression.cid)).fetchone()
         if row is None:
             raise ValueError('守护不属于当前角色。')
@@ -154,12 +169,12 @@ class Summons:
         with self.progression.transaction(write=False) as db:
             row['neidan']=raw_list(db,row['id'])
             new_neidan_attributes(row,installed(db,row['id']))
-        from native946_skillbooks import raw_list as book_list,effects as book_effects
-        with self.progression.transaction(write=False) as db:row['learned_books']=book_list(db,row['id'])
+        from native946_skillbooks import effective_books,effects as book_effects
+        with self.progression.transaction(write=False) as db:row['learned_books']=effective_books(db,row)
         from native946_guardian_innate import records as innate_records
         from native946_innate_training import jing_books, trained_records, visible_innate
         with self.progression.transaction(write=False) as db:
-            row['innate_training']=trained_records(db,row['id'])
+            row['innate_training']=trained_records(db,row['id'],row['level'])
             row['jing_books']=jing_books(db,row['id'])
             row['innate_skills']=innate_records(row)
             row['innate_skills']=visible_innate(db,row)
@@ -192,7 +207,7 @@ class Summons:
             from native946_inventory_locks import records
             locks=records(db,self.progression.cid,'summon')
             return [dict(self.stats(row),**locks.get(row['id'],dict(lock=0,lock_block_time=0))) for row in db.execute(
-                'SELECT * FROM summons WHERE character_id=? AND '+AVAILABLE+' ORDER BY id', (self.progression.cid,))]
+                'SELECT * FROM summons WHERE character_id=? AND '+guardian_chamber.AVAILABLE+' ORDER BY id', (self.progression.cid,))]
 
     def get(self, sid):
         with self.progression.transaction(write=False) as db:
@@ -212,8 +227,7 @@ class Summons:
                                   (self.progression.cid, 'starter')).fetchone()
             if existing:
                 return existing[0]
-            if db.execute('SELECT count(*) FROM summons WHERE character_id=?',
-                          (self.progression.cid,)).fetchone()[0] >= self.carry_limit():
+            if guardian_chamber.carried_count(db, self.progression.cid) >= self.carry_limit():
                 raise ValueError('守护携带栏已满。')
             if db.execute("SELECT seq FROM sqlite_sequence WHERE name='summons'").fetchone()[0] >= SUMMON_ID_MAX:
                 raise ValueError('本机守护编号已用完。')
@@ -239,6 +253,26 @@ class Summons:
                 db.execute(f'UPDATE summons SET {column}=0 WHERE character_id=?', (self.progression.cid,))
             db.execute(f'UPDATE summons SET {column}=? WHERE id=?', (value, sid))
 
+    def release(self, sid):
+        from native946_inventory_locks import records
+
+        cid = self.progression.cid
+        with self.progression.transaction() as db:
+            pet = self._owned(db, sid)
+            if sid in records(db, cid, 'summon'):
+                raise ValueError('加锁的守护无法放生，请先解锁。')
+            if pet['type'] in PROTECTED_RELEASE_TYPES:
+                raise ValueError('该守护无法放生。')
+            if (db.execute('SELECT 1 FROM native_guardian_equipment WHERE summon_id=?', (sid,)).fetchone()
+                or db.execute('SELECT 1 FROM native_guardian_jade WHERE summon_id=?', (sid,)).fetchone()):
+                raise ValueError('请先卸下守护的装备和宝玉，再进行放生。')
+
+            record = self.list_record(self.stats(pet))
+            # Keep the acquisition key and historical sale/settlement references.
+            db.execute('INSERT INTO native_guardian_releases VALUES(?,?)', (sid, int(time())))
+            db.execute('UPDATE summons SET fight=0,show=0 WHERE id=?', (sid,))
+            return record
+
     def acquire(self, kind, grant_key, *, level=1):
         """One owned native species per server-authorized acquisition source."""
         from native946_wilderness import DATA, carry_rank
@@ -252,12 +286,12 @@ class Summons:
             previous=db.execute('SELECT id FROM summons WHERE character_id=? AND grant_key=?',
                                 (self.progression.cid,grant_key)).fetchone()
             if previous:return previous[0]
-            if has_sale(db,self.progression.cid,grant_key):raise ValueError('此来源的守护已经转售。')
+            if guardian_chamber.has_sale(db,self.progression.cid,grant_key):raise ValueError('此来源的守护已经转售。')
             hero=self.progression._snapshot(db)
             if carry_rank(hero)<native['take_grade_num']:raise ValueError('尚未达到该守护的携带等级。')
             if level > guardian_level_cap(hero['level']):
                 raise ValueError('该守护等级超过当前人物可携带的守护等级上限。')
-            if db.execute('SELECT count(*) FROM summons WHERE character_id=?',(self.progression.cid,)).fetchone()[0]>=self.carry_limit():
+            if guardian_chamber.carried_count(db, self.progression.cid) >= self.carry_limit():
                 raise ValueError('守护携带栏已满，请先整理携带栏。')
             if db.execute("SELECT seq FROM sqlite_sequence WHERE name='summons'").fetchone()[0]>=SUMMON_ID_MAX:
                 raise ValueError('本机守护编号已用完。')
@@ -293,9 +327,8 @@ class Summons:
             db.execute('UPDATE summons SET cor=cor+?,mag=mag+?,strength=strength+?,speed=speed+?,points=points-? WHERE id=?',
                        (*increments, sum(increments), sid))
 
-    def _level_cap(self, db):
-        level = db.execute('SELECT level FROM characters WHERE id=?', (self.progression.cid,)).fetchone()[0]
-        return guardian_level_cap(level)
+    def _owner_level(self, db):
+        return db.execute('SELECT level FROM characters WHERE id=?', (self.progression.cid,)).fetchone()[0]
 
     def _apply_experience(self, db, row, experience, cap):
         level = row['level']
@@ -315,21 +348,44 @@ class Summons:
 
     def add_experience(self, db, sid, amount):
         row = self._owned(db, sid)
-        self._apply_experience(db, row, row['experience'] + amount, self._level_cap(db))
+        self._apply_experience(db, row, row['experience'] + amount, guardian_level_cap(self._owner_level(db), row))
+
+    def _restore_stage_cap(self, db, row, cap):
+        excess = row['level'] - cap
+        refund = LEVEL_EXPERIENCE_FACTOR * excess * (cap + row['level'] - 1) // 2
+        attrs = [max(cap, row[key] - excess) for key in ATTRS]
+        points = row['points'] - 4 * excess
+        if points < 0:
+            # The excess points were already allocated. Return the remaining valid budget to potential.
+            points = max(0, points + sum(value - cap for value in attrs))
+            attrs = [cap] * len(ATTRS)
+        db.execute('UPDATE summons SET level=?,experience=experience+?,points=?,cor=?,mag=?,strength=?,speed=? WHERE id=?',
+                   (cap, refund, points, *attrs, row['id']))
+        updated = self.stats(self._owned(db, row['id']))
+        db.execute('UPDATE summons SET hp=?,mp=? WHERE id=?', (updated['hp'], updated['mp'], row['id']))
 
     def reconcile_levels(self):
         with self.progression.transaction() as db:
-            cap = self._level_cap(db)
-            rows = db.execute('SELECT * FROM summons WHERE character_id=? AND level<? AND experience>=?*level AND '+AVAILABLE,
-                              (self.progression.cid, cap, LEVEL_EXPERIENCE_FACTOR)).fetchall()
+            owner_level = self._owner_level(db)
+            rows = db.execute('SELECT * FROM summons WHERE character_id=? '
+                              'AND (level>? OR (level<? AND experience>=?*level)) AND '+guardian_chamber.AVAILABLE,
+                              (self.progression.cid, STAGE_LEVEL_CAPS[0], owner_level + 10, LEVEL_EXPERIENCE_FACTOR)).fetchall()
+            changed = False
             for row in rows:
-                self._apply_experience(db, row, row['experience'], cap)
-            return bool(rows)
+                stage_cap = guardian_stage_level_cap(row)
+                cap = min(stage_cap, owner_level + 10)
+                if row['level'] > stage_cap:
+                    self._restore_stage_cap(db, row, stage_cap)
+                    changed = True
+                elif row['level'] < cap and row['experience'] >= LEVEL_EXPERIENCE_FACTOR * row['level']:
+                    self._apply_experience(db, row, row['experience'], cap)
+                    changed = True
+            return changed
 
     def level_up(self, sid):
         with self.progression.transaction() as db:
             row = self._owned(db, sid)
-            cap = self._level_cap(db)
+            cap = guardian_level_cap(self._owner_level(db), row)
             if row['level'] >= cap:
                 raise ValueError(f'守护已达到当前等级上限（{cap}级），已存经验保留。')
             if row['experience'] < LEVEL_EXPERIENCE_FACTOR * row['level']:
@@ -338,11 +394,12 @@ class Summons:
 
     def rest(self):
         with self.progression.transaction() as db:
-            for row in db.execute('SELECT * FROM summons WHERE character_id=? AND '+AVAILABLE, (self.progression.cid,)).fetchall():
+            for row in db.execute('SELECT * FROM summons WHERE character_id=? AND '+guardian_chamber.AVAILABLE, (self.progression.cid,)).fetchall():
                 s = self.stats(row)
                 db.execute('UPDATE summons SET hp=?,mp=? WHERE id=?', (s['hpmax'], s['mpmax'], s['id']))
 
-    def settle(self, sid, battle_id, hp, mp, victory, experience=25):
+    def settle(self, sid, battle_id, hp, mp, victory, experience=25, *, stunt_experience=None,
+               neidan_experience=None):
         with self.progression.transaction() as db:
             row = self.stats(self._owned(db, sid))
             inserted = db.execute('INSERT OR IGNORE INTO summon_battle_rewards VALUES(?,?,?)',
@@ -352,19 +409,20 @@ class Summons:
                            (max(0, min(hp, row['hpmax'])), max(0, min(mp, row['mpmax'])), sid))
                 from native946_neidan import NewNeidan,battle_energy_cost
                 from native946_neidan_legacy import LegacyNeidan,grow
+                pill_experience = experience if neidan_experience is None else neidan_experience
                 pills=LegacyNeidan(self)
                 for pill in row['neidan']:
-                    updated=grow(pill,experience) if victory else dict(pill)
+                    updated=grow(pill,pill_experience) if victory else dict(pill)
                     # Charge participation, regardless of whether the skill
                     # procced. Keep the cost in the same idempotent transaction
                     # as the guardian's battle receipt and experience.
                     updated['energy']=max(0,pill['energy']-battle_energy_cost(0))
                     pills._save(db,sid,updated)
-                NewNeidan(self).settle(db,sid,victory,experience)
+                NewNeidan(self).settle(db,sid,victory,pill_experience)
                 if victory:
                     self.add_experience(db, sid, experience)
                     from native946_skillbooks import SkillBooks
-                    SkillBooks(self).add_experience(db,sid,experience)
+                    SkillBooks(self).add_experience(db, sid, experience if stunt_experience is None else stunt_experience)
 
     def set_vitals(self, sid, hp, mp):
         with self.progression.transaction() as db:
@@ -432,7 +490,7 @@ class Summons:
         # +1% fatal and +1 combo count per 7000; percentage wire units are per mille.
         values=dict(Name=s['name'],Amity=s['amity'],Grow=s['growth'],ShowGrow=s['growth']*10,DefAll=s['defense'],
                     NoTrade=1,Kind=WILDERNESS['kind_names'][str(native['kind'])],CanTakeGrade=carry_label(native['take_grade_num']),
-                    Fly=s['ascension'],Rei=s['rebirth'],LongGu=s['longgu'],
+                    Fly=s['ascension'],Rei=s['rebirth'],Feng=s['sanctification'],LongGu=s['longgu'],
                     DoubleRate=(s['amity']//4000)*10,FatalRate=(s['amity']//7000)*10,
                     DoubleCount=s['amity']//7000)
         values.update(AttValue=s.get('book_hit',0),DodValue=s.get('book_dodge',0),
@@ -447,6 +505,7 @@ class Summons:
         native=species(s['type'])
         return dict(Id=s['id'], SId=str(s['id']), Mark=s.get('mark','{}'), Type=s['type'], ShowType=s['show_type'],
                     Name=s['name'], Grade=s['level'], Race=native['race'], Kind=native['kind'], ValueType=s['direction'],
+                    Rei=s['rebirth'], Fly=s['ascension'], Feng=s['sanctification'],
                     Fight=s['fight'], Show=s['show'], CanTrade=0,Lock=s.get('lock',0),Wildness=int(s.get('grant_key','').startswith('capture:')),
                     Color1=s.get('color1',0),Color2=s.get('color2',0),Color3=s.get('color3',0),Halo=s.get('halo',0),FootHalo=s.get('foot_halo',0),
                     LockBlockTime=s.get('lock_block_time',0),WeaponColor=s['weapon_color'])
@@ -463,7 +522,7 @@ class Summons:
                     Grow=s['growth'], RealGrow=s['growth'], Honest=s['honesty'], SummonEndure=s['endurance'],
                     IniHpAdj=s['initial_hp_adj'], IniMpAdj=s['initial_mp_adj'],
                     IniAttAdj=s['initial_attack_adj'], IniDodAdj=s['initial_speed_adj'],
-                    Rei=s['rebirth'],Fly=s['ascension'],Lock=s.get('lock',0),SummonScore=s['score'])
+                    Rei=s['rebirth'],Fly=s['ascension'],Feng=s['sanctification'],Lock=s.get('lock',0),SummonScore=s['score'])
 
     def info_packets(self, sid, *, refresh_appearance=False):
         from native946_guardian_equipment import equipment_page

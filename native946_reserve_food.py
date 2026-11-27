@@ -22,25 +22,37 @@ FOODS = {
 }
 RESOURCES = {'hp': '气血', 'mp': '法力'}
 FAST_USE = 3234
+SLOT_STORAGE_VERSION = 1
+GUARDIAN_SLOT = 'guardian'
+RESERVE_LIMIT = 2147483647
 
 
 def _reserve(db, cid, target):
-    if target is None:
-        return [0, 0]
-    rows = dict(db.execute('SELECT key,value FROM cosmetic_features WHERE character_id=? AND key IN (?,?)',
-                           (cid, f'reserve:{target}:hp', f'reserve:{target}:mp')).fetchall())
-    return [rows.get(f'reserve:{target}:{resource}', 0) for resource in RESOURCES]
+    keys = (f'reserve:{target}:hp', f'reserve:{target}:mp')
+    if target == GUARDIAN_SLOT:
+        # Include older per-guardian balances until the resource is next written.
+        rows = db.execute("SELECT substr(key,-2),sum(value) FROM cosmetic_features WHERE character_id=? "
+                          "AND (key IN (?,?) OR key GLOB 'reserve:[1-9]*:hp' OR key GLOB 'reserve:[1-9]*:mp') "
+                          "GROUP BY substr(key,-2)", (cid, *keys))
+    else:
+        rows = db.execute('SELECT substr(key,-2),value FROM cosmetic_features WHERE character_id=? AND key IN (?,?)',
+                          (cid, *keys))
+    balances = dict(rows.fetchall())
+    return [balances.get(resource, 0) for resource in RESOURCES]
 
 
 def _save(db, cid, target, resource, amount):
     db.execute('INSERT INTO cosmetic_features VALUES(?,?,?,0) '
                'ON CONFLICT(character_id,key) DO UPDATE SET value=excluded.value',
                (cid, f'reserve:{target}:{resource}', amount))
+    if target == GUARDIAN_SLOT:
+        db.execute('DELETE FROM cosmetic_features WHERE character_id=? AND key GLOB ?',
+                   (cid, f'reserve:[1-9]*:{resource}'))
 
 
 def _restore(db, game, subject):
     cid = game.progression.cid
-    target = subject['id'] if subject is not None else 0
+    target = GUARDIAN_SLOT if subject is not None else 0
     reserve = _reserve(db, cid, target)
     if not any(reserve):
         return False
@@ -57,24 +69,27 @@ def _restore(db, game, subject):
         if subject is None:
             game.progression.set_vitals(current['hp'], current['mp'])
         else:
-            game.summons.set_vitals(target, current['hp'], current['mp'])
+            game.summons.set_vitals(subject['id'], current['hp'], current['mp'])
     return changed
 
 
-def restore_after_battle(db, game, summon_ids=()):
+def restore_guardian_slot(db, game, guardian):
+    if guardian is not None:
+        return _restore(db, game, guardian)
+    return False
+
+
+def restore_after_battle(db, game, guardian_id=None):
     _restore(db, game, None)
-    for sid in summon_ids:
-        row = db.execute('SELECT * FROM summons WHERE character_id=? AND id=?',
-                         (game.progression.cid, sid)).fetchone()
-        if row is not None:
-            _restore(db, game, game.summons.stats(row))
+    guardian = game.summons.get(guardian_id) if guardian_id else game.summons.active()
+    restore_guardian_slot(db, game, guardian)
 
 
 def sync(game, active):
     cid = game.progression.cid
     with game.progression.transaction(write=False) as db:
         hero = _reserve(db, cid, 0)
-        guardian = _reserve(db, cid, active['id'] if active else None)
+        guardian = [min(amount, RESERVE_LIMIT) for amount in _reserve(db, cid, GUARDIAN_SLOT)] if active else [0, 0]
     return packet(685, ['buff_info', 'buff_info'], [dict(zip(('Hp', 'Mp'), values))
                                                   for values in (hero, guardian)])
 
@@ -94,21 +109,22 @@ def use(game, target, item_id):
                       (item_id, int(time()))).fetchone():
             raise ValueError('该储备食品已到期。')
         subject = game.summons.get(target) if target not in (0, cid) else None
-        target = subject['id'] if subject is not None else 0
+        target = GUARDIAN_SLOT if subject is not None else 0
         name, _, resource, level, added = FOODS[item['type']]
         if (subject if subject is not None else game.progression._snapshot(db))['level'] < level:
             raise ValueError(f'{name}需要使用对象达到{level}级。')
         existing = _reserve(db, cid, target)[0 if resource == 'hp' else 1]
-        if existing + added > 2147483647:
+        if existing + added > RESERVE_LIMIT:
             raise ValueError('储备已接近上限，请先使用现有储备。')
         consume(db, item)
         _save(db, cid, target, resource, existing + added)
-        restored = _restore(db, game, subject)
+        guardian = (subject if subject['fight'] else game.summons.active()) if subject is not None else None
+        restored = restore_guardian_slot(db, game, guardian) if subject is not None else _restore(db, game, None)
 
     def render():
         vitals = ()
         if restored:
-            vitals = game.summons.info_packets(target) if target else game.progression.attribute_packets()
+            vitals = game.summons.info_packets(guardian['id']) if guardian else game.progression.attribute_packets()
         return (*game.progression.item_packets(), *vitals, sync(game, game.summons.active()),
                 text_notice(f'{name}补充了{added}点{RESOURCES[resource]}储备。'))
 

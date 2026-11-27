@@ -224,10 +224,14 @@ class StorageTests(unittest.TestCase):
         with patch.object(self.game.summons,'settle',side_effect=StorageBusy('busy')):
             result=self.game.receive(2184,MessageReader(b''))
         self.assertEqual(result[0],98)
-        self.assertEqual(self.game.battle,battle)
+        self.assertEqual(self.game.battle, dict(battle, round_end_received=True))
         self.assertEqual(self.game.progression.snapshot(),before)
         with closing(sqlite3.connect(self.path)) as db:
             self.assertEqual(db.execute('SELECT count(*) FROM battle_results').fetchone()[0],0)
+        self.game.tick()
+        self.assertIsNone(self.game.battle)
+        with closing(sqlite3.connect(self.path)) as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM battle_results').fetchone()[0],1)
 
     def test_full_sync_uses_one_consistent_hero_snapshot(self):
         with patch.object(self.game.progression,'snapshot',wraps=self.game.progression.snapshot) as snapshot:

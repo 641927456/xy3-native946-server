@@ -26,6 +26,9 @@ PAGE_SIZE = 7
 GAP = '缺少原版分阶段脚本、剧情战斗配置和奖励结算，暂不能接取或通关。'
 STORY_PANEL = 'dlg_scnr_review_main'
 STORY_CHILD_PANEL = 'dlg_scnr_review_story'
+FIVE_AGGREGATES = 123823
+FIVE_AGGREGATES_NPC = (2009, STORIES[FIVE_AGGREGATES]['npc_id'])
+FIVE_AGGREGATES_GAP = '五蕴领取后的首个任务步骤和存档变更仍待核实，暂不能领取。'
 
 
 def story_panel_packets(show=True):
@@ -69,10 +72,13 @@ def grade_label(value):
     return ('封圣' if feng else '飞升' if fly else str(rei) + '转') + str(grade) + '级'
 
 
-def eligibility(story, snapshot, completed=()):
+def eligibility(story, snapshot, completed=(), *, demon_wins=()):
     roles = story['fit_role'].split('@')
     if roles != ['0'] and str(snapshot.get('role', snapshot.get('role_id'))) not in roles:
         return False, '当前角色不符合原版角色限制。'
+    if story.get('id') == FIVE_AGGREGATES and (
+            not snapshot['sanctification'] or snapshot['level'] < story['min_grade']):
+        return False, '未达到原版领取等级：' + story['grade'] + '。'
     actual = grade_number(snapshot['level'], snapshot['rebirth'], snapshot['ascension'], snapshot['sanctification'])
     low = grade_number(*(story['min_' + k] for k in ('grade', 'rei', 'fly', 'feng')))
     high = grade_number(*(story['max_' + k] for k in ('grade', 'rei', 'fly', 'feng')))
@@ -82,6 +88,13 @@ def eligibility(story, snapshot, completed=()):
         return False, '已超过原版领取等级范围。'
     if story['pre_task'] and story['pre_task'] not in completed:
         return False, '未完成前置剧情：' + story['pre_task'] + '。'
+    if story.get('id') == FIVE_AGGREGATES:
+        from native946_activities import DEMON_BOSSES
+
+        missing = [row['name'] for row in DEMON_BOSSES if row['record_id'] not in demon_wins]
+        if missing:
+            return False, (f'已达到封圣185级。已记录击败 {len(DEMON_BOSSES) - len(missing)}/{len(DEMON_BOSSES)}。'
+                           f'尚缺{"、".join(missing)}。')
     return True, '已满足已知领取条件。'
 
 
@@ -89,17 +102,24 @@ def location(story):
     return next((n for n in story['locations'] if n['reachable']), None)
 
 
-def story_description(story, snapshot):
+def story_description(story, snapshot, *, demon_wins=()):
     from native946_campaign import QUESTS,TRIALS,completed_names
-    _, reason = eligibility(story, snapshot,completed_names(snapshot))
-    status=GAP
+    _, reason = eligibility(story, snapshot,completed_names(snapshot),demon_wins=demon_wins)
+    status=FIVE_AGGREGATES_GAP if story['id'] == FIVE_AGGREGATES else GAP
     if str(story['id']) in QUESTS:
         row=snapshot.get('campaign',{}).get('runs',{}).get(str(story['id']))
         status=({'active':'进行中','completed':'已完成','available':'等待领取'}.get(row['state']) if row else '可在剧情联系人处查看领取条件')
         if str(story['id']) in TRIALS:
             reason = '本机领取等级：' + story['grade']
+    prerequisite = '前置剧情：' + (story['pre_task'] or '无')
+    if story['id'] == FIVE_AGGREGATES:
+        from native946_activities import DEMON_BOSSES
+
+        names = '、'.join(row['name'] for row in DEMON_BOSSES)
+        prerequisite = ('原版剧情联系人为幽冥地府的地藏王。领取前需击败以下九个降魔首领：'
+                        f'{names}。可查看降魔挑战首领指引。')
     return (story['desc_str'] + '#r#r原版领取等级：' + story['grade'] +
-            '#r前置剧情：' + (story['pre_task'] or '无') +
+            '#r' + prerequisite +
             '#r原版奖励说明：' + (story['reward'] or '原表未列出') +
             '#r当前条件：' + reason + '#r剧情状态：' + status)
 
@@ -196,6 +216,11 @@ class TaskJournal:
                 campaign.accept(str(tid))
                 return True,campaign.refreshed('已领取'+chapter['name']+'，目标已记入任务日志。')
             story = STORIES[tid]
+            if tid == FIVE_AGGREGATES:
+                eligible, reason = self.five_aggregates_status()
+                if eligible and mid == 1492 and not Campaign(self.g).near(location(story)):
+                    return True, self.five_aggregates_navigation()
+                raise ValueError(story['name'] + '：' + (FIVE_AGGREGATES_GAP if eligible else reason))
             _, reason = eligibility(story, self.p.snapshot())
             raise ValueError(story['name'] + '：' + reason + GAP)
         if mid == 1495:
@@ -317,57 +342,33 @@ class TaskJournal:
                         z=row['scene'], NpcId=row['npc'], auto_path=0)
         elif tid in STORIES:
             story = STORIES[tid]; target = location(story)
-            data = dict(t=story['name'] + '（原版剧情资料）', d=story_description(story, snapshot),
+            data = dict(t=story['name'] + '（原版剧情资料）', d=self.story_description(story, snapshot),
                 x=target['x'] if target else 0, y=target['y'] if target else 0,
                 z=target['scene'] if target else 0, NpcId=story['npc_id'] if target else 0, auto_path=0)
         else:
             raise ValueError('没有这项任务的详情。')
         return packet(1971, ['number', 'string'], [tid, lua_data(data)])
 
+    def story_description(self, story, snapshot):
+        from native946_activities import demon_victories
+
+        wins = demon_victories(self.p) if story['id'] == FIVE_AGGREGATES else ()
+        return story_description(story, snapshot, demon_wins=wins)
+
+    def five_aggregates_status(self):
+        from native946_activities import demon_victories
+
+        return eligibility(STORIES[FIVE_AGGREGATES], self.p.snapshot(), demon_wins=demon_victories(self.p))
+
+    def five_aggregates_navigation(self):
+        from native946_navigation import npc_auto_trace
+
+        target = location(STORIES[FIVE_AGGREGATES])
+        return npc_auto_trace(target['scene'], target['x'], target['y'], target['npc'], target['name'])
+
     def _menu(self, nid, text, choices):
         self.g.dialog_actions = [dict(kind='story', **action) for _, action in choices]
         return self.g.menu(text, [label for label, _ in choices], nid)
-
-    def attach_menu(self, npc, reply):
-        """Append a story entry without changing transport/service indices."""
-        from native946_login import MessageReader
-        from native946_game_login import message_id
-        from native946_campaign import BY_NPC
-        from native946_school import BUZHOU_MASTER, LIZARD_MASTER, SCHOOL_LEADERS
-        key=(npc['scene_id'],npc['npc_id'])
-        protected_service = ('school' if key in (BUZHOU_MASTER,LIZARD_MASTER) or key in SCHOOL_LEADERS
-                             else 'medicine' if key == (2034,1271) else None)
-        if protected_service and any(isinstance(action, dict) and action.get('kind') == protected_service
-                                     for action in self.g.dialog_actions):
-            return reply
-        has_catalog = bool(STORY_NPCS.get(key))
-        has_story = has_catalog or key in BY_NPC
-        from native946_local_guides import mount_option
-        local_mount = mount_option(self.g,key)
-        if not has_story and local_mount is None:
-            return reply
-        if not isinstance(reply, bytes) or not reply.startswith(message_id(1025)):
-            return reply
-        reader = MessageReader(reply[3:])
-        chats = [dict(chat_msg=reader.string().decode('gb18030'), speaker=reader.integer())
-                 for _ in range(reader.take(1)[0])]
-        options = [reader.string().decode('gb18030') for _ in range(reader.take(1)[0])]
-        callback, flag = reader.integer(), reader.integer(); reader.finish()
-        if len(options) != len(self.g.dialog_actions) or len(options) >= 252:
-            return reply
-        if has_catalog:
-            self.g.dialog_actions.append(dict(kind='story', op='catalog', section='npc', page=0))
-            options.append('原版剧情资料与领取条件')
-        if has_story:
-            self.g.dialog_actions.append(dict(kind='campaign',op='hub'))
-            options.append('新手与主线剧情进度')
-        if local_mount and len(options)<254:
-            label, action = local_mount
-            self.g.dialog_actions.append(action)
-            options.append(label)
-        self.g.dialog_open = True
-        return packet(1025, [('array', 'npc_chat'), ('array', 'string'), 'number', 'number'],
-                      [chats, options, callback, flag])
 
     def catalog(self, nid, section=None, page=0):
         if section is None:
@@ -427,7 +428,7 @@ class TaskJournal:
             from native946_campaign import Campaign
             return Campaign(self.g).hub(nid)
         if op == 'service':
-            return self.g.world_npc_look(nid, include_story=False)
+            return self.g.world_npc_look(nid, include_mount_guide=False)
         if op == 'native':
             return (packet(1183, ['string'], ['dlg_npc_chat']),
                     *story_panel_packets())
@@ -437,10 +438,25 @@ class TaskJournal:
         if op == 'detail':
             story = STORIES[action['task']]; target = location(story)
             choices = [('前往原版领取人', dict(op='navigate', task=story['id']))] if target else []
+            if story['id'] == FIVE_AGGREGATES:
+                choices.append(('查看降魔首领指引', dict(op='demon_guide')))
             from native946_campaign import QUESTS
             if str(story['id']) in QUESTS:choices.insert(0,('查看剧情与修行进度',dict(op='campaign')))
             choices.append(('返回剧情与任务目录', dict(op='catalog')))
-            return self._menu(nid, story['name'] + '#r' + story_description(story, self.p.snapshot()), choices)
+            return self._menu(nid, story['name'] + '#r' + self.story_description(story, self.p.snapshot()), choices)
+        if op == 'five_aggregates_check':
+            if (self.g.character['map_id'], nid) != FIVE_AGGREGATES_NPC:
+                raise ValueError('请到幽冥地府找地藏王检查五蕴领取条件。')
+            eligible, reason = self.five_aggregates_status()
+            text = '化境·五蕴#r' + reason
+            if eligible:
+                text += '#r' + FIVE_AGGREGATES_GAP
+            return self._menu(nid, text, [('查看降魔首领指引', dict(op='demon_guide'))])
+        if op == 'demon_guide':
+            from native946_activities import demon_guide_text, demon_victories
+
+            return self._menu(nid, demon_guide_text(demon_victories(self.p)),
+                              [('返回化境·五蕴', dict(op='detail', task=FIVE_AGGREGATES))])
         if op == 'guide':
             row = DATA['activity_guides'][str(action['task'])]
             npc = world().npc(row['scene'], row['npcid'])

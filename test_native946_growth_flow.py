@@ -205,9 +205,18 @@ class GrowthFlowTests(unittest.TestCase):
     def test_property_names_change_real_derived_stats_and_native_resistance_units(self):
         items=[dict(id=1,page=1)]
         instance={1:dict(properties={'增加攻击':120,'增加气血':80,'增加速度':20,'抗风法':140,'抗封印':30,'致命几率':12})}
-        core,direct,resist=bonuses(items,instance)
-        self.assertEqual((direct['attack'],direct['hpmax'],direct['initiative']),(120,80,20))
-        self.assertEqual((resist['ReWind'],resist['ReSeal'],resist['FatalRate']),(140,300,120))
+        for metadata in ({}, {'requirements': {'level': 50}}):
+            with self.subTest(metadata=metadata):
+                _,direct,resist=bonuses(items,{1:dict(instance[1],**metadata)})
+                self.assertEqual((direct['attack'],direct['hpmax'],direct['initiative']),(120,80,20))
+                self.assertEqual((resist['ReWind'],resist['ReSeal'],resist['FatalRate']),(140,300,120))
+
+        from native946_star_rewards import CATEGORY, profile
+        star = profile('7', 3)
+        self.assertEqual(star['item'], 13261)
+        equipment = {1: dict(requirements={'kind': CATEGORY}, properties=star['properties'])}
+        core, _, resist = bonuses(items, equipment)
+        self.assertEqual((core['mag'], resist['AttValue'], resist['AddFire'], resist['AddWind']), (18,80,90,75))
 
     def test_supply_replay_only_charges_missing_items_in_unlocked_bags(self):
         row=self.accept();p=self.game.progression

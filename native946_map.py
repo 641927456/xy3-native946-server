@@ -19,15 +19,24 @@ class MapGrid:
     def __init__(self, filename):
         with Path(filename).open("rb") as stream:
             magic, cell_offset, width, height, cw, ch = struct.unpack("<4sIIIHH", stream.read(20))
-            if magic != b"0.3M" or (cw, ch) != (20, 20):
+            if magic not in (b"0.3M", b"1.3M") or (cw, ch) != (20, 20):
                 raise ValueError("Unexpected native map format")
+            if magic == b"1.3M":
+                # These maps store collision data directly after their 44-byte header.
+                # The full-map offset in the header can exceed this file's size.
+                cell_offset = 44
             # Native indoor maps include a partial final collision cell.
             self.width, self.height = (width+cw-1)//cw, (height+ch-1)//ch
             stream.seek(cell_offset)
             tag, size = struct.unpack("<4sI", stream.read(8))
             if tag != b"LLEC" or size > 16 << 20:
                 raise ValueError("Invalid native collision data")
-            self.cells = lzokay.decompress(stream.read(size), self.width * self.height)
+            payload = stream.read(size)
+            if len(payload) != size:
+                raise ValueError("Truncated native collision data")
+            self.cells = lzokay.decompress(payload, self.width * self.height)
+            if len(self.cells) != self.width * self.height:
+                raise ValueError("Invalid native collision grid size")
 
     def walkable(self, x, y):
         return (0 <= x < self.width and 0 <= y < self.height
@@ -95,9 +104,17 @@ class MapGrid:
                     heappush(queue, (candidate + heuristic, candidate, nxt))
         raise ValueError("No walkable route to movement target")
 
+    def movement_path(self, start, reported_start, directions):
+        return self.route(start, reported_start)[:-1] + self.path(reported_start, directions)
+
 
 @lru_cache(maxsize=192)
 def load_map(map_id):
     from native946_world import world
     resource=world().scene(map_id)['map_id']
+    return MapGrid(Path(__file__).with_name("client-946") / "map" / f"{resource}.map")
+
+
+@lru_cache(maxsize=6)
+def load_night_terrain(resource):
     return MapGrid(Path(__file__).with_name("client-946") / "map" / f"{resource}.map")

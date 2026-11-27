@@ -8,7 +8,7 @@ from time import monotonic
 
 from native946_codec import packet
 from native946_codec import text_notice
-REFERENCE_WIRE_VERSION=11
+REFERENCE_WIRE_VERSION=12
 BATTLE_ORDER_REQUESTS=frozenset({2176,2177,2178,2181,2182,2183,2185})
 
 
@@ -31,6 +31,10 @@ def input_command_packet(actor,order,*,extra=False):
 # 946 consumes one processing credit at c_begin_pre_draw. Balance the
 # menu wakeup so an incoming partial action cannot run before c_start_draw.
 SHARED_INPUT_WAKEUP=(numbers(2703),numbers(2139,2))
+
+# Grant processing credit before c_war_end pauses receipt. The queued exit
+# runs after any pending actions and deaths on clients still playing the round.
+QUEUED_BATTLE_EXIT = (numbers(2139, 2), numbers(2170))
 
 def retry_input_packets(actor,deadline,*,shared=False):
     if actor is None or deadline is None:return ()
@@ -151,6 +155,10 @@ class BattleActions:
             raise ValueError('该战斗单位当前不能行动。')
         if blocked(actor,battle['round']) and order['kind']!='defend':
             raise ValueError('该单位正处于人法控制状态，当前只能防御。')
+        # Native input UI opens after the previous draw. A valid next-round
+        # order can resynchronize a client that omitted its old confirmation.
+        if getattr(self, '_background_round', None) != (battle['id'], battle['round']):
+            battle.pop('late_round_ends', None)
         orders[actor_id]=order
         preview=input_command_packet(actor_id,order)
         cid=self.character['id'];pet=battle.get('pet')

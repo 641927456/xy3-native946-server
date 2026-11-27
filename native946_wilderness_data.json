@@ -21685,6 +21685,40 @@
       "native_names": "冰雪天马、熊战将"
     }
   ],
+  "local_zones": [
+    {
+      "scene": 2266,
+      "scene_name": "水帘洞",
+      "bounds": [0, 0, 1580, 1180],
+      "levels": [80, 80],
+      "enemies": [
+        {"name": "对练猴兵甲", "type": 3126, "guardian_type": null},
+        {"name": "对练猴兵乙", "type": 3127, "guardian_type": null}
+      ],
+      "formations": [[0, 0, 0, 1, 1], [1, 1, 1, 0, 0]],
+      "full_team_extra_enemies": [0, 1],
+      "level_rewards": {
+        "policy": "水帘洞本机等级与组队奖励",
+        "hero": {"level": 80, "experience": 20000},
+        "guardian": {"level": 89, "experience": 24000},
+        "team_experience_percent_per_member": 5,
+        "guardian_stunt_experience": 12000,
+        "school_practice": 260
+      },
+      "floor_variants": [
+        {"scene": 2267, "scene_name": "灵泉洞", "bounds": [0, 0, 1580, 1180], "school_practice": 280},
+        {"scene": 2268, "scene_name": "云霄径", "bounds": [0, 0, 1380, 1660], "school_practice": 300},
+        {"scene": 2269, "scene_name": "翠石峰", "bounds": [0, 0, 1260, 1260], "school_practice": 320}
+      ],
+      "source": {
+        "video": "https://www.bilibili.com/video/BV1izxE6UEyD/",
+        "published": "2026-10-28",
+        "formations_at": ["08:14.80", "10:04.40"],
+        "rewards_at": ["08:31", "09:12"],
+        "notes": "一层录像提供五只猴兵编队及等级经验锚点，常规战位自上而下为 4、2、1、3、5。等级经验锚点已扣除录像中的活动加成。二至四层沿用一层编队并提高熟练度，满五人增怪与组队经验比例为本机规则。"
+      }
+    }
+  ],
   "unavailable_zone_names": [
     {
       "zone": 20,
@@ -21779,7 +21813,7 @@
     "max_team_size": 5,
     "hero_exp_per_enemy_level": 20,
     "guardian_exp_per_enemy_level": 25,
-    "gold_per_enemy_level": 5,
+    "gold_per_enemy_level": 0,
     "drops": [
       {
         "type": 4000,

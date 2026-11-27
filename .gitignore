@@ -8,6 +8,7 @@
 /native946_battle_ui.py
 /native946_classified_mall_ui.py
 /native946_client_stage.py
+/native946_guardian_lottery_ui.py
 /native946_render_motion.py
 /test_native946_client_ui.py
 *.lua
@@ -41,6 +42,8 @@ __pycache__/
 .env
 .env.*
 .native-test-token
+.native-reload-token
+.native-reload-token.*.tmp
 *.pem
 *.key
 *.pfx

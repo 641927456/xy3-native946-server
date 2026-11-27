@@ -22,8 +22,17 @@ GEAR_RULES={
 GEAR_OPERATIONS={2767:('shenbing',False),2768:('shenbing',True),2770:('xianqi',False),
                  2771:('xianqi',True),3424:('jing',False),3425:('jing',True)}
 DISASSEMBLY={2766:'shenbing',2769:'xianqi'}
-REQUESTS={2981,*GEAR_OPERATIONS,*DISASSEMBLY}
-WRITES=REQUESTS
+WRITES={2981,*GEAR_OPERATIONS,*DISASSEMBLY}
+NATIVE_PREVIEW_REQUESTS={281,282,287,288,4587,4591}
+REQUESTS=WRITES | NATIVE_PREVIEW_REQUESTS
+# Wire operations from COMMON_CONST in bin_script.wdf, block f006b779.
+NATIVE_PREVIEWS={
+    'fairy_compose': (203, 3, '仙器合成暂未开放结算。1→2阶需8点灵气和和田玉，2→3阶需8点和珊瑚玉，'
+                           '3→4阶需6点和鬼血石，4→5阶需3点和玉祖精华。'),
+    'fairy_recast': (203, 4, '仙器重洗暂未开放结算。悔梦石更改同阶仙器种类并清除炼化，超级悔梦石保留种类、阶数和炼化。'),
+    'crown_upgrade': (202, 4, '神兵冠饰升阶可查看材料与费用，原版升阶结算暂未开放。'),
+    'ring_upgrade': (202, 7, '可查看神兵戒指的属性和升阶材料，原版升阶结算暂未开放。'),
+}
 FORGE_VIGOR_MAX=3000
 FAIRY_UPGRADE_CASH=30000
 FAIRY_UPGRADE_ESSENCE=3
@@ -67,11 +76,15 @@ def item_extras(db,cid,iid):
     value=state(db,cid,iid)
     rank=forge_rank(value)
     pending=value['pending']
-    return dict(ForgeTimes=value['attempts'],ForgeLevel=rank, ForgeLucky=value['lucky'],
+    result=dict(ForgeTimes=value['attempts'],ForgeLevel=rank, ForgeLucky=value['lucky'],
                 ForgeTraitInfo=describe(value) if value['traits'] else '',
                 ForgeLuckySaveBound=DATA['jing_lucky'].get(str(rank),0),
                 LastForgeSaveTraitCache=describe(dict(traits=pending['traits'],expires=0))
                     if pending.get('gear') else '')
+    equipment=db.execute('SELECT grade FROM native_equipment WHERE character_id=? AND item_id=?',
+                         (cid,iid)).fetchone()
+    if equipment is not None:result['EquipLevel']=equipment[0]
+    return result
 
 
 def forge_rank(value):
@@ -199,6 +212,55 @@ class Refinement:
         session=NpcServices(self.game)._session('gear_refinement')
         if GEAR_NPCS.get((session['scene'],session['npc']))!=kind:
             raise ValueError('请前往对应的精炼师。')
+        return session
+
+    def open_native_preview(self,operation):
+        mid,code,notice=NATIVE_PREVIEWS[operation]
+        self.game.npc_service_session['preview']=operation
+        return (packet(1183,['string'],['dlg_npc_chat']),packet(mid,['number'],[code]),text_notice(notice))
+
+    def native_preview(self,mid,reader):
+        from native946_equipment import COMPLETION, CROWN_HELP, DIVINE_RING_TYPES, description, records
+
+        if mid in (287,288):
+            code=reader.integer()
+            reader.integer()
+            reader.integer()
+            reader.finish()
+            operation={3:'fairy_compose',4:'fairy_recast'}.get(code)
+            if not operation or self.gear_session('xianqi').get('preview')!=operation:
+                raise ValueError('请先在崔无眠处打开对应的窗口。')
+            return text_notice(NATIVE_PREVIEWS[operation][2])
+
+        iid=reader.integer()
+        operation='ring_upgrade' if mid in (4587,4591) else 'crown_upgrade'
+        if operation=='crown_upgrade':
+            material=reader.integer()
+        elif mid==4587:
+            for _ in range(reader.take(1)[0]):
+                reader.integer()
+        reader.finish()
+        if self.gear_session('shenbing').get('preview')!=operation:
+            raise ValueError('请先在卓无华处打开对应的窗口。')
+        if mid in (282,4587):
+            return text_notice(NATIVE_PREVIEWS[operation][2])
+
+        with self.p.transaction(write=False) as db:
+            item=self.item(db,iid)
+            instance=records(db,self.p.cid).get(iid)
+            if not instance or item['amount']!=1 or instance['requirements'].get('kind')!='神兵':
+                raise ValueError('请选择随身背包中的神兵。')
+            grade=instance['grade']
+            if mid==4591:
+                if instance['slot']!=12 or item['type'] not in DIVINE_RING_TYPES or not 1<=grade<=4:
+                    raise ValueError('请选择一至四级神兵戒指。')
+                return packet(4589,['number','string'],[iid,description(instance)])
+            if instance['slot']!=1 or item['type'] not in CROWN_HELP or not 1<=grade<=4:
+                raise ValueError('请选择一至四级神兵冠饰。')
+            cost=COMPLETION['shenbing_cost'][grade-1]
+            if self.item(db,material)['type']!=cost['Type']:
+                raise ValueError('所放宝玉与神兵等级不匹配。')
+            return packet(197,['number','number'],[4,cost['Cash']])
 
     def supplies(self,kind):
         from native946_cosmetics import Cosmetics
@@ -250,7 +312,8 @@ class Refinement:
             debit(db,cid,FAIRY_UPGRADE_CASH)
             db.execute('UPDATE inventory SET type=? WHERE character_id=? AND id=?',(profile['id'],cid,iid))
             db.execute('DELETE FROM native_equipment WHERE character_id=? AND item_id=?',(cid,iid))
-            persist(db,cid,iid,dict(profile,grade=3,need={},kind='仙器'),profile['properties'])
+            result=dict(profile,grade=3,need={},kind='仙器')
+            persist(db,cid,iid,result,profile['properties'])
             db.execute('UPDATE native_equipment SET durability=min(?,max_durability) WHERE item_id=?',
                        (old['durability'],iid))
         return self.game.defer_packets(lambda:(*self.p.item_packets(),*self.p.attribute_packets(),
@@ -474,6 +537,8 @@ class Refinement:
                                                 text_notice('光环炼化已保存。随机词条采用本机规则。')))
 
     def receive(self,mid,reader):
+        if mid in NATIVE_PREVIEW_REQUESTS:
+            return self.native_preview(mid,reader)
         if mid in GEAR_OPERATIONS:
             kind,select=GEAR_OPERATIONS[mid]
             iid,mode=reader.integer(),reader.take(1)[0]

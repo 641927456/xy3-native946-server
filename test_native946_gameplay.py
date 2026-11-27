@@ -9,6 +9,7 @@ from local_accounts import LocalAccounts
 from native946_characters import Characters
 from native946_codec import field, number, packet
 from native946_gameplay import ENEMY_ID, TRAINER_ID, NativeGameplay
+from native946_game_login import message_id
 from native946_login import MessageReader, string_field
 from native946_map import DIRECTIONS, load_map
 
@@ -80,6 +81,14 @@ class GameplayTests(unittest.TestCase):
         self.assertEqual(self.game.battle['orders'],{})
         self.assertEqual(self.game.battle['enemy_hp'],self.game.battle['enemy_hpmax'])
         self.assertEqual(self.game.battle['phase'],'input')
+
+    def test_training_background_uses_current_scene(self):
+        for scene, background in ((2011, 2207), (2016, 2210), (2266, 0)):
+            with self.subTest(scene=scene):
+                self.game.character['map_id'] = scene
+                replies = self.game.begin_battle()
+                entry = next(p for p in replies if p.startswith(message_id(2171)))
+                self.assertEqual(MessageReader(entry[3:]).integer(), background)
 
     def test_exit_preserves_auto_mode_and_panel_in_the_world(self):
         self.game.begin_battle();replies=self.call(2178,number(2))
@@ -161,26 +170,54 @@ class GameplayTests(unittest.TestCase):
         self.assertIsNone(self.game.tick(200))
         self.assertEqual(self.game.battle['enemy_hp'],152)
 
-    def test_drawing_timeout_recovers_round_and_wakes_native_processor(self):
+    def test_round_end_ack_advances_and_wakes_native_processor(self):
         with patch('native946_gameplay.monotonic',return_value=100):self.game.begin_battle()
         replies=self.game.tick(145)
         ids=[int.from_bytes(p[1:3],'little') if p[:1]==b'\0' else p[0] for p in replies]
         self.assertEqual(ids[ids.index(2167)+1],2139)
-        deadline=self.game.battle['input_deadline']
-        self.assertIsNone(self.game.tick(deadline-1))
-        self.game.tick(deadline)
+        self.assertIsNone(self.game.tick(self.game.battle['input_deadline'] - 1))
+        self.assertEqual((self.game.battle['phase'],self.game.battle['round']),('drawing',1))
+        self.call(2184)
         self.assertEqual((self.game.battle['phase'],self.game.battle['round']),('input',2))
         self.assertIsNotNone(self.game.battle['input_deadline'])
 
-    def test_drawing_timeout_finishes_victory_without_duplicate_rewards(self):
+    def test_round_end_ack_finishes_victory_without_duplicate_rewards(self):
         import sqlite3
         self.game.begin_battle()
-        self.game.battle.update(phase='drawing',victory=True,enemy_hp=0,input_deadline=0)
-        self.game.tick(1)
-        self.assertIsNone(self.game.battle)
+        self.game.battle.update(phase='drawing',victory=True,enemy_hp=0,input_deadline=None)
         self.assertIsNone(self.game.tick(10000))
+        self.assertEqual(self.game.battle['phase'], 'drawing')
+        self.assertIn(packet(2146, [], []), self.call(2184))
+        self.assertIsNone(self.game.battle)
+        # The world can publish its current day/night effect on return.
+        world_updates = self.game.tick(10000) or ()
+        self.assertEqual([reply for reply in world_updates if reply[:3] != message_id(452)], [])
         with closing(sqlite3.connect(self.characters.database)) as db:
             self.assertEqual(db.execute('SELECT count(*) FROM battle_results').fetchone()[0],1)
+
+    def test_round_end_ack_survives_storage_busy(self):
+        from native946_storage import StorageBusy
+
+        with patch('native946_gameplay.monotonic', return_value=100):
+            self.game.begin_battle()
+        self.game.tick(145)
+        self.call(2184, b'\x01')
+        self.assertIsNone(self.game.tick(146))
+        with patch('native946_gameplay.storage_transaction', side_effect=StorageBusy('fixture busy')):
+            self.call(2184)
+        self.assertEqual((self.game.battle['phase'], self.game.battle['round']), ('drawing', 1))
+        self.game.tick(146)
+        self.assertEqual((self.game.battle['phase'], self.game.battle['round']), ('input', 2))
+
+    def test_draw_timeout_queues_retreat_after_pending_deaths(self):
+        self.game.begin_battle()
+        self.game.battle.update(phase='drawing', victory=True, enemy_hp=0, input_deadline=100)
+        self.assertIsNone(self.game.tick(99))
+        replies = self.game.tick(100)
+        wake = packet(2139, ['number'], [2])
+        self.assertEqual(replies[replies.index(wake) + 1], packet(2170, [], []))
+        self.assertNotIn(packet(2146, [], []), replies)
+        self.assertIsNone(self.game.battle)
 
     def test_partial_timeout_preserves_skill_and_only_defaults_unsubmitted_pet(self):
         sid=self.game.summons.claim_starter()
@@ -210,7 +247,7 @@ class GameplayTests(unittest.TestCase):
         self.assertIn('结算伤害：#G224#n', skills[4592][0])
         self.assertEqual(skills[4592][1], '法力：60')
         description, cost = skills[6100]
-        self.assertIn('基础伤害为#G144#n',description)
+        self.assertIn('基础杀伤力为#G144#n',description)
         self.assertNotIn('%d',description)
         self.assertEqual(cost, '法力：8')
         self.assertEqual(r.take(1),b'\x00');self.assertEqual(r.integer(),0);r.finish()

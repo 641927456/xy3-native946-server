@@ -6,9 +6,10 @@ Medical restoration is explicitly free local testing, not official pricing.
 from pathlib import Path
 from time import monotonic, time
 import json
-REFERENCE_WIRE_VERSION=24
+REFERENCE_WIRE_VERSION=25
 from native946_codec import packet
 from native946_codec import text_notice
+from native946_double_time import NPC as DOUBLE_TIME_NPC
 from native946_pawnshop import NPC as PAWNSHOP_NPC, Pawnshop, schema as pawnshop_schema
 from native946_trade import MAX_CASH
 
@@ -89,14 +90,29 @@ class NpcServices:
 
     def validate(self,nid,kind=None):
         from native946_world import world
-        c=self.g.character;npc=world().npc(c['map_id'],nid)
+        catalog = world()
+        c=self.g.character;npc=catalog.npc(c['map_id'],nid)
         if self.g.battle:raise ValueError('请先结束战斗。')
         if not npc or max(abs(npc['x']//20-c['x']),abs(npc['y']//20-c['y']))>12:
             raise ValueError('请走近对应的城镇 NPC 再办理。')
+        if not catalog.event_npc_is_open(c['map_id'], nid):
+            raise ValueError('这个活动 NPC 当前未开放。')
         if kind is not None and service_kind(npc)!=kind:raise ValueError('该 NPC 不提供这项服务。')
         return npc
 
     def menu(self,npc):
+        from native946_wilderness import ARENA_PRACTICE_NPC
+
+        if (npc['scene_id'], npc['npc_id']) == ARENA_PRACTICE_NPC:
+            return self._menu(npc['npc_id'], '该NPC为伤害测试',
+                              [('测试伤害', dict(kind='arena_practice', op='start')),
+                               ('离开', dict(kind='arena_practice', op='leave'))])
+        if (npc['scene_id'], npc['npc_id']) == DOUBLE_TIME_NPC:
+            from native946_double_time import MENU
+
+            nid = npc['npc_id']
+            return self._menu(nid, '#R双倍时间#n可以使你在练功区和许多任务中获得双倍人物和守护经验。',
+                              [(label, dict(kind='double_time', op=op)) for label, op in MENU], speaker=nid)
         from native946_song_fireworks import CLAIM_NPC
         if (npc['scene_id'],npc['npc_id']) == CLAIM_NPC:
             return self._menu(npc['npc_id'],'本机可免费领取一枚烟花·流星落雨，每个账号限领一次，当天有效。',
@@ -176,10 +192,15 @@ class NpcServices:
             gear=GEAR_NPCS[npc['scene_id'],nid]
             choices=[('装备炼化',dict(kind=kind,op='forge'))]
             if gear!='jing':choices.append(('分解装备',dict(kind=kind,op='disassemble')))
-            if gear=='xianqi':choices.append(('本机仙器升阶',dict(kind=kind,op='fairy_list',page=0)))
+            if gear=='xianqi':
+                choices.extend((label,dict(kind=kind,op=op)) for label,op in (
+                    ('本机仙器升阶','fairy_list'),('仙器合成（查看材料）','fairy_compose'),
+                    ('重洗仙器（查看材料）','fairy_recast')))
             if gear=='shenbing':
                 choices.extend((label,dict(kind=kind,op='transition',branch=branch)) for label,branch in
                                (('本机神兵兑换与升阶','shenbing'),('本机铸造圣武','holy')))
+                choices.extend((label,dict(kind=kind,op=op)) for label,op in (
+                    ('神兵冠饰升阶（查看材料）','crown_upgrade'),('神兵戒指打造（查看材料）','ring_upgrade')))
             if gear=='jing':
                 choices.extend([('本机境装备转换与升品',dict(kind=kind,op='transition',branch='jing')),
                                 ('境宝石镶嵌',dict(kind=kind,op='jing_gems'))])
@@ -220,6 +241,30 @@ class NpcServices:
         return self.g.menu(text,[label for label,value in choices],nid,speaker=speaker)
 
     def execute(self,nid,action):
+        if action['kind'] == 'arena_practice':
+            from native946_npc_quests import enter_quest_battle
+            from native946_wilderness import ARENA_PRACTICE_NPC, ArenaPracticeBattle
+
+            npc = self.validate(nid)
+            if (npc['scene_id'], nid) != ARENA_PRACTICE_NPC:
+                raise ValueError('请在长安擂台和擂台稻草人交谈。')
+            if action['op'] == 'leave':
+                return self.g.close_npc_dialogue()
+            games = self.g.party_service.participants(self.g)
+            if not games:
+                raise ValueError('请由队长发起伤害测试。')
+            return enter_quest_battle(self.g, games, lambda: ArenaPracticeBattle(self.g, games, npc))
+        if action['kind'] == 'double_time':
+            from native946_double_time import execute as double_time
+
+            op = action.get('op')
+            if op is None:
+                return self.g.close_npc_dialogue()
+            npc = self.validate(DOUBLE_TIME_NPC[1])
+            if (npc['scene_id'], npc['npc_id']) != DOUBLE_TIME_NPC or (
+                    op not in ('draw', 'close_draw') and nid != DOUBLE_TIME_NPC[1]):
+                raise ValueError('请找御林军统领办理。')
+            return double_time(self.g, 'close' if op == 'close_draw' else op)
         if action['kind']=='song_firework_claim':
             from native946_song_fireworks import claim
             return claim(self.g,self.validate(nid))
@@ -235,12 +280,9 @@ class NpcServices:
         if action['kind']=='afei_marriage':
             from native946_afei_society import Marriage
             return Marriage(self.g).execute(nid,action['op'])
-        if action['kind']=='advanced_treasure':
-            from native946_ordinary_treasure import exchange_advanced
-            return exchange_advanced(self.g,nid,superior=action.get('superior',False))
-        if action['kind']=='sanjie_exchange':
-            from native946_daily_content import exchange
-            return exchange(self.g, nid, action['item'])
+        if action['kind'] in ('sanjie_exchange','advanced_treasure'):
+            from native946_activities import unavailable_npc_notice
+            return unavailable_npc_notice(self.g,'兑换暂未开放。')
         if action['kind']=='guild_war':
             from native946_guild_war import open_at_npc
             return open_at_npc(self.g,nid,action['op'])
@@ -254,8 +296,7 @@ class NpcServices:
             from native946_guilds import introduction
             return introduction(self.g,nid,action['op'])
         if action['kind']=='cultivation':
-            from native946_cultivation import advance
-            return advance(self.g,self.validate(nid),action['op'])
+            raise ValueError('请重新交谈，领取并完成对应的修行试炼。')
         if action['kind']=='lineup_npc':
             from native946_lineups import npc_execute
             return npc_execute(self.g,nid,action)
@@ -291,11 +332,11 @@ class NpcServices:
             from native946_nice_ids import NiceIds
             return NiceIds(self.g).open()
         if kind=='gear_refinement':
-            from native946_refinement import GEAR_NPCS, Refinement
+            from native946_refinement import GEAR_NPCS, NATIVE_PREVIEWS, Refinement
             scene=self.g.character['map_id']
             gear=GEAR_NPCS[scene,nid]
             service=Refinement(self.g)
-            if action['op']=='fairy_list' and gear=='xianqi':return service.fairy_upgrade_menu(nid,action['page'])
+            if action['op']=='fairy_list' and gear=='xianqi':return service.fairy_upgrade_menu(nid,action.get('page',0))
             if action['op']=='fairy_upgrade' and gear=='xianqi':return service.upgrade_fairy(action['item'])
             if action['op']=='supplies':return service.supplies(gear)
             if action['op'] in ('transition','transition_do'):
@@ -305,6 +346,7 @@ class NpcServices:
                 if action['op']=='transition_do':return transition(self.g,action)
                 return progression_menu(self.g,nid,action['branch'],action.get('page',0))
             self.g.npc_service_session=dict(kind=kind,npc=nid,scene=scene,expires=monotonic()+600)
+            if action['op'] in NATIVE_PREVIEWS:return service.open_native_preview(action['op'])
             if gear=='jing' and action['op']=='jing_gems':
                 return (packet(1183,['string'],['dlg_npc_chat']),packet(3525,[],[]))
             return service.open_gear(gear,action['op'])
@@ -349,7 +391,19 @@ class NpcServices:
         if not s or s['kind']!=kind or s['expires']<monotonic() or s['scene']!=self.g.character['map_id']:
             raise ValueError('办理窗口已失效，请与对应 NPC 重新交谈。')
         if nid is not None and s['npc']!=nid:raise ValueError('商店 NPC 不匹配。')
-        self.validate(s['npc'],'school' if kind=='school_supply' else kind)
+        if kind == 'guardian_shop_window' and s.get('remote_chamber'):
+            from native946_afei_society import Chamber
+            Chamber(self.g).validate_remote(s)
+            return s
+        if kind == 'storage' and s.get('source') == 'pay_mount_warehouse':
+            from native946_mall_mounts import WAREHOUSE_NPC, known_skills
+            from native946_mall_uses import features
+            with self.p.transaction(write=False) as db:
+                if s['npc'] != WAREHOUSE_NPC or 301 not in known_skills(features(db,self.p.cid)):
+                    raise ValueError('随身仓库的坐骑技能已失效。')
+            return s
+        service = {'school_supply':'school','guardian_shop_window':None}.get(kind,kind)
+        self.validate(s['npc'],service)
         return s
 
     def restore_pearl(self,nid,reward,category):

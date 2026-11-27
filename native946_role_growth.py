@@ -20,12 +20,23 @@ def cfg():return DATA['school_talent_config']
 def talent_levels(db,cid):
     sid=school(db,cid);rows=cfg()['SchoolTalentConfig'].get(str(sid),[]);s=talents(db,cid)
     return {m['SkillId']:s['levels'].get(str(m['TalentIndex']),0) for m in rows}
+
+
+# Classic 3.0.904 publishes the level-10 bonuses by equipment attribute.
+EQUIPMENT_TALENT_BONUSES = {
+    7010: dict(cor=20, mag=20, hpmax=20, mpmax=20, strength=10, speed=10, attack=10, initiative=10),
+    7013: dict(cor=10, mag=10, hpmax=10, mpmax=10, strength=20, speed=15, attack=20, initiative=15),
+}
+
+
 def boost_equipment(db,cid,core,direct,secondary):
     levels=talent_levels(db,cid);rate=max(levels.get(7010,0),levels.get(7013,0))*10
-    if rate:
-        for mapping in (core,direct):
-            for key,value in mapping.items():
-                if mapping is core or key in ('hpmax','mpmax','attack','initiative'):mapping[key]=value+value*rate//1000
+    full_ranks = [bonuses for skill, bonuses in EQUIPMENT_TALENT_BONUSES.items() if levels.get(skill,0)>=10]
+    for mapping in (core,direct):
+        for key,value in mapping.items():
+            if mapping is core or key in ('hpmax','mpmax','attack','initiative'):
+                per_mille=max((rate,*(bonuses.get(key,0)*10 for bonuses in full_ranks)))
+                mapping[key]=value+value*per_mille//1000
     for skill,prefixes in ((7002,('AddSeal','AddDisorder','AddFaint','IgSeal','IgDisorder','IgFaint')),(7006,('AddFire','AddWater','AddWind','AddThunder','IgFire','IgWater','IgWind','IgThunder'))):
         rate=levels.get(skill,0)*10
         if rate:
@@ -138,20 +149,24 @@ def gold_practice(db,cid,rank,s):
     cost=RULES['goldbody_practice_exp']*(lv+1)*rank
     return wire(3178,rank,lv,desc+'#r当前按满级效果的'+str(lv*10)+'%生效。',desc+'#r本机线性培养：下一级'+str(min(100,(lv+1)*10))+'%。',str(RULES['goldbody_practice_cash']*rank),str(RULES['goldbody_user_exp']*rank),'凝气经验 '+str(cost),s['exp'],cost)
 def jing_panel(db,cid,s):
-    raw=db.execute('SELECT cor,mag,strength,speed,points FROM progression WHERE character_id=?',(cid,)).fetchone()
+    raw=db.execute('SELECT cor,mag,strength,speed FROM progression WHERE character_id=?',(cid,)).fetchone()
     from native946_training import state as training_state
     resist={r['attribute']:r['value'] for r in db.execute('SELECT * FROM resistance_points WHERE character_id=?',(cid,))}
-    keys=('FirePoint','WaterPoint','WindPoint','ThunderPoint','FaintPoint','SealPoint','DisorderPoint','PoisonPoint','GushuPoint','DefPoint')
-    return wire(2548,s['level'],'本机化境'+str(s['level'])+'重',min(10,s['level']+1),'每重增加4点人物属性、1点抗性；消耗人物经验100万×下一重。',character(db,cid)['experience'],RULES['jing_upgrade_exp']*(s['level']+1),str(s['level']*4),[dict(key=k,value=raw[i]) for i,k in enumerate(('根骨','灵性','力量','敏捷'))],str(training_state(db,cid)['earned_points']),[dict(key=k,value=resist.get(k,0)) for k in keys])
-def reset_jing(game,db,kind):
-    cid=game.progression.cid;number(kind,0,2,'重悟类型');s=jing(db,cid)
-    require(s['level']>0,'尚未开启化境。')
-    if kind in (0,1):
-        c=character(db,cid);raw=db.execute('SELECT * FROM progression WHERE character_id=?',(cid,)).fetchone();pool=sum(raw[k] for k in ('cor','mag','strength','speed'))+raw['points']
-        require(pool>=4*c['level'],'人物基础点记录无效。')
-        db.execute('UPDATE progression SET cor=?,mag=?,strength=?,speed=?,points=? WHERE character_id=?',(*([c['level']]*4),pool-4*c['level'],cid))
-    if kind in (0,2):db.execute('DELETE FROM resistance_points WHERE character_id=?',(cid,))
-    return [jing_panel(db,cid,s),notice('化境重悟完成，属性点已返还至待分配点数。')]
+    # The original 946 panel (018d16f6/[0,0]) indexes these keys directly.
+    attributes=[dict(key=key,value=value) for key,value in zip(('Cor','Mag','Str','Spe'),raw)]
+    keys=('FirePoint','WaterPoint','WindPoint','ThunderPoint','FaintPoint','SealPoint',
+          'DisorderPoint','PoisonPoint','GushuPoint','AbsorbPoint')
+    resists=[dict(key=key,value=resist.get(key,0)) for key in keys]
+    level=s['level']
+    next_level=level+1 if level<RULES['jing_max_level'] else 0
+    desc='本机升级消耗人物经验，每重增加4点人物属性和1点抗性。' if next_level else ''
+    current=f'本机化境{level}重。配点栏显示角色当前基础配点。'
+    return wire(2548,level,current,next_level,desc,character(db,cid)['experience'],
+                RULES['jing_upgrade_exp']*next_level,str(level*RULES['jing_point_per_level']),
+                attributes,str(training_state(db,cid)['earned_points']),resists)
+
+
+JING_RESET_UNAVAILABLE='化境重悟暂未开放，原版重悟规则待核实。'
 
 def receive(game,db,mid,a):
     cid=game.progression.cid
@@ -176,16 +191,20 @@ def receive(game,db,mid,a):
     if mid in (2549,2550,2551,2799):
         s=jing(db,cid)
         if mid==2550:
-            result=reset_jing(game,db,a[0]);take(db,cid,46222);return result
+            number(a[0],1,2,'重悟类型')
+            raise ValueError(JING_RESET_UNAVAILABLE)
+        if mid==2799:
+            raise ValueError('道境无边兑换暂未开放，原版兑换条件及价格待核实。')
         if mid==2551:
-            require(grade(db,cid)>=2101,'化境需二转101级。');require(s['level']<RULES['jing_max_level'],'化境已达最高重。')
+            from native946_cultivation import SANCTIFICATION_LIMIT
+            from native946_training import state as training_state
+
+            require(training_state(db,cid)['sanctification'] and character(db,cid)['level']>=SANCTIFICATION_LIMIT,
+                    '化境需封圣185级。')
+            require(s['level']<RULES['jing_max_level'],'化境已达最高重。')
             cost=RULES['jing_upgrade_exp']*(s['level']+1);pay(db,cid,exp=cost);s['level']+=1
             db.execute('UPDATE progression SET points=points+? WHERE character_id=?',(RULES['jing_point_per_level'],cid))
             db.execute('UPDATE cultivation_state SET earned_points=earned_points+? WHERE character_id=?',(RULES['jing_resist_per_level'],cid));save(db,cid,'jing',s)
-        if mid==2799:
-            cost=100000;pay(db,cid,exp=cost)
-            from native946_role_systems import give
-            give(db,game.progression,46222);save(db,cid,'jing',s)
         return [jing_panel(db,cid,s)]
     if mid==5022:
         op,index=a;number(op,1,6,'天赋操作');s=talents(db,cid);sid=school(db,cid)

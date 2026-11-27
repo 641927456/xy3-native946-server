@@ -5,6 +5,7 @@ prepare_sqlite_runtime(strict=__name__=='__main__')
 
 import argparse
 from configparser import ConfigParser
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -22,7 +23,8 @@ from urllib.parse import urlsplit
 from local_accounts import AccountError, LocalAccounts, SESSION_SECONDS, run_account_client
 from native946_login import NativeLocalLogin, string_field
 from native946_tickets import NativeTickets
-from native946_game_login import NativeGameLogin
+import native946_game_login
+from native946_hot_reload import LocalHotReload, RELOAD_PATH, TOKEN_HEADER, TOKEN_NAME
 from native946_characters import Characters
 
 
@@ -179,6 +181,23 @@ class UpdateHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlsplit(self.path).path
+        if path == RELOAD_PATH:
+            try:
+                self.local_account_service()
+                reload_control = getattr(self.server, "native_reload_control", None)
+                if reload_control is None:
+                    raise AccountError(404, "本机热加载未启用。")
+                request = self.read_credentials()
+                result = reload_control.submit(self.headers.get_all(TOKEN_HEADER, []), request)
+                if request["action"] == "reload":
+                    record("native_gameplay_reloaded", **result)
+                self.send_json(200, result)
+            except AccountError as error:
+                self.send_json(error.status, {"error": str(error)})
+            except Exception as error:
+                record("native_gameplay_reload_failed", error_type=type(error).__name__, reason=str(error))
+                self.send_json(500, {"error": "本机玩法热加载失败，详见服务端日志。"})
+            return
         if path == "/local/native-test":
             try:
                 self.local_account_service()  # Reject browser origins and foreign Host headers.
@@ -404,6 +423,16 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         close_thread()
         control=getattr(getattr(self,'server',None),'native_test_control',None)
         if control is not None:control.unregister(self.client_address[1])
+        reload_control = getattr(getattr(self, "server", None), "native_reload_control", None)
+        with reload_control.game_call() if reload_control else nullcontext():
+            if reload_control:
+                reload_control.unregister(getattr(self, "native_game_login", None))
+            ConnectionHandler.detach_game(self)
+        from native946_runtime import WakeableSocket
+        if isinstance(self.request, WakeableSocket):
+            self.request.close_waker()
+
+    def detach_game(self):
         from native946_sessions import LEASES
         characters=getattr(getattr(self,'server',None),'characters',None)
         if characters is not None:
@@ -414,9 +443,6 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         if getattr(active_login,'_acceptance_server',None) is not None:
             from native946_acceptance import cleanup
             cleanup(active_login)
-        from native946_runtime import WakeableSocket
-        if isinstance(self.request,WakeableSocket):
-            self.request.close_waker()
 
     def send_gameplay_tick(self, game_login, source_port):
         from native946_acceptance import late_commands
@@ -520,6 +546,8 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         login = None
         game_login = None
         control = getattr(self.server, "native_test_control", None)
+        reload_control = getattr(self.server, "native_reload_control", None)
+        game_call = reload_control.game_call if reload_control else nullcontext
         commands = Queue(maxsize=8)
         last_received = monotonic()
         record("tcp_accepted", source_port=source_port)
@@ -543,11 +571,14 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
                                              lambda: native_user_server_list(self.server.patch_version),
                                              lambda username, key, route: native_ticket_reply(
                                                  self.server.local_tickets, username, key, route))
-                    game_login = NativeGameLogin(source_port, self.server.local_tickets,
-                                                  native_channel_integer, configure,
-                                                  self.server.characters)
-                    game_login.native_wake=self.request.wake
-                    self.native_game_login=game_login
+                    with game_call():
+                        game_login = native946_game_login.NativeGameLogin(
+                            source_port, self.server.local_tickets, native_channel_integer,
+                            configure, self.server.characters)
+                        game_login.native_wake = self.request.wake
+                        self.native_game_login = game_login
+                        if reload_control:
+                            reload_control.register(game_login)
                 # The 3.0.946 initial receive path consumes a length byte and a local session seed.
                 seed = randbelow(1 << 30) + 1
                 bootstrap = pack("<BI", 4, seed)
@@ -557,7 +588,8 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
             while True:
                 if control and game_login is not None:
                     self.send_test_commands(control, game_login, commands, source_port)
-                self.send_gameplay_tick(game_login, source_port)
+                with game_call():
+                    self.send_gameplay_tick(game_login, source_port)
                 try:
                     data = self.request.recv(4096)
                 except TimeoutError:
@@ -583,7 +615,8 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
                                 receiver = game_login if game_login is not None and (
                                     game_login.checked or request_name in (
                                         "s_g_check_pto", "s_g_public_key", "s_g_login_with_ticket")) else login
-                                reply = receiver.receive(payload) if receiver is not None and not acknowledgment else None
+                                with game_call():
+                                    reply = receiver.receive(payload) if receiver is not None and not acknowledgment else None
                                 if reply is None:
                                     reply = native_channel_reply(request_name, group_id, self.server.patch_version)
                                 if reply is not None:
@@ -754,8 +787,12 @@ def main():
             game.local_accounts = http.local_accounts
             game.characters = Characters(account_database, trial_server=options.native_trial_server)
             game.characters.enable_deferred_positions()
-            from native946_world import world
+            if options.native_local_login and options.native_test_character is None:
+                reload_control = LocalHotReload(account_database, ROOT / TOKEN_NAME)
+                http.native_reload_control = game.native_reload_control = reload_control
+            from native946_world import NPC_VISIBILITY_VERSION, world
             world().warm()
+            from native946_timed_npcs import TIMED_NPC_VERSION
             if getattr(game,'native_test_control',None) is not None:
                 game.native_test_control.position_writer=game.characters.position_writer
         Thread(target=http.serve_forever, daemon=True).start()
@@ -764,11 +801,15 @@ def main():
             "listening", host=HOST, http_port=HTTP_PORT, game_port=GAME_PORT, udp=True,
             version=version, native_bootstrap=game.native_bootstrap, native_local_login=game.native_local_login,
             native_trial_server=options.native_trial_server,
+            native_hot_reload=getattr(game, "native_reload_control", None) is not None,
             world_scenes=len(world().scenes) if game.native_bootstrap else 0,
             world_portals=len(world().data['portals']) if game.native_bootstrap else 0,
             world_npc_routes=len(world().data['npc_transports']) if game.native_bootstrap else 0,
             world_static_npcs=sum(len(rows) for rows in world().npcs.values()) if game.native_bootstrap else 0,
             world_npc_scenes=sum(bool(rows) for rows in world().npcs.values()) if game.native_bootstrap else 0,
+            npc_visibility_version=NPC_VISIBILITY_VERSION if game.native_bootstrap else 0,
+            timed_activity_npc_version=TIMED_NPC_VERSION if game.native_bootstrap else 0,
+            world_closed_event_npcs=sum(len(world().closed_event_npcs(sid)) for sid in world().npcs) if game.native_bootstrap else 0,
             sqlite_runtime=getattr(game,'sqlite_runtime',None),
         )
         try:

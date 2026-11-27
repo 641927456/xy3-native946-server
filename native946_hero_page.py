@@ -3,7 +3,6 @@ from pathlib import Path
 from time import time
 import json
 from native946_codec import packet
-from native946_codec import text_notice
 DATA=json.loads(Path(__file__).with_name('native946_character_page_data.json').read_text('utf8'))
 RULES=DATA['local_rules'];WIRE_VERSION=1
 REQUESTS={2093,3136,3780,1387,740,1471,1472,743,744,745,746,747,2606,2607,2608}
@@ -55,7 +54,7 @@ class HeroPage:
             self.initialize(db);signature=self.signature(db)
             count=RULES['switch_book_base']+signature[1]*RULES['switch_book_increment']
         self.g.hero_point_quote=dict(signature=signature,cost=count,expires=time()+120)
-        return (packet(3779,['number'],[count]),text_notice('本机双套加点：首次切换消耗1本紫斗全书，以后每次递增1本；另一方案独立保存，升级所得点数按当前总量补齐。'))
+        return packet(3779,['number'],[count])
     def switch(self):
         quote=getattr(self.g,'hero_point_quote',None)
         if not quote or quote['expires']<time():raise ValueError('请先点击属性页的方案切换按钮查看消耗。')

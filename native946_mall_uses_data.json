@@ -1,6 +1,25 @@
 {
   "profile": "946",
   "rules": {
+    "47414": {
+      "op": "city_quick_task",
+      "days": 7,
+      "source": "946 info_item.lua（505d8e68），免费一键任务有效7天，多次使用累加"
+    },
+    "47215": {
+      "op": "bundle",
+      "rewards": [[46634, 100]],
+      "source": "946 经典版 info_item.lua（505d8e68），道具 47215 的固定奖励"
+    },
+    "46634": {
+      "op": "knight_experience_panel",
+      "source": "946 经典版 info_item.lua（505d8e68），右键打开侠客培养"
+    },
+    "47881": {
+      "op": "bundle",
+      "rewards": [[46873, 5], [46808, 5]],
+      "source": "946 info_item.lua（505d8e68），道具 47881 的固定奖励"
+    },
     "56537": {
       "op": "child_fashion",
       "model": 4899,
