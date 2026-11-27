@@ -1677,9 +1677,12 @@ class NativeGameplay(BattleActions):
                 else:self.progression.accept_quest()
             reader.finish()
             self.last_event={'action':'progression_changed','message_id':mid}
+            if appearance_changed:
+                # Team movement can hold the party lock while it awaits a durable commit.
+                # Publish equipment changes only after releasing this player's writer slot.
+                return self.defer_packets(lambda: (*self.progression.sync(), *Cosmetics(self).visual_packets()))
             return (*self.progression.sync(),
                     *(self.summons.sync() if guardian_levels_changed else ()),
-                    *(Cosmetics(self).visual_packets() if appearance_changed else ()),
                     *((*self.summons.info_packets(healed_summon),self.summons.neidan_packet(healed_summon),self.summons.stunt_packet(healed_summon)) if healed_summon is not None else ()),
                     *((numbers(1966,910001),) if mid==1980 else ()))
         if mid==801:

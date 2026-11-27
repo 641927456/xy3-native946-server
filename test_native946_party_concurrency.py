@@ -12,6 +12,47 @@ import test_native946_wilderness_party as fixtures
 
 class PartyConcurrencyTests(unittest.TestCase):
     setUp=fixtures.WildernessPartyTests.setUp
+    call=fixtures.WildernessPartyTests.call
+
+    def test_bag_equipment_and_team_follow_can_commit_concurrently(self):
+        import sqlite3
+        from contextlib import closing
+        from native946_cosmetics import Cosmetics
+        from native946_durable_writer import register, close
+        from native946_storage import _CURRENT
+
+        fixtures.WildernessPartyTests.team(self)
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute('PRAGMA journal_mode=WAL')
+        register(self.path)
+        self.addCleanup(close, self.path)
+        team = self.svc.team(self.a.progression.cid)
+        gear = next(i['id'] for i in self.b.progression.snapshot()['items'] if i['type'] == 5023)
+        locked, rendering = Event(), Event()
+        visual_packets = Cosmetics.visual_packets
+
+        def follow():
+            with self.svc.lock:
+                locked.set()
+                self.assertTrue(rendering.wait(5))
+                self.svc.follow_team(team)
+
+        def render(cosmetics):
+            rendering.set()
+            self.assertIsNone(_CURRENT.get(), 'Equipment still holds a writer slot while publishing to the team')
+            return visual_packets(cosmetics)
+
+        with patch.object(Cosmetics, 'visual_packets', render), ThreadPoolExecutor(max_workers=1) as pool:
+            moving = pool.submit(follow)
+            self.assertTrue(locked.wait(5))
+            try:
+                replies = self.call(self.b, 807, 0, gear)
+            finally:
+                rendering.set()
+            moving.result(timeout=5)
+        self.assertIn(1620, [fixtures.mid(payload) for payload in replies])
+        equipped = next(i for i in self.b.progression.snapshot()['items'] if i['id'] == gear)
+        self.assertEqual(equipped['page'], self.b.progression.snapshot()['equipment_page'])
 
     def test_cached_service_upgrades_its_class_without_losing_connections_or_locks(self):
         from native946_party import service,PartyService
