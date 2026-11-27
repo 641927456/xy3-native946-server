@@ -22,7 +22,7 @@ from native946_spell_preview import (
     native_calculator_description, render,
 )
 DATA=json.loads(Path(__file__).with_name('native946_role_combat_data.json').read_text('utf8'))
-RULE=DATA['local_rules'];WIRE_VERSION=24
+RULE=DATA['local_rules'];WIRE_VERSION=25
 GUARDIAN_PASSIVE_WIRE_VERSION=3
 PRESENTATION_WIRE_VERSION=4
 MEDICINE_WIRE_VERSION=1
@@ -473,6 +473,7 @@ def control_status_packets(f,round):
 class Runtime:
     def __init__(self,fighters,games,round,rng,state):
         self.fighters=fighters;self.games=games;self.round=round;self.rng=rng;self.state=state;self.out=[]
+        self.owner_packets = {cid: [] for cid in games}
         self.sent_power = {}
         self._presentation_actor = None
         self._pending_anger = {}
@@ -694,10 +695,11 @@ class Runtime:
                 self.attack(a,targets[self.rng.randrange(len(targets))])
 
     def flash_guardian(self,victim):
+        from native946_guardian_magic import skills_packet
         from native946_innate_effects import has,stunt_scale
         owner=victim.get('owner')
         game=self.games.get(owner)
-        if not game or not getattr(game,'gameplay',False) or victim.get('removed'):return
+        if game is None or victim.get('removed'):return
         used=set(self.fighters)
         speed_bonus=7000 if has(victim,4735) else 0
         for incoming in game.summons.snapshot():
@@ -714,11 +716,14 @@ class Runtime:
                 wild.add_pet(game,incoming,victim.get('slot',6))
                 incoming=self.fighters[incoming['id']]
             else:
+                game.summons.set_vitals(victim['id'], victim['hp'], victim['mp'])
                 incoming.update(owner=owner,kind='pet',camp=victim['camp'],slot=victim.get('slot',6))
                 self.fighters[incoming['id']]=incoming
                 game.battle['pet']=incoming
-            if callable(getattr(game,'fighter',None)):
-                self.out.append(game.fighter(incoming['id'],incoming['type'],incoming['name'],incoming['camp'],3,incoming['slot'],incoming['level'],mid=2128))
+                game.battle['participants'][incoming['id']] = incoming
+            self.owner_packets[owner].append(nums(4206, incoming['id']))
+            self.out.append(game.fighter(incoming['id'],incoming['type'],incoming['name'],incoming['camp'],3,incoming['slot'],incoming['level'],mid=2128))
+            self.out.append(skills_packet(incoming))
             self.prepare(incoming)
             self.bars(incoming,initialize=True)
             return
@@ -1688,7 +1693,7 @@ def play_round(runtime,orders,db,*,battle=None):
             runtime.defending.add(fid)
     runtime.begin_round()
     roster=sorted(list(runtime.fighters.values()),key=lambda f:(-f['initiative'],f['id']))
-    local={cid:[] for cid in runtime.games}
+    local=runtime.owner_packets
     for actor in roster:
         submitted=battle.actor_orders(actor['id']) if battle else [orders.get(actor['id'],{})]
         for target_id in {o['target'] for o in submitted if o.get('kind')=='protect'}:

@@ -110,6 +110,73 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertEqual([p for p in battle.entry(self.b) if mid(p) == 3458],
                          [nums(3458, hero_ids[0], incremented, 1000), initial[1]])
 
+    def test_guardian_death_and_flash_complete_the_round_for_all_five_clients(self):
+        from native946_guardian_magic import skills_packet
+        from native946_role_battle import nums
+
+        self.team()
+        for i in range(2, 5):
+            owner = f'wild{i}'
+            LocalAccounts(self.path).register(dict(username=owner, password='fixture-password'))
+            game = NativeGameplay(self.characters.create(owner, f'组队守护{i}', 702), self.characters, lambda: ())
+            self.call(self.a, 2039, game.character['id'])
+            self.call(game, 2038, self.a.character['id'])
+            self.games.append(game)
+        old_id = self.a.summons.acquire(3355, 'flash:active')
+        new_id = self.a.summons.acquire(3356, 'flash:reserve')
+        self.a.summons.status(old_id, 1)
+        battle = WildBattle(self.a, self.svc.participants(self.a), DATA['zones'][0])
+        owner = self.a.character['id']
+        victim = battle.current_pet(owner)
+        victim['hp'] = 1
+        enemy, *others = battle.enemies()
+        for other in others:
+            other['removed'] = True
+        enemy.pop('enemy_spell_percent', None)
+        enemy['slot'] = battle.allies().index(victim) + 1
+
+        for game in self.games:
+            self.svc.drain(game)
+            self.call(game, 2178, 1)
+        with patch.object(battle.rng, 'randrange', return_value=0), patch(
+            'native946_book_combat.roll', return_value=dict(miss=False, damage=100, effect=0)
+        ):
+            owner_replies = self.call(self.a, 2182, 1)
+        self.assertEqual(battle.state['phase'], 'drawing')
+        incoming = battle.current_pet(owner)
+        self.assertEqual(incoming['id'], new_id)
+        self.assertEqual(battle.state['used'][owner], {old_id, new_id})
+        self.assertEqual(self.a.summons.get(old_id)['hp'], 0)
+        for game in self.games:
+            replies = (owner_replies if game is self.a else ()) + self.svc.drain(game)
+            self.assertEqual([mid(p) for p in replies].count(2128), 1)
+            self.assertIn(nums(2137, old_id), replies)
+            self.assertIn(nums(2167), replies)
+            self.assertEqual(nums(4206, new_id) in replies, game is self.a)
+            if game is self.a:
+                self.assertIn(skills_packet(incoming), replies)
+        for game in self.games:
+            self.call(game, 2184)
+        self.assertEqual((battle.state['phase'], battle.state['round']), ('input', 2))
+        self.assertIn(new_id, battle.required())
+        self.assertNotIn(old_id, battle.required())
+
+        # Let the server supply the last order, as it does for idle clients.
+        # The same skill is now on the dying pet and its only reserve was used.
+        incoming['hp'] = 1
+        enemy['slot'] = battle.allies().index(incoming)
+        enemy['initiative'] = 100000
+        for game in self.games:
+            self.call(game, 2178, 1)
+        with patch('native946_book_combat.roll', return_value=dict(miss=False, damage=100, effect=0)):
+            battle.tick(battle.state['deadline'] + 1)
+        self.assertEqual(battle.state['phase'], 'drawing')
+        self.assertEqual(self.a.summons.get(new_id)['hp'], 0)
+        for game in self.games:
+            replies = self.svc.drain(game)
+            self.assertIn(nums(2167), replies)
+            self.assertNotIn(2128, [mid(p) for p in replies])
+
     def test_wild_entry_retries_without_leaving_a_member_in_battle(self):
         self.team()
         zone = DATA['zones'][0]

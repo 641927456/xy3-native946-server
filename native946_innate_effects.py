@@ -2,7 +2,7 @@ from native946_codec import packet
 from native946_guardian_innate import CANSHENG_YIJIU, ZHONGLING_YUXIU
 from native946_guardian_rules import DATA as GUARDIAN_RULES
 
-WIRE_VERSION = 9
+WIRE_VERSION = 10
 
 # Classic 3.0.856 introduced the effect. 3.0.904 raised speed scaling and wrath.
 XINYI_FOLLOW_UP = 4749
@@ -111,7 +111,8 @@ ACTIVE = {
     4909: dict(targets=1, mana=120, element='thunder', hits=2, random_multiplier=True, no_revive=True),
 }
 
-DEATH_SKILLS = {334, 349, 4144, 4582, 4619, 4634, 4735}
+# Reserve entry is handled once by Runtime.flash_guardian after death effects.
+DEATH_SKILLS = {334, 349, 4582, 4619, 4634}
 START_SKILLS = {4004, 4005, 4006, 4141, 4631, 4739, 4765, 4806, 4908, 5019}
 ROUND_SKILLS = {332,4583,4619,4656}
 CONTROL_REFLECT = {4734}
@@ -703,11 +704,6 @@ def end_round(runtime, fighter):
         runtime.out.append(nums(2137, fighter['id']))
 
 
-def game_owns_live_fighter(runtime, fighter):
-    game=runtime.games.get(fighter.get('owner'))
-    return callable(getattr(game,'fighter',None))
-
-
 def death_effect(runtime, attacker, victim, skill):
     if skill==4619:
         if victim.get('role_dragon_revived') or not runtime.revive(victim,victim,victim['hpmax']):return False
@@ -740,31 +736,6 @@ def death_effect(runtime, attacker, victim, skill):
         if victim.get('role_last_damage_family') != 'poison' and runtime.rng.randrange(1000) < 413:
             runtime.revive(victim, victim, victim['hpmax'])
             return True
-    if skill == 4144:
-        game = runtime.games.get(victim.get('owner'))
-        if game and game.gameplay and runtime.rng.randrange(1000) < 700:
-            replacement = next((pet for pet in game.summons.snapshot() if pet['id'] != victim['id'] and has(pet, 4144) and pet['hp'] > 0), None)
-            if replacement:
-                replacement.update(owner=victim['owner'], kind='pet', camp=victim['camp'], slot=victim.get('slot', 6))
-                runtime.fighters[replacement['id']] = replacement
-                game.battle['pet'] = replacement
-                runtime.prepare(replacement)
-                runtime.bars(replacement, initialize=True)
-                return True
-    if skill == 4735:
-        # Use the normal roster and appearance path for a real battle.
-        if callable(getattr(runtime,'flash_guardian',None)) and game_owns_live_fighter(runtime,victim):
-            return False
-        game = runtime.games.get(victim.get('owner'))
-        if game and game.gameplay and runtime.rng.randrange(1000) < 700:
-            replacement = next((pet for pet in game.summons.snapshot() if pet['id'] != victim['id'] and pet['hp'] > 0), None)
-            if replacement:
-                replacement.update(owner=victim['owner'], kind='pet', camp=victim['camp'], slot=victim.get('slot', 6))
-                runtime.fighters[replacement['id']] = replacement
-                game.battle['pet'] = replacement
-                runtime.prepare(replacement)
-                runtime.bars(replacement, initialize=True)
-                return True
     return False
 
 

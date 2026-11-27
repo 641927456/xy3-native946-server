@@ -28,8 +28,10 @@ if _world is not None and _world.world().data.get('route_revision', 0) < 1:
 import native946_battle_actions as _battle_actions
 if getattr(_battle_actions,'REFERENCE_WIRE_VERSION',0)<12:reload(_battle_actions)
 from native946_battle_actions import BattleActions
+_innate_effects=sys.modules.get('native946_innate_effects')
+if _innate_effects is not None and getattr(_innate_effects,'WIRE_VERSION',0)<10:reload(_innate_effects)
 _role_battle=sys.modules.get('native946_role_battle')
-if _role_battle is not None and (getattr(_role_battle,'GUARDIAN_PASSIVE_WIRE_VERSION',0)<3 or getattr(_role_battle,'PRESENTATION_WIRE_VERSION',0)<4 or getattr(_role_battle,'WIRE_VERSION',0)<24 or getattr(_role_battle,'MEDICINE_WIRE_VERSION',0)<1):reload(_role_battle)
+if _role_battle is not None and (getattr(_role_battle,'GUARDIAN_PASSIVE_WIRE_VERSION',0)<3 or getattr(_role_battle,'PRESENTATION_WIRE_VERSION',0)<4 or getattr(_role_battle,'WIRE_VERSION',0)<25 or getattr(_role_battle,'MEDICINE_WIRE_VERSION',0)<1):reload(_role_battle)
 _bell=sys.modules.get('native946_zhuziguo_bell')
 if _bell is not None and getattr(_bell,'PROTECTION_WIRE_VERSION',0)<1:reload(_bell)
 # The recommendation panel may have imported the old score handler at startup.

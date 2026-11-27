@@ -410,7 +410,6 @@ class InnateEffectTests(unittest.TestCase):
                 self.assertEqual(defender['hp'], 9965 if family=='water' else 10000)
 
     def test_start_and_death_skills_execute_with_real_fighters(self):
-        from types import SimpleNamespace
         from native946_role_battle import Runtime
         for skill in (334, 349, 4634):
             with self.subTest(skill=skill):
@@ -421,17 +420,31 @@ class InnateEffectTests(unittest.TestCase):
                 self.assertEqual(victim['hp'], victim['hpmax'])
                 if skill == 349:
                     self.assertEqual(victim['role_shields']['endure'], 1)
-        for skill in (4144, 4735):
-            with self.subTest(skill=skill):
-                victim = fighter(2, 4, (skill,))
+
+    def test_flash_uses_the_reserve_guardian_and_rolls_only_once(self):
+        from native946_gameplay import ENEMY_ID
+        from native946_role_battle import Runtime, solo_fighters
+
+        reserve_id = self.s.acquire(3356, 'flash:reserve')
+        for skill, roll, replaced in ((4144, 2500, False), (4144, 2499, True),
+                                      (4735, 9500, False), (4735, 9499, True)):
+            with self.subTest(skill=skill, roll=roll):
+                original = self.s.get(self.sid)
+                self.s.set_vitals(self.sid, original['hpmax'], original['mpmax'])
+                self.g.begin_battle()
+                fighters = solo_fighters(self.g)
+                victim = fighters[self.sid]
+                victim['innate_skills'] = [dict(stunt_id=skill)]
                 victim['hp'] = 0
-                replacement = fighter(3, 4, (4144,) if skill == 4144 else ())
-                game = SimpleNamespace(gameplay=True, battle={'pet': victim},
-                                       summons=SimpleNamespace(snapshot=lambda: [replacement]))
-                runtime = Runtime({2: victim}, {400000: game}, 1, AlwaysProc(), {})
-                self.assertTrue(death_effect(runtime, fighter(1, 3), victim, skill))
-                self.assertIs(game.battle['pet'], replacement)
-                self.assertIn('role_buffs', replacement)
+                runtime = Runtime(fighters, {self.p.cid: self.g}, 1, AlwaysProc(), self.g.battle)
+                with patch.object(runtime.rng, 'randrange', return_value=roll) as rolls:
+                    runtime.kill(fighters[ENEMY_ID], victim)
+                rolls.assert_called_once_with(10000)
+                self.assertEqual(self.g.battle['pet']['id'], reserve_id if replaced else self.sid)
+                self.assertEqual(reserve_id in self.g.battle['participants'], replaced)
+                if replaced:
+                    self.assertTrue(victim['removed'])
+                    self.assertEqual(self.s.get(self.sid)['hp'], 0)
 
     def test_max_level_revival_and_cruel_probability_use_basis_points(self):
         from native946_book_combat import roll
