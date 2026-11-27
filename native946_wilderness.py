@@ -16,26 +16,10 @@ DATA=json.loads(Path(__file__).with_name('native946_wilderness_data.json').read_
 POLICY=DATA['policy'];ENEMY_BASE=901000;ENEMY_SLOTS=10
 FORMATION_WIRE_VERSION=7
 ARENA_PRACTICE_NPC = (2001, 7631)
-# Native c_sys_notify closes after 120 ticks at 20 Hz. Allow for the socket poll.
-TEAM_EXPERIENCE_POPUP_DELAY = 6.5
 
 def numbers(mid,*values):return packet(mid,['number']*len(values),values)
 def notice(text):return text_notice(text)
 def carry_rank(hero):return hero.get('rebirth',0)*1000+hero['level']
-
-def pending_team_experience_popup(game, now=None):
-    pending = getattr(game, '_team_experience_popup', None)
-    if pending is None:
-        return ()
-    deadline, reply = pending
-    current = monotonic() if now is None else now
-    if deadline is None:
-        game._team_experience_popup = (current + TEAM_EXPERIENCE_POPUP_DELAY, reply)
-    elif current >= deadline:
-        del game._team_experience_popup
-        return (reply,)
-    return ()
-
 
 def shared_input_wakeup():
     from native946_battle_actions import SHARED_INPUT_WAKEUP
@@ -609,6 +593,7 @@ class WildBattle:
     def settle(self,db,victory):
         if self.state['settled']:return
         from native946_double_time import experience_rates
+        from native946_experience_charm import reward_experience
         from native946_temp_inventory import award
         killed=[f for f in self.state['fighters'].values() if f['kind']=='enemy' and f['hp']==0 and not f['captured']]
         levels=sum(f['level'] for f in killed) if victory else 0
@@ -629,7 +614,7 @@ class WildBattle:
                 xp=levels*POLICY['hero_exp_per_enemy_level'];gold=levels*POLICY['gold_per_enemy_level']
                 pet_xp=levels*POLICY['guardian_exp_per_enemy_level']
             hero_rate, guardian_rate, neidan_rate = experience_rates(db, cid, now) if victory else (100, 1, 1)
-            xp = xp * hero_rate // 100
+            xp = reward_experience(db, cid, xp * hero_rate // 100, now)
             drops = {}
             for enemy in killed if victory and not rule else []:
                 roll=int.from_bytes(sha256((self.id+':'+str(cid)+':'+str(enemy['id'])).encode()).digest()[:8],'little')%POLICY['drop_roll_denominator']
@@ -745,7 +730,13 @@ class WildBattle:
                                         highlighted=self.games[cid].character['map_id'] == 2024)
         if practice := reward.get('school_practice'):
             lines.append(f'师门技能#G{practice["name"]}#n获得#G{practice["amount"]}#n熟练度。')
-        replies = [screen_notice('#r'.join(lines))] if lines else []
+        # The native stack moves older boxes by the *new* box's height.
+        # Send the short bonus first so the taller reward clears it.
+        replies = []
+        if bonus := reward.get('team_experience_percent'):
+            replies.append(screen_notice(f'组队经验加成#G{bonus}%#n。'))
+        if lines:
+            replies.append(screen_notice('#r'.join(lines)))
         delivery = reward.get('loot_delivery', {})
         from native946_progression import DATA as progression_data
         for kind, amount in delivery.get('bag_items', {}).items():
@@ -807,8 +798,6 @@ class WildBattle:
             if self.state.get('zhuziguo_bell'):self.service.enqueue(g,numbers(4888,0))
             self.service.refresh_battle_scene(g)
             self.service.enqueue(g,*self.finish_messages(cid,victory))
-            if victory and (team_bonus := reward.get('team_experience_percent')):
-                g._team_experience_popup = (None, screen_notice(f'组队经验加成#G{team_bonus}%#n。'))
             g.last_event=dict(action='wild_battle_finished',battle_id=self.id,victory=victory,reward=reward)
 
 

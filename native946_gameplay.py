@@ -88,7 +88,7 @@ for _feature in ('native946_book_combat','native946_refinement','native946_fashi
     if _feature=='native946_book_combat':_minimum=6
     if _feature=='native946_neidan':_minimum=4
     if _feature=='native946_neidan_legacy':_minimum=8
-    if _feature=='native946_party':_minimum=29
+    if _feature=='native946_party':_minimum=30
     if _feature=='native946_guardian_lottery':_minimum=9
     elif _feature in ('native946_guardian_acquisition','native946_guardian_channels'):
         _minimum=max(_minimum,{'native946_guardian_acquisition':8,'native946_guardian_channels':4}[_feature])
@@ -107,6 +107,11 @@ for _feature in ('native946_book_combat','native946_refinement','native946_fashi
                         for _game in tuple(_service.games.values()):
                             if _service.online(_game.character['id']) is _game:
                                 _game._team_scene_resync_pending=True
+                    if _loaded_version < 30:
+                        for _game in tuple(_service.games.values()):
+                            _pending_bonus = vars(_game).pop('_team_experience_popup', None)
+                            if _pending_bonus:
+                                _service.enqueue(_game, _pending_bonus[1])
 
 # Group constellation battles inherit WildBattle through AfeiBattle.
 _group_battle = sys.modules.get('native946_constellation_battle')
@@ -262,10 +267,11 @@ class NativeGameplay(BattleActions):
             from native946_guardian_lottery import GuardianLottery
             from native946_growth_battle import GrowthBattle
             from native946_premium_items import sync_auto_medical
+            from native946_experience_charm import status as charm_status
             from native946_reserve_food import sync as reserve_packet
             active = next((pet for pet in pets if pet['fight']), None)
             return (*self.progression.sync(), *self.summons.sync(pets), *self.sync_summon_scene(pets),
-                    reserve_packet(self, active), *sync_auto_medical(self, force=True),
+                    reserve_packet(self, active), *sync_auto_medical(self, force=True), *charm_status(self),
                     *Cosmetics(self).currency_packets(), *Cosmetics(self).visual_packets(), *MallUses(self).sync(),
                     *GuardianLottery(self).entry_packets(include_icon=False), *GrowthBattle(self).entry_packets())
 
@@ -718,15 +724,19 @@ class NativeGameplay(BattleActions):
         with self.party_service.lock:
             from native946_mall_portraits import Portraits
             from native946_newbie_rewards import tick as award_tick
-            portrait_updates=(*Portraits(self).tick(), *award_tick(self))
+            from native946_experience_charm import online_tick
+            try:
+                online_xp = online_tick(self)
+            except StorageBusy:
+                online_xp = ()
+            portrait_updates=(*Portraits(self).tick(), *award_tick(self), *online_xp)
             if self.character['id'] in self.party_service.battles:
                 return (*portrait_updates,*(self.party_service.tick(self,now) or ())) or None
             pending=self.party_service.tick(self,now)
-            from native946_wilderness import pending_team_experience_popup
-            team_popup = pending_team_experience_popup(self, now)
             reply=self._tick_local(now)
             from native946_premium_items import expire_auto_medical
-            status_updates = expire_auto_medical(self)
+            from native946_experience_charm import expire as expire_charm
+            status_updates = (*expire_auto_medical(self), *expire_charm(self))
             from native946_school import School
             try:
                 school_updates = School(self).auto_tick(now) if getattr(self,'_auto_school',None) else ()
@@ -734,7 +744,7 @@ class NativeGameplay(BattleActions):
                 school_updates = ()
             npc_updates = self.sync_static_npcs() if self.battle is None else ()
             neidan_updates = self.sync_corrected_neidan_levels() if self.battle is None else ()
-            return (*portrait_updates,*pending,*team_popup,*(reply if isinstance(reply,tuple) else (reply,) if reply else ()),
+            return (*portrait_updates,*pending,*(reply if isinstance(reply,tuple) else (reply,) if reply else ()),
                     *status_updates,*school_updates,*npc_updates,*neidan_updates,*self.sync_scene_day_effect()) or None
 
     def sync_corrected_neidan_levels(self):
@@ -949,7 +959,8 @@ class NativeGameplay(BattleActions):
         names=(*names,'halo_refine_until','gear_refine_quote','fashion_strength_quote','shop_session','shop_quote','guardian_lottery_icon_sent','guardian_lottery_panel_until','guardian_lottery_last_draw',
             'guardian_lottery_bag','guardian_lottery_shop_until','guardian_lottery_last_buy','ornament_shop_until',
             '_achievement_confirm','_inventory_advanced_until','classified_mall_open','classified_mall_cart',
-            'classified_mall_single_quote','classified_mall_cart_quote','classified_mall_unit_offer','_auto_school')
+            'classified_mall_single_quote','classified_mall_cart_quote','classified_mall_unit_offer','_auto_school',
+            '_charm_clock','_charm_remaining')
         saved={name:deepcopy(getattr(self,name)) for name in names if hasattr(self,name)} if write else {}
         character=deepcopy(self.character) if write else None
         known=set(self.progression.known_items) if write else None
@@ -1580,6 +1591,9 @@ class NativeGameplay(BattleActions):
                 from native946_inventory_features import ITEM_TYPES as INVENTORY_FEATURE_TYPES,use as inventory_feature_use
                 feature_snapshot=self.progression.snapshot()
                 feature_item=next((i for i in feature_snapshot['items'] if i['id']==item),None)
+                from native946_experience_charm import ITEM as EXPERIENCE_CHARM, open_item as open_charm
+                if feature_item and feature_item['type'] == EXPERIENCE_CHARM:
+                    return open_charm(self, target, item)
                 from native946_double_time import MEDICINES, RESTORE, use_medicine
                 if feature_item and (feature_item['type'] in MEDICINES or feature_item['type'] == RESTORE):
                     if target not in (0, self.character['id']):raise ValueError('请由人物使用催长丹。')
@@ -1799,6 +1813,9 @@ class NativeGameplay(BattleActions):
                 return self.close_npc_dialogue()
             if self.dialog_open and callback==getattr(self,'dialog_npc',None) and 1<=choice<=len(self.dialog_actions):
                 action=self.dialog_actions[choice-1]
+                if isinstance(action,dict) and action.get('kind')=='experience_charm':
+                    from native946_experience_charm import activate
+                    return activate(self, action)
                 if isinstance(action,dict) and action.get('kind')=='reserve_food':
                     from native946_reserve_food import use as use_reserve_food
                     if callback != self.character['id']:

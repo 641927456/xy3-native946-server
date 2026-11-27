@@ -162,7 +162,9 @@ def reward(kind,level,ring,rng,branch=0,*,rare_available=True):
 
 
 def settle_reward(db, game, task, ring, receipt_id, value):
+    from native946_experience_charm import reward_experience
     cid = game.progression.cid
+    value['experience'] = reward_experience(db, cid, value['experience'], int(time()))
     db.execute('INSERT INTO native_npc_quest_rewards VALUES(?,?,?,?,?,?,?,?,?)',
                (task['id'],cid,receipt_id,value['experience'],value['gold'],value['guardian_experience'],
                 value['points'],json.dumps(value['drops']),value.get('policy',DATA['version'])))

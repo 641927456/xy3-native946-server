@@ -22,7 +22,10 @@ from native946_world import INSTANCE_SCENES
 
 CONTRACTS=json.loads(Path(__file__).with_name('native946_party_data.json').read_text('utf8'))
 REQUESTS={r['id']:r for r in CONTRACTS.values() if r.get('id') and '/s_' in r.get('path','')}
-REFERENCE_WIRE_VERSION=29
+REFERENCE_WIRE_VERSION=30
+# dlg_team_desc.refresh_teammate_detail operations 1..6, in native order.
+# The role panel uses the effective maximum for both Min and Max.
+TEAM_VITAL_FIELDS = ('hp', 'hpmax', 'hpmax', 'mp', 'mpmax', 'mpmax')
 # Both native roster renderers use 1 for the away seal. Leader identity
 # comes from the packet's leader_id, independent of the member row's type.
 PRESENT_STATUS, AWAY_STATUS = 0, 1
@@ -60,7 +63,9 @@ class PartyService:
 
     def attach(self,game):
         with self.lock:
-            cid=game.character['id'];self.games[cid]=game
+            cid=game.character['id']
+            self.flush_departed_charm(cid)
+            self.games[cid]=game
             getattr(self,'_pending_disconnects',{}).pop(cid,None)
             game.party_service=self;game._party_inbox=deque();game._party_bytes=0;game._party_connected=True
             active=self.battles.get(cid)
@@ -222,6 +227,8 @@ class PartyService:
 
     def view(self,game,team=None):
         from native946_progression import lua_data
+        # A full roster can replace values between two incremental updates.
+        game._team_vitals = {}
         team=self.team(game.character['id']) if team is None else team
         if team is None:return (packet(3228,['number','string',('array','team_player_info'),'string','number','number',('array','number'),'number','number','string','number'],[0,'{}',[],'{}',0,0,[],0,0,'{}',1]),)
         records=[self.member_record(dict(m,position=i)) for i,m in enumerate(team['members'],1)]
@@ -621,6 +628,9 @@ class PartyService:
             from native946_trade import Trade
             Trade(self,game).close()
             game._party_connected = False
+            if getattr(game, '_charm_clock', None) is not None:
+                from native946_experience_charm import clock_ms
+                self.__dict__.setdefault('_departed_charms', {})[cid] = (game, clock_ms())
             game._auto_ghost_until = 0
             from native946_temp_inventory import close_session
             try:
@@ -634,8 +644,17 @@ class PartyService:
             self.__dict__.setdefault('_pending_disconnects',{})[cid]=game.character['map_id']
             self._finish_disconnect(cid)
 
+    def flush_departed_charm(self, cid):
+        pending = getattr(self, '_departed_charms', {})
+        if cid in pending:
+            from native946_experience_charm import online_tick
+            game, stopped = pending[cid]
+            online_tick(game, stopped_at=stopped)
+            del pending[cid]
+
     def _finish_disconnect(self,cid):
         try:
+            self.flush_departed_charm(cid)
             team=self.team(cid)
             if team:
                 team=self.repair_leader(team)
@@ -690,6 +709,7 @@ class PartyService:
 
     def refresh_battle_scene(self, game):
         if self.online(game.character['id']) is not game:return
+        game._team_vitals = {}
         try:
             refresh = (*game.restore_scene(), *game.scene_objects(), *game.sync_progression())
         except Exception as error:
@@ -705,6 +725,30 @@ class PartyService:
         game._party_refresh_error = None
         game._party_refresh_at = 0
 
+    def publish_member_vitals(self, game, team):
+        cid = game.character['id']
+        if self.online(cid) is not game or game.battle is not None:
+            return
+        snapshot = game.progression.snapshot(fields=TEAM_VITAL_FIELDS)
+        current = tuple(snapshot[key] for key in TEAM_VITAL_FIELDS)
+        updates = {}
+        for row in team['members']:
+            peer = self.online(row['character_id'])
+            if peer is None or peer.battle is not None:
+                continue
+            if not hasattr(peer, '_team_vitals'):
+                peer._team_vitals = {}
+            previous = peer._team_vitals.get(cid)
+            if current == previous:
+                continue
+            if previous not in updates:
+                updates[previous] = tuple(
+                    packet(2030, ['number', 'byte', 'number'], [cid, op, value])
+                    for op, value in enumerate(current, 1)
+                    if previous is None or previous[op - 1] != value)
+            self.enqueue(peer, *updates[previous])
+            peer._team_vitals[cid] = current
+
     def tick(self,game,now=None):
         with self.lock:
             for disconnected in tuple(getattr(self,'_pending_disconnects',{})):
@@ -712,6 +756,8 @@ class PartyService:
             cid=game.character['id']
             battle=self.battles.get(cid)
             trade=getattr(self,'trades',{}).get(cid)
+            if game.battle is not None and getattr(game, '_team_vitals', None):
+                game._team_vitals.clear()
             if trade is not None:
                 from native946_trade import Trade
                 closed=Trade(self,game).maintain(trade)
@@ -732,6 +778,7 @@ class PartyService:
                         if repaired is not team:
                             self.publish(repaired)
                             team=repaired
+                        self.publish_member_vitals(game, team)
                         if team['id'] in self.pending_follow:
                             relocations=getattr(self,'pending_follow_relocations',set())
                             self.follow_team(team,relocate=team['id'] in relocations)

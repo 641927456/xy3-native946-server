@@ -80,6 +80,51 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertNotIn(5349,[mid(p) for p in replies])
         self.assertIn(2146,[mid(p) for p in replies])
 
+    def test_world_portraits_follow_only_the_changed_member(self):
+        self.team()
+        observer = self.a
+        owner = self.b
+        cid = owner.character['id']
+
+        def changes(replies):
+            result = []
+            for payload in replies:
+                if mid(payload) == 2030:
+                    reader = MessageReader(payload[3:])
+                    result.append((reader.integer(), reader.take(1)[0], reader.integer()))
+                    reader.finish()
+            return result
+
+        for g in self.games:
+            self.svc.tick(g)
+        for g in self.games:
+            self.svc.drain(g)
+        owner.progression.set_vitals(1, 2)
+        expected = [(cid, 1, 1), (cid, 4, 2)]
+        self.assertEqual(changes(self.svc.tick(owner)), expected)
+        self.assertEqual(changes(self.svc.tick(observer)), expected)
+        self.assertFalse(changes(self.svc.tick(owner)))
+
+        # The native quick-medicine request also changes the owner's HUD.
+        self.call(owner, 1412, 0)
+        hp = owner.progression.snapshot()['hp']
+        self.assertGreater(hp, 1)
+        self.svc.tick(owner)
+        self.assertEqual(changes(self.svc.tick(observer)), [(cid, 1, hp)])
+
+        self.buff(owner)
+        stats = owner.progression.snapshot()
+        self.svc.tick(owner)
+        self.assertEqual(changes(self.svc.tick(observer)), [
+            (cid, op, stats[key]) for op, key in enumerate(
+                ('hp','hpmax','hpmax','mp','mpmax','mpmax'), 1)])
+        self.call(owner, 2051)
+        self.svc.tick(observer)
+        self.svc.drain(observer)
+        owner.progression.set_vitals(3, 4)
+        self.svc.tick(owner)
+        self.assertFalse(changes(self.svc.tick(observer)))
+
     def test_wrath_initialization_and_hit_updates_reach_each_team_member(self):
         from native946_role_battle import nums
 
@@ -896,6 +941,110 @@ class WildernessPartyTests(unittest.TestCase):
                               ('wild:'+battle.id+':'+str(cid),)).fetchone()[0]
         self.assertEqual(paid, first['experience'])
 
+    def test_experience_charm_from_bag_to_party_settlement_and_expiry(self):
+        from time import time
+        from native946_experience_charm import BLESSING, HOUR, ITEM, POSITION, reward_experience
+        owner, peer = self.a.progression.cid, self.b.progression.cid
+        with self.a.progression.transaction() as db:
+            iid = db.execute('INSERT INTO inventory(character_id,type,page,slot,amount) VALUES(?,?,8,24,2)',
+                             (owner, ITEM)).lastrowid
+
+        def count():
+            with self.a.progression.transaction(write=False) as db:
+                return db.execute('SELECT amount FROM inventory WHERE id=?',(iid,)).fetchone()[0]
+
+        def choose(option, token):
+            return self.a.receive(1032, MessageReader(bytes([option]) + number(token)))
+
+        self.call(self.b, 807, 0, iid)
+        self.call(self.a, 807, peer, iid)
+        self.assertFalse(self.a.dialog_open or self.b.dialog_open)
+        self.assertIn(1025, [mid(p) for p in self.call(self.a, 807, 0, iid)])
+        token = self.a.dialog_npc
+        choose(255, token)
+        choose(1, token)
+        self.assertEqual(count(), 2)
+        self.call(self.a, 807, owner, iid)
+        token = self.a.dialog_npc
+        now = int(time())
+        with patch('native946_experience_charm.time', return_value=now):
+            replies = choose(1, token)
+            self.assertIn(packet(37, ['number']*3, [1, BLESSING, POSITION]), replies)
+            self.assertIn(packet(38, ['number','number','byte','number'], [BLESSING, POSITION, 1, HOUR]), replies)
+            choose(1, token)
+            self.call(self.a, 807, owner, iid)
+            choose(1, self.a.dialog_npc)
+            self.assertEqual(count(), 1)
+        self.a.close_npc_dialogue()
+        query = packet(38, ['number','number','byte','number'], [BLESSING, POSITION, 1, HOUR - 30])
+        with patch('native946_premium_items.time', return_value=now + 30):
+            self.assertIn(query, self.call(self.a, 39, BLESSING, POSITION))
+        battle = self.battle(pet=True)
+        self.fight(battle)
+        first, other = (battle.state['rewards'][cid] for cid in (owner, peer))
+        self.assertGreater(other['experience'], 0)
+        self.assertEqual(first['experience'], other['experience'] * 3 // 2)
+        self.assertEqual(first['guardian_experience'], other['guardian_experience'])
+        with self.a.progression.transaction(write=False) as db:
+            paid = db.execute('SELECT experience FROM battle_results WHERE battle_id=?',
+                              ('wild:'+battle.id+':'+str(owner),)).fetchone()[0]
+            self.assertEqual(paid, first['experience'])
+            self.assertEqual(reward_experience(db, owner, 101, now + HOUR - 1), 151)
+            self.assertEqual(reward_experience(db, owner, 101, now + HOUR), 101)
+        with patch('native946_experience_charm.time', return_value=now + HOUR):
+            removed = packet(37, ['number']*3, [0, BLESSING, POSITION])
+            self.assertIn(removed, self.a.tick() or ())
+            self.assertNotIn(removed, self.a.tick() or ())
+
+    def test_online_charm_resumes_partial_minutes_and_stops_after_sixty_awards(self):
+        from native946_experience_charm import HOUR, ITEM, SYSTEM, reward_experience
+        from native946_role_systems import state
+
+        game = self.a
+        p = game.progression
+        self.buff(game)
+        with p.transaction() as db:
+            iid = db.execute('INSERT INTO inventory(character_id,type,page,slot,amount) VALUES(?,?,8,24,2)',
+                             (p.cid, ITEM)).lastrowid
+        with patch('native946_experience_charm.clock_ms', return_value=1000) as clock:
+            self.call(game, 807, 0, iid)
+            callback = game.dialog_npc
+            reply = b'\x02' + number(callback)
+            game.receive(1032, MessageReader(reply))
+            game.receive(1032, MessageReader(reply))
+            with p.transaction(write=False) as db:
+                self.assertEqual(db.execute('SELECT amount FROM inventory WHERE id=?',(iid,)).fetchone()[0], 1)
+                self.assertEqual(reward_experience(db, p.cid, 100, 1000),100)
+            initial = p.snapshot()['experience']
+            clock.return_value += 59999
+            game.tick()
+            self.assertEqual(p.snapshot()['experience'], initial)
+            clock.return_value += 1
+            game.tick()
+            self.assertEqual(p.snapshot()['experience'], initial + 9000)
+            game.tick()
+            self.assertEqual(p.snapshot()['experience'], initial + 9000)
+
+            clock.return_value += 15001
+            self.svc.detach(p.cid)
+            with p.transaction(write=False) as db:
+                self.assertEqual(state(db,p.cid,SYSTEM)['remaining_ms'], HOUR*1000 - 75001)
+            clock.return_value += 24*HOUR*1000
+            new = NativeGameplay(game.character, self.characters, lambda: ())
+            new.sync_progression()
+            new.tick()
+            self.assertEqual(new.progression.snapshot()['experience'], initial + 9000)
+            clock.return_value += 44999
+            new.tick()
+            self.assertEqual(new.progression.snapshot()['experience'], initial + 18000)
+            clock.return_value += 70*60*1000
+            new.tick()
+            with p.transaction(write=False) as db:
+                self.assertEqual(state(db,p.cid,SYSTEM)['remaining_ms'],0)
+            self.assertEqual(new.progression.snapshot()['experience'], initial + 60*9000)
+            new.tick()
+            self.assertEqual(new.progression.snapshot()['experience'], initial + 60*9000)
+
     def test_killed_enemy_reward_cannot_advance_training_quest(self):
         self.a.progression.accept_quest();battle=self.battle(party=False)
         self.fight(battle)
@@ -1438,15 +1587,10 @@ class WildernessPartyTests(unittest.TestCase):
                     cid = game.character['id']
                     replies = (*acknowledgements[cid], *self.svc.drain(game))
                     popups = [MessageReader(p[1:]).string().decode('gb18030') for p in replies if mid(p) == 100]
-                    self.assertEqual(len(popups), 1)
-                    self.assertIn('熟练度', popups[0])
-                    self.assertIn('经验', popups[0])
-                    self.assertNotIn('组队经验加成', popups[0])
-                    for now in (100, 106.49):
-                        self.assertFalse(any(mid(p) == 100 for p in game.tick(now) or ()))
-                    popups = [MessageReader(p[1:]).string().decode('gb18030')
-                              for p in game.tick(106.5) or () if mid(p) == 100]
-                    self.assertEqual(popups, [f'组队经验加成#G{bonus}%#n。'] if bonus else [])
+                    self.assertEqual(popups[:-1], [f'组队经验加成#G{bonus}%#n。'] if bonus else [])
+                    self.assertIn('熟练度', popups[-1])
+                    self.assertIn('经验', popups[-1])
+                    self.assertFalse(any(mid(p) == 100 for p in game.tick(100) or ()))
                     self.assertFalse(any(mid(p) == 100 for p in game.tick(107) or ()))
 
     def test_water_curtain_rewards_each_guardian_at_its_own_level_after_switch(self):

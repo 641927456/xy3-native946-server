@@ -486,16 +486,17 @@ class Progression:
         if row['vim']<row['vim_max']:row['_glyph_deadline']=min(row['_glyph_deadline'] or time()+60,time()+60)
         return row
 
-    def snapshot(self):
+    def snapshot(self, *, fields=()):
         import native946_storage
         current=native946_storage._CURRENT.get()
         writable=current is not None and current[2]
         cacheable=getattr(self,'_cache_enabled',False) and not writable
         cached=getattr(self,'_cached_snapshot',None)
-        if cacheable and cached is not None and (not cached.get('_glyph_deadline') or cached['_glyph_deadline']>time()):return deepcopy(cached)
+        if cacheable and cached is not None and (not cached.get('_glyph_deadline') or cached['_glyph_deadline']>time()):
+            return deepcopy({key: cached[key] for key in fields} if fields else cached)
         with self.transaction(write=False) as db:result=self._snapshot(db)
         if cacheable:self._cached_snapshot=deepcopy(result)
-        return result
+        return {key: result[key] for key in fields} if fields else result
 
     def allocate(self, increments):
         if len(increments)!=4 or any(type(n) is not int or n<0 or n>1000 for n in increments) or not sum(increments):

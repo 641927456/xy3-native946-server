@@ -77,6 +77,10 @@ def expire_auto_medical(game):
 def auto_medical_time(game, reader):
     effect, position = reader.integer(), reader.integer()
     reader.finish()
+    from native946_experience_charm import BLESSING, POSITION, expires, remaining_packet
+    if (effect, position) == (BLESSING, POSITION):
+        with game.progression.transaction(write=False) as db:
+            return remaining_packet(expires(db, game.progression.cid) - int(time()))
     if (effect, position) != (AUTO_MEDICAL_BLESSING, AUTO_MEDICAL_POSITION):
         return None
     with game.progression.transaction(write=False) as db:

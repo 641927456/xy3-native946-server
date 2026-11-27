@@ -363,6 +363,8 @@ class AutoGhostBattle(WildBattle):
             from native946_progression import DATA as PROGRESSION_DATA
             value = reward('ghost', game.progression.snapshot()['level'], ring, Random(key))
             result.update(value)
+            from native946_experience_charm import reward_experience
+            result['experience'] = reward_experience(db, cid, value['experience'], int(time()))
             result['drops'] = {item: count for ref, count in value['drops'].items()
                 if type(item := DAILY_REWARDS['reward_map'].get(str(ref))) is int and str(item) in PROGRESSION_DATA['items']}
             result['policy'] = 'afei-auto-ghost-current-daily-rewards-v1'
