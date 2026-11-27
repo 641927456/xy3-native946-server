@@ -1028,10 +1028,11 @@ class Progression:
             listing['升级'][LIVENESS_GUIDE_ID] = dict(n=school_guide['title'],t=school_guide['text'],
                 d=school_guide['description'],tr=1,scene_id=school_guide['scene'],x=school_guide['x'],
                 y=school_guide['y'],npc_id=school_guide['npc'],auto_path=int(bool(school_guide['npc'])))
-        from native946_local_guides import details as local_guides
+        from native946_local_guides import MOUNT_QID, details as local_guides
         for tid, row in local_guides(s).items():
             trace.append(dict(id=tid,title=row['title'],txt=row['text'],scene=row['scene'],x=row['x'],y=row['y'],tracetime=0))
-            listing['升级'][tid] = dict(n=row['title'],t=row['text'],d=row['description'],tr=1,scene_id=row['scene'],
+            journal_title = '汗血宝马' if tid == MOUNT_QID else row['title']
+            listing['升级'][tid] = dict(n=journal_title,t=row['text'],d=row['description'],tr=1,scene_id=row['scene'],
                                       x=row['x'],y=row['y'],npc_id=row['npc'],auto_path=0)
         append_campaign(s,trace,listing)
         from native946_race_fabao import QUEST as RACE_QUEST, guide_details

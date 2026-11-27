@@ -147,6 +147,12 @@ class DailyContentTests(unittest.TestCase):
 
         self.buff(self.a)
         p = self.a.progression
+        reply = self.call(self.a, 1985)
+        journal = MessageReader(next(packet for packet in reply if mid(packet) == 1973)[3:])
+        self.assertIn(f'[{MOUNT_QID}]={{["n"]="汗血宝马",', journal.string().decode('gb18030'))
+        journal.finish()
+        tracker = next(packet for packet in reply if mid(packet) == 1978)
+        self.assertIn('#G【坐骑】#Y汗血宝马'.encode('gb18030'), tracker)
         for scene,nid,line in CONTACTS:
             options = self.open_npc(scene,nid)
             self.choose(nid,options.index(line+'（本服）')+1)
