@@ -1,11 +1,6 @@
 {
   "profile": "946",
   "rules": {
-    "47881": {
-      "op": "bundle",
-      "rewards": [[46873, 5], [46808, 5]],
-      "source": "946 info_item.lua（505d8e68），道具 47881 的固定奖励"
-    },
     "56537": {
       "op": "child_fashion",
       "model": 4899,

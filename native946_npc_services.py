@@ -349,8 +349,7 @@ class NpcServices:
         if not s or s['kind']!=kind or s['expires']<monotonic() or s['scene']!=self.g.character['map_id']:
             raise ValueError('办理窗口已失效，请与对应 NPC 重新交谈。')
         if nid is not None and s['npc']!=nid:raise ValueError('商店 NPC 不匹配。')
-        service = {'school_supply':'school','guardian_shop_window':None}.get(kind,kind)
-        self.validate(s['npc'],service)
+        self.validate(s['npc'],'school' if kind=='school_supply' else kind)
         return s
 
     def restore_pearl(self,nid,reward,category):

@@ -1,7 +1,4 @@
 {
-  "shop_info": [["id", "number"], ["type", "number"], ["name", "string"], ["valid_count", "number"], ["total_count", "number"], ["owner_name", "string"], ["date", "number"]],
-  "shop_buy": [["id", "number"], ["type", "number"], ["name", "string"], ["date", "number"], ["owner_name", "string"], ["owner_id", "number"], ["showid", "number"]],
-  "price_summon": [["id", "number"], ["name", "string"], ["price", "number"]],
   "fresh_award_item": [["Amount", "number"], ["type", "number"]],
   "buff_info": [
     ["Hp", "number"],

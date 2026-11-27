@@ -1,13 +1,12 @@
 {
   "schema_version": 1,
   "client_revision": 946,
-  "route_revision": 1,
   "source_sha256": {
     "client-946\\xymain.bin": "93e958c243c611535ffde000b480a4fa2d1c1945aca321a7988cae382de15cbb",
     "client-946\\resource\\configs.wdf": "eb5fc4235e8c27cefdf18e084c2ae211b2f9251471b9af9491cc77e3e5342fcb",
     "client-946\\bin_script.wdf": "ed2238b4833ecdbb67c72298aef94ea118c3c79e7d8d7629125a686c96cd1b51"
   },
-  "scope": "Public routes connected to scene 2001; includes local NPC transport to and from scene 2266 using the native NPC destinations. Static NPC data also covers disconnected maps.",
+  "scope": "Public routes connected to scene 2001; static NPC catalog also covers verified disconnected maps without adding activity entrances.",
   "trigger_policy": "Server half extent at least 1 cell, expanded only to include a walkable cell; native routes supply centers, not extents.",
   "travel_cost_policy": "No price is encoded in these native routes. Local town transport currently charges no fee.",
   "scene_catalog": {
@@ -6746,29 +6745,6 @@
       "800x600_x": -1,
       "show_in_worldmap": 1,
       "extra_smaps": {},
-      "mobile_x": -1
-    },
-    "2266": {
-      "music_i": 0,
-      "scene_name": "水帘洞",
-      "envmusic_i": 8056,
-      "640x480_y": -1,
-      "is_smap": 1,
-      "800x600_y": -1,
-      "640x480_x": -1,
-      "map_id": 8056,
-      "smap": 8056,
-      "mic_delay": 0,
-      "width": 1600,
-      "waimap_id": 0,
-      "height": 1200,
-      "mobile_y": -1,
-      "auto_walk": 1,
-      "800x600_x": -1,
-      "show_in_worldmap": 0,
-      "extra_smaps": [
-        "8056_2.jpg"
-      ],
       "mobile_x": -1
     },
     "2357": {
@@ -84809,38 +84785,6 @@
       "source_route_ids": [
         20023
       ],
-      "alternative_arrivals": []
-    },
-    {
-      "id": 30001,
-      "from": 2011,
-      "npc_id": 5718,
-      "trans_index": 1,
-      "from_pos": [228, 1064],
-      "source": [11, 53],
-      "to": 2266,
-      "to_npc": 5703,
-      "to_pos": [1481, 469],
-      "arrival": [68, 26],
-      "eligibility": [],
-      "arrival_adjustment": 6,
-      "source_route_ids": [],
-      "alternative_arrivals": []
-    },
-    {
-      "id": 30002,
-      "from": 2266,
-      "npc_id": 5703,
-      "trans_index": 1,
-      "from_pos": [1481, 469],
-      "source": [74, 23],
-      "to": 2011,
-      "to_npc": 5718,
-      "to_pos": [228, 1064],
-      "arrival": [11, 53],
-      "eligibility": [],
-      "arrival_adjustment": 0,
-      "source_route_ids": [],
       "alternative_arrivals": []
     }
   ]

@@ -9,7 +9,7 @@ import json,re,secrets
 from native946_codec import packet
 from native946_codec import text_notice
 from native946_child_fashion import REQUESTS as CHILD_FASHION_REQUESTS
-from native946_classified_mall import DATA as CLASSIFIED_MALL_DATA, REQUESTS as CLASSIFIED_REQUESTS, WRITES as CLASSIFIED_WRITES
+from native946_classified_mall import REQUESTS as CLASSIFIED_REQUESTS, WRITES as CLASSIFIED_WRITES
 REFERENCE_WIRE_VERSION=9
 LOCAL_UNLIMITED_YUBO_ACCOUNTS={'123123123'}
 LOCAL_UNLIMITED_YUBO_BALANCE=2000000000
@@ -20,8 +20,6 @@ def unlimited_yubo(owner):
 
 
 DATA=json.loads(Path(__file__).with_name('native946_cosmetics_data.json').read_text('utf8'))
-for _kind, _meta in CLASSIFIED_MALL_DATA['items'].items():
-    DATA['items'].setdefault(_kind, _meta)
 from native946_refinement import DATA as REFINEMENT_DATA
 from native946_equipment import COMPLETION as GEAR_COMPLETION
 for _kind,_meta in GEAR_COMPLETION['items'].items():DATA['items'].setdefault(_kind,_meta)
@@ -266,10 +264,7 @@ def numeric_table(text):
     return result
 
 class Cosmetics:
-    def __init__(self, game, *, sale_goods=None):
-        self.g = game
-        self.p = game.progression
-        self.sale_goods = SALE_GOODS if sale_goods is None else sale_goods
+    def __init__(self,game):self.g=game;self.p=game.progression
 
     def wallet(self,db):
         return wallet_balance(db, self.p.owner)
@@ -362,7 +357,7 @@ class Cosmetics:
         return packet(4825,['number','number'],[skill,SKIN_TYPES[(skill,row[0])] if row else 0])
 
     def _quantity(self,kind,amount):
-        meta=self.sale_goods.get(str(sale_type(kind)))
+        meta=SALE_GOODS.get(str(sale_type(kind)))
         if not meta:raise ValueError('该商品暂未开放购买。')
         if not 1<=amount<=24:raise ValueError('购买数量须为1至24。')
         return meta
@@ -411,7 +406,7 @@ class Cosmetics:
         with self.p.transaction() as db:
             if db.execute('SELECT 1 FROM cosmetic_orders WHERE id=?',(q['id'],)).fetchone():raise ValueError('该笔购买已经处理。')
             from native946_mall_checkout import plan,consume,fudou_cost
-            cost,deductions=plan(db,self.p.cid,orders,ticket,sale_goods=self.sale_goods)
+            cost,deductions=plan(db,self.p.cid,orders,ticket)
             coupon_cost=fudou_cost(orders) if coupon else 0
             if coupon and (not coupon_cost or ticket):raise ValueError('该订单不支持福豆支付或同时抵用外观券。')
             currency='coupon' if coupon else 'yubo'

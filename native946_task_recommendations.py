@@ -2,7 +2,6 @@
 from native946_codec import packet, screen_notice, text_notice
 from native946_liveness import ACTIVITY_POINTS, TIERS, award, balances, daily_claims, day_start, score, total
 
-WIRE_VERSION = 1
 REQUESTS={1450,1400,4310}
 CLAIM_REWARD = 1400
 

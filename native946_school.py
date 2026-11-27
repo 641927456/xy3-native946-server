@@ -503,8 +503,7 @@ class School:
                 raise ValueError('本服飞行特技尚未解锁该落点。')
             return self.fly_to(scene,nid,index)
         npc = world().npc(scene,nid) if allowed else None
-        # dlg_current_map derives the index from ipairs and reads x/y as a pair.
-        points = [[npc['x'],npc['y']]] if npc else []
+        points = [dict(x=npc['x'],y=npc['y'],idx=1,level=2)] if npc else []
         return packet(1762,['number','string',('array','number')],[scene,lua_data(points),[2] if points else []])
 
     def fly_to(self, scene, nid, destination):

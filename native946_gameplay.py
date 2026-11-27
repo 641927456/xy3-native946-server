@@ -12,29 +12,13 @@ from copy import deepcopy
 from native946_codec import packet, screen_notice, text_notice
 from native946_map import load_map
 from native946_storage import StorageBusy, transaction as storage_transaction
-
-# The listener warms world data before it loads the gameplay module.
-_world = sys.modules.get('native946_world')
-if _world is not None and _world.world().data.get('route_revision', 0) < 1:
-    _world.world.cache_clear()
-    _world.world().warm()
-
 import native946_battle_actions as _battle_actions
 if getattr(_battle_actions,'REFERENCE_WIRE_VERSION',0)<11:reload(_battle_actions)
 from native946_battle_actions import BattleActions
 _role_battle=sys.modules.get('native946_role_battle')
-if _role_battle is not None and (getattr(_role_battle,'GUARDIAN_PASSIVE_WIRE_VERSION',0)<3 or getattr(_role_battle,'PRESENTATION_WIRE_VERSION',0)<4 or getattr(_role_battle,'WIRE_VERSION',0)<17 or getattr(_role_battle,'MEDICINE_WIRE_VERSION',0)<1):reload(_role_battle)
+if _role_battle is not None and (getattr(_role_battle,'GUARDIAN_PASSIVE_WIRE_VERSION',0)<3 or getattr(_role_battle,'PRESENTATION_WIRE_VERSION',0)<4 or getattr(_role_battle,'WIRE_VERSION',0)<16 or getattr(_role_battle,'MEDICINE_WIRE_VERSION',0)<1):reload(_role_battle)
 _bell=sys.modules.get('native946_zhuziguo_bell')
 if _bell is not None and getattr(_bell,'PROTECTION_WIRE_VERSION',0)<1:reload(_bell)
-# The recommendation panel may have imported the old score handler at startup.
-_liveness = sys.modules.get('native946_liveness')
-_liveness_stale = _liveness is not None and getattr(_liveness, 'WIRE_VERSION', 0) < 1
-if _liveness_stale:
-    reload(_liveness)
-_task_recommendations = sys.modules.get('native946_task_recommendations')
-if _task_recommendations is not None and (
-        _liveness_stale or getattr(_task_recommendations, 'WIRE_VERSION', 0) < 1):
-    reload(_task_recommendations)
 
 # The existing controller reloads this module on its owning socket thread.
 # Refresh already imported reference features without replacing sessions,
@@ -813,8 +797,6 @@ class NativeGameplay(BattleActions):
         writes={273,275,5418,5419,739,740,741,3420,3421,748,749,750,752,753,755,767,764,775,796,798,799,803,795,805,807,802,882,883,884,1033,1483,1484,1492,1493,1980,
                 842,843,844,1350,1703,1716,1764,1765,2487,1643,1644,1645,1032,2176,2177,2178,2181,2182,2183,2184,2185,3819}
         writes.update(QUICK_MEDICINE_REQUESTS)
-        from native946_guardian_chamber import WINDOW_BUY
-        writes.add(WINDOW_BUY)
         writes.add(SEND_FIREWORK)
         from native946_achievements import WRITES as ACHIEVEMENT_WRITES
         writes.update(ACHIEVEMENT_WRITES)
@@ -1175,9 +1157,6 @@ class NativeGameplay(BattleActions):
                     self.summons.neidan_packet(sid),*self.summons.info_packets(sid)))
             self.summons.get(sid)
             raise ValueError('该内丹操作暂不可用，本次未消耗资源。')
-        from native946_guardian_chamber import GuardianChamber, WINDOW_REQUESTS
-        if mid in WINDOW_REQUESTS:
-            return GuardianChamber(self).native_request(mid,reader)
         if mid == 1485:
             from native946_school import School
             stunt=reader.integer();reader.finish()

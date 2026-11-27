@@ -30,19 +30,18 @@ def eligible(kind,catalog,uses):
     rule=uses['rules'].get(key,{})
     return rule.get('op')=='mount' or key in uses.get('child_halos',{})
 
-def plan(db,cid,orders,ticket,*,sale_goods=None):
+def plan(db,cid,orders,ticket):
     from native946_cosmetics import DATA as CATALOG, SALE_GOODS, sale_type
     from native946_mall_uses import DATA as USES
     if ticket not in (0,*TICKET_TYPES):raise ValueError('当前折扣券类型不受支持。')
-    catalog = SALE_GOODS if sale_goods is None else sale_goods
     orders = [(sale_type(kind), amount) for kind, amount in orders]
-    gross=sum(catalog[str(k)]['yubo']*n for k,n in orders)
-    eligible_cost=sum(catalog[str(k)]['yubo']*n for k,n in orders if eligible(k,CATALOG,USES))
+    gross=sum(SALE_GOODS[str(k)]['yubo']*n for k,n in orders)
+    eligible_cost=sum(SALE_GOODS[str(k)]['yubo']*n for k,n in orders if eligible(k,CATALOG,USES))
     tickets=rows(db,cid,TICKET_TYPES);count=min(eligible_cost//300,sum(r['amount'] for r in tickets)) if ticket else 0
     if ticket and not count:raise ValueError('没有有效的外观抵用券，或适用商品总额不足300玉帛。')
     wedding=rows(db,cid,WEDDING_TYPES)
     wedding_count=min(sum(n for k,n in orders if k in (55146,55167,65146,65167)),sum(r['amount'] for r in wedding))
-    discount=count*100+min(sum(catalog[str(k)]['yubo']*n for k,n in orders if k in (55146,55167,65146,65167)),wedding_count*300)
+    discount=count*100+min(sum(SALE_GOODS[str(k)]['yubo']*n for k,n in orders if k in (55146,55167,65146,65167)),wedding_count*300)
     return max(0,gross-discount),[(tickets,count),(wedding,wedding_count)]
 
 def consume(db,groups):

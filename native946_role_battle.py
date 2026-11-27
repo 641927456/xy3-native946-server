@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 from native946_codec import packet
 DATA=json.loads(Path(__file__).with_name('native946_role_combat_data.json').read_text('utf8'))
-RULE=DATA['local_rules'];WIRE_VERSION=17
+RULE=DATA['local_rules'];WIRE_VERSION=16
 GUARDIAN_PASSIVE_WIRE_VERSION=3
 PRESENTATION_WIRE_VERSION=4
 MEDICINE_WIRE_VERSION=1

@@ -1,7 +1,6 @@
 """Local catalog for the native 946 categorized shop panel."""
 
-from collections import ChainMap, Counter
-from itertools import islice
+from collections import Counter
 import json
 from pathlib import Path
 from time import monotonic
@@ -14,9 +13,7 @@ DATA = json.loads(Path(__file__).with_name('native946_classified_mall_data.json'
 ICON = 83
 CATEGORIES = {int(category): tuple(items) for category, items in DATA['categories'].items()}
 ITEM_CATEGORIES = {kind: category for category, items in CATEGORIES.items() for kind in items}
-ADDITIONAL_OFFERS = DATA['additional_offers']
 SALE_ROWS = ('array', 'shiwan_sale_info')
-SALE_ROW_LIMIT = 254  # Native array length is a single byte; 255 is reserved.
 CART_ROWS = ('array', 'number')
 CART_LIMIT = 21  # Native shiwan_mall_panel has goods1 through goods21.
 REQUESTS = frozenset(range(3406, 3415))
@@ -27,31 +24,26 @@ CART_QUOTE = 'classified_mall_cart_quote'
 
 class ClassifiedMall:
     def __init__(self, game):
-        from native946_cosmetics import Cosmetics, SALE_GOODS
+        from native946_cosmetics import Cosmetics
 
         self.game = game
-        self.offers = ChainMap(ADDITIONAL_OFFERS, SALE_GOODS)
-        self.cosmetics = Cosmetics(game, sale_goods=self.offers)
-
-    def offer(self, kind):
-        key = str(kind)
-        product = self.offers.get(key)
-        if product and (key in ADDITIONAL_OFFERS or product.get('price_source') in
-                        ('native_yubo', 'user_default_100')):
-            return product
+        self.cosmetics = Cosmetics(game)
 
     def price(self, kind, amount=1):
-        if kind not in ITEM_CATEGORIES or not self.offer(kind):
+        from native946_cosmetics import SALE_GOODS
+
+        product = SALE_GOODS.get(str(kind))
+        if kind not in ITEM_CATEGORIES or not product or product.get('price_source') != 'native_yubo':
             raise ValueError('这件商品当前未在分类道具商城上架。')
         return self.cosmetics._quantity(kind, amount)['yubo']
 
     def rows(self, category):
-        from native946_cosmetics import DATA as cosmetics_data
+        from native946_cosmetics import DATA as cosmetics_data, SALE_GOODS
 
         rows = []
         for kind in CATEGORIES.get(category, ()):
-            product = self.offer(kind)
-            if not product:
+            product = SALE_GOODS.get(str(kind), {})
+            if product.get('price_source') != 'native_yubo':
                 continue
             price = product['yubo']
             rows.append(dict(type=kind, cls=category, pos=len(rows) + 1, cur_price=price,
@@ -110,9 +102,9 @@ class ClassifiedMall:
             if len(query) > 96:
                 raise ValueError('搜索词太长。')
             query = query.decode('gb18030').strip()
-            matches = (row for category in CATEGORIES for row in self.rows(category)
-                       if query and (query in row['name'] or query == str(row['type'])))
-            return packet(3417, [SALE_ROWS], [list(islice(matches, SALE_ROW_LIMIT))])
+            rows = [row for category in CATEGORIES for row in self.rows(category)
+                    if query and (query in row['name'] or query == str(row['type']))]
+            return packet(3417, [SALE_ROWS], [rows])
         if mid == 3407:
             kind = reader.integer()
             reader.finish()
