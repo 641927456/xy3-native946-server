@@ -23,10 +23,10 @@ python -m venv .venv
 
 ## 提交修改
 
-获得私有仓库访问权限后，克隆仓库并为每项修改建一个分支。
+先在 GitHub 上点 **Fork**，把仓库派生到自己的账号。把下方的 `YOUR-GITHUB-USERNAME` 换成自己的用户名，再克隆并为修改建一个分支。
 
 ```powershell
-git clone https://github.com/641927456/xy3-native946-server.git
+git clone https://github.com/YOUR-GITHUB-USERNAME/xy3-native946-server.git
 cd xy3-native946-server
 git switch -c fix/your-change
 # 修改服务端代码并跑相关回归
@@ -35,4 +35,4 @@ git commit -m "说明修改内容"
 git push -u origin fix/your-change
 ```
 
-在 GitHub 向 `main` 开 Pull Request，填写修改内容及测试结果。合并后，维护者在本地 `main` 上运行 `git pull --ff-only`。玩法修改与验收按 [AGENTS.md](AGENTS.md) 执行。
+在 GitHub 从你的分支向 `641927456/xy3-native946-server` 的 `main` 提交 Pull Request，填写修改内容及测试结果。合并后，维护者在本地 `main` 上运行 `git pull --ff-only`。玩法修改与验收按 [AGENTS.md](AGENTS.md) 执行。
