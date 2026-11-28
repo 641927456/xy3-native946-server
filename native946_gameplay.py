@@ -75,7 +75,7 @@ for _feature in ('native946_book_combat','native946_refinement','native946_fashi
                        'native946_wilderness' in sys.modules and hasattr(_loaded,'QuestBattle') and
                        _loaded.QuestBattle.__bases__[0] is not sys.modules['native946_wilderness'].WildBattle)
     _minimum=5 if _feature=='native946_guardian_acquisition' else 2 if _feature=='native946_guardian_channels' else 5 if _feature=='native946_skillbooks' else 13 if _feature=='native946_guardian_ui' else 6 if _feature in ('native946_crafting','native946_party','native946_npc_services') else 5
-    _minimum=2 if _feature=='native946_task_chain' else max(_minimum,{'native946_crafting':11,'native946_party':8,'native946_equipment':8,'native946_workshops':10,'native946_skillbooks':4,'native946_npc_quests':13}.get(_feature,0))
+    _minimum=2 if _feature=='native946_task_chain' else max(_minimum,{'native946_crafting':11,'native946_party':8,'native946_equipment':8,'native946_workshops':10,'native946_skillbooks':4,'native946_npc_quests':15}.get(_feature,0))
     if _feature=='native946_task_chain' and _loaded is not None and 'native946_wilderness' in sys.modules:
         _battle_base_stale=hasattr(_loaded,'ChainBattle') and _loaded.ChainBattle.__bases__[0] is not sys.modules['native946_wilderness'].WildBattle
     if _feature=='native946_guardian_magic':_minimum=5
@@ -405,9 +405,11 @@ class NativeGameplay(BattleActions):
         from native946_afei_expansion import AfeiWorld
         from native946_constellations import Constellations
         from native946_timed_npcs import scene_packets as timed_npc_packets
+        from native946_field_trials import FieldTrials
         return (*packets,*Quests(self).scene_packets(force),*Fishing(self).scene_packets(force),
                 *StarChallenge(self).scene_packets(force),*AfeiWorld(self).scene_packets(force),
-                *Constellations(self).scene_packets(force),*timed_npc_packets(self,force))
+                *Constellations(self).scene_packets(force),*timed_npc_packets(self,force),
+                *FieldTrials(self).scene_packets(force))
 
     def scene_objects(self):
         from native946_world import world
@@ -487,6 +489,9 @@ class NativeGameplay(BattleActions):
         if npc is None:return None
         if max(abs(npc['x']//20-c['x']),abs(npc['y']//20-c['y']))>12:
             return self.menu('请走近一些再交谈。',npc_id=nid)
+        from native946_field_trials import menu as trial_menu
+        trial=trial_menu(self,npc)
+        if trial is not None:return trial
         from native946_local_guides import mount_option
         key = c['map_id'], nid
         local_mount = mount_option(self, key) if include_mount_guide else None
@@ -753,9 +758,16 @@ class NativeGameplay(BattleActions):
             except StorageBusy:
                 school_updates = ()
             npc_updates = self.sync_static_npcs() if self.battle is None else ()
+            from native946_gm_bridge import poll as gm_poll
+            gm_updates = gm_poll(self,now) if self.battle is None else ()
+            appearance_updates = ()
+            if self.battle is None and getattr(self,'_sanjie_scene_appearance',(None,{}))[1]:
+                from native946_npc_quests import Quests
+                appearance_updates=Quests(self).sanjie_scene_appearance()
             neidan_updates = self.sync_corrected_neidan_levels() if self.battle is None else ()
             return (*portrait_updates,*pending,*(reply if isinstance(reply,tuple) else (reply,) if reply else ()),
-                    *status_updates,*school_updates,*npc_updates,*neidan_updates,*self.sync_scene_day_effect()) or None
+                    *status_updates,*school_updates,*npc_updates,*appearance_updates,*gm_updates,
+                    *neidan_updates,*self.sync_scene_day_effect()) or None
 
     def sync_corrected_neidan_levels(self):
         pending = getattr(self.progression, 'neidan_level_updates', ())
@@ -799,12 +811,13 @@ class NativeGameplay(BattleActions):
             from native946_afei_expansion import AfeiWorld, ghost_tick
             from native946_constellations import Constellations
             from native946_timed_npcs import scene_packets as timed_npc_packets
+            from native946_field_trials import FieldTrials
             from native946_mall_mounts import expire_dye
             from native946_mount_spaces import check_guild_access
 
             changes = []
             ticks = (lambda: timed_npc_packets(self), lambda: inventory_tick(self), StarChallenge(self).tick, AfeiWorld(self).tick,
-                     Constellations(self).tick, lambda: ghost_tick(self), lambda: expire_dye(self),
+                     Constellations(self).tick, FieldTrials(self).tick, lambda: ghost_tick(self), lambda: expire_dye(self),
                      lambda: check_guild_access(self))
             for tick in ticks:
                 try:
@@ -960,7 +973,8 @@ class NativeGameplay(BattleActions):
         # A lock error or invalid trailing fields cannot leave half a reward,
         # changed battle state, or stale item-delta cache behind.
         names=('battle','dialog_open','dialog_actions','dialog_npc','npc_service_session','workshop_query_until','workshop_production_session','cosmetic_quote','cosmetic_cart','cosmetic_dye','cosmetic_weapon','cosmetic_extension','cosmetic_carve','inventory_lock_session','last_path','_background_round','_shown_summon_id','baby_halo_choice',
-               '_world_visible','_world_bucket','_quest_visible','_timed_activity_npc','_arrival_guard','_last_transition','npc_position',
+               '_world_visible','_world_bucket','_quest_visible','_sanjie_scene_appearance','_field_mob_visible',
+               '_timed_activity_npc','_arrival_guard','_last_transition','npc_position',
                '_scene_day_effect',
                '_star_visible','_afei_visible','_sigil_visible','_encounter_steps',
                'equipment_plan_confirm','fishing_wake','fishing_bite_sent','fishing_initialized','fish_markers','fish_marker_map','inventory_expiry_check',
@@ -1829,6 +1843,8 @@ class NativeGameplay(BattleActions):
             if is_star(npc):return StarChallenge(self).look(npc)
             from native946_afei_expansion import AfeiWorld, is_encounter_npc
             if is_encounter_npc(npc):return AfeiWorld(self).look(npc)
+            from native946_field_trials import is_mob, mob_look
+            if is_mob(npc):return mob_look(self,npc)
             self.npc_service_session=None
             if npc!=TRAINER_ID:return self.world_npc_look(npc)
             if not getattr(self, 'practice_trainer', False) or self.npc_position is None:return None

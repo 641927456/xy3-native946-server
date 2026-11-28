@@ -241,6 +241,10 @@ class NpcServices:
         return self.g.menu(text,[label for label,value in choices],nid,speaker=speaker)
 
     def execute(self,nid,action):
+        if action['kind']=='field_trial':
+            from native946_field_trials import execute, is_mob
+            if action['op']!='close' and not is_mob(nid):self.validate(nid)
+            return execute(self.g,nid,action)
         if action['kind'] == 'arena_practice':
             from native946_npc_quests import enter_quest_battle
             from native946_wilderness import ARENA_PRACTICE_NPC, ArenaPracticeBattle
@@ -280,7 +284,10 @@ class NpcServices:
         if action['kind']=='afei_marriage':
             from native946_afei_society import Marriage
             return Marriage(self.g).execute(nid,action['op'])
-        if action['kind'] in ('sanjie_exchange','advanced_treasure'):
+        if action['kind']=='sanjie_exchange':
+            from native946_daily_content import exchange
+            return exchange(self.g,nid,action['item'])
+        if action['kind']=='advanced_treasure':
             from native946_activities import unavailable_npc_notice
             return unavailable_npc_notice(self.g,'兑换暂未开放。')
         if action['kind']=='guild_war':

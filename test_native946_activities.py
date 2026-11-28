@@ -68,7 +68,7 @@ class ActivityCatalogTests(unittest.TestCase):
 
     def test_only_verified_existing_daily_flows_are_enabled(self):
         actual={r['reference_kind'] for r in RECORDS.values() if r['reference_kind']}
-        self.assertEqual(actual,{'ghost','king','heaven','sanjie'})
+        self.assertEqual(actual,{'ghost','king','heaven','sanjie','lotus'})
         for row in RECORDS.values():
             if row['name'] in ('拯救牛魔王','天地劫','群星会','御前武举','一字千金','会猎狮驼'):
                 self.assertIsNone(row['reference_kind']);self.assertIn('活动领取与阶段脚本',row['missing'])
@@ -81,6 +81,13 @@ class ActivityCatalogTests(unittest.TestCase):
                 self.assertIsNotNone(npc)
                 self.assertEqual((npc['x']//20,npc['y']//20),(loc['x'],loc['y']))
                 self.assertEqual(npc.get('name') or str(loc['npc']),loc['name'])
+
+    def test_new_activity_navigation_uses_the_givers(self):
+        from native946_activities import navigation_targets
+
+        for rid,giver in ((11,(2221,4544)),(74,(2001,7510))):
+            targets=navigation_targets(RECORDS[rid])
+            self.assertEqual([(n['scene'],n['npc']) for n in targets],[giver])
 
 
 class ActivityDispatchTests(unittest.TestCase):
@@ -166,7 +173,7 @@ class ActivityDispatchTests(unittest.TestCase):
         self.assertEqual(npc_activity_names(2001,6859),('神器试炼',))
         self.assertNotIn('鬼王任务',npc_activity_names(2001,7682))
 
-    def test_visitor_activity_exposes_sourced_auto_task_rules_without_accepting(self):
+    def test_visitor_activity_exposes_current_trial_rules_without_accepting(self):
         before=self.p.snapshot()
         self.hub.detail(74)
         choice=next(index for index,action in enumerate(self.g.dialog_actions,1) if action['op']=='rules')
@@ -174,18 +181,9 @@ class ActivityDispatchTests(unittest.TestCase):
         reader=MessageReader(reply[3:])
         reader.take(1)
         text=reader.string().decode('gb18030')
-        for part in ('至少3人组队','跨服组队集结仅可选简单','领取冷却按难度区分',
-                     '2024年7月','封圣120级','封圣185级','查询队员获得的高额奖励次数',
-                     '每带队取得40次高额奖励','可额外获得一枚自行丹','奖励结算待接通'):
+        for part in ('至少3人组队','简单需110级','封圣120级','封圣185级','查询队员获得的高额奖励次数',
+                     '每日有10次高额奖励','骊山、五原、潼关','巡守妖兵'):
             self.assertIn(part,text)
-        choice=next(index for index,action in enumerate(self.g.dialog_actions,1) if action.get('page')==1)
-        reply=self.choose(choice)
-        reader=MessageReader(reply[3:]);reader.take(1)
-        preview=reader.string().decode('gb18030')
-        self.assertIn('常规服组队集结奖励预览',preview)
-        self.assertIn('悔梦石、天运灵宝、龙之骨、仙玉莲叶、仙玉莲蓬、九转易筋丸',preview)
-        self.assertIn('实际发放的物品和概率仍待核实',preview)
-        self.assertIn('增加1点活跃度，累计上限40点',preview)
         self.assertEqual(self.p.snapshot(),before)
 
     def test_visitor_npc_keeps_transport_and_activity_info_checks_team(self):
@@ -198,7 +196,8 @@ class ActivityDispatchTests(unittest.TestCase):
         self.g.character.update(position)
         opened=packets(self.f.send(1034,7510))
         self.assertTrue(any(p.startswith(message_id(1025)) for p in opened))
-        self.assertTrue(any(isinstance(action,int) for action in self.g.dialog_actions))
+        self.assertEqual(self.g.dialog_actions[2],dict(kind='field_trial',op='visitor_look'))
+        self.assertEqual(world().npc_route(2001,7510,1,(position['x'],position['y']))['to'],2431)
         self.assertFalse(any(isinstance(action,dict) and action['kind']=='activity'
                              for action in self.g.dialog_actions))
 
@@ -233,14 +232,14 @@ class ActivityDispatchTests(unittest.TestCase):
         before=self.p.snapshot()
         text=check()
         self.assertIn('当前可跟随参战 3/3 人',text)
-        self.assertIn('简单（80级） 未达标 队员乙',text)
+        self.assertIn('简单（110级） 未达标 队员乙',text)
         self.assertIn('困难（封圣120级） 未达标 队员乙',text)
         self.assertIn('挑战（封圣185级） 未达标 队员甲、队员乙',text)
         self.assertEqual(self.p.snapshot(),before)
         with self.p.transaction() as db:
-            db.execute('UPDATE cultivation_state SET rebirth=1 WHERE character_id=?',(members[2]['character_id'],))
+            db.execute('UPDATE characters SET level=110 WHERE id=?',(members[2]['character_id'],))
         text=check()
-        self.assertIn('简单（80级） 当前参战成员等级达标',text)
+        self.assertIn('简单（110级） 当前参战成员等级达标',text)
         self.assertIn('困难（封圣120级） 未达标 队员乙',text)
         with self.p.transaction() as db:
             db.execute('UPDATE characters SET level=185 WHERE id=?',(members[2]['character_id'],))
@@ -251,7 +250,7 @@ class ActivityDispatchTests(unittest.TestCase):
             db.execute('UPDATE native_team_members SET away=1 WHERE character_id=?',(members[2]['character_id'],))
         text=check()
         self.assertIn('当前可跟随参战 2/3 人',text)
-        self.assertIn('简单（80级） 队伍人数不足',text)
+        self.assertIn('简单（110级） 队伍人数不足',text)
 
     def test_reference_progress_is_owned_and_uses_current_reference_period(self):
         other=self.f.characters.create('story_owner','活动他人',701)

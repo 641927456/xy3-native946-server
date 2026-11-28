@@ -513,6 +513,10 @@ class Runtime:
             return True
         return False
     def pvp(self,a,t):return bool(a.get('owner') and t.get('owner') and a['camp']!=t['camp'])
+    def spell_double_hits(self,actor):
+        count=max(0,min(10,int(value(actor,'SpellDoubleCount'))))
+        rate=max(0,min(1000,int(value(actor,'SpellDoubleRate'))))
+        return count if count and rate and self.rng.randrange(1000)<rate else 0
     def invisibility_sources(self,f):
         return invisibility_sources(f)
     def grant_invisibility(self,f,source,until):
@@ -1274,7 +1278,9 @@ class Runtime:
         if family=='wind' and self.proc(a,7025):repeats+=1
         if family=='wind' and level(a,7222):repeats=min(3,repeats+1)
         if family=='poison' and self.proc(a,7133):repeats+=1
-        if family in ELEMENTS and value(a,'RoleSpellExtraHit'):repeats+=1
+        if family in ELEMENTS:
+            if value(a,'RoleSpellExtraHit'):repeats+=1
+            repeats+=self.spell_double_hits(a)
         if sid==36:repeats=3
         if sid in (1702,1704):repeats=2
         if sid in (1706,1708):repeats=(2 if sid==1708 else 1)+sticks

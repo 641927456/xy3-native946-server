@@ -19,6 +19,17 @@ class BattlePresentationTests(unittest.TestCase):
         self.g.begin_battle();fighters=solo_fighters(self.g)
         return Runtime(fighters,{self.p.cid:self.g},1,Random(1),self.g.battle),fighters
 
+    def test_spell_double_is_inactive_without_stats_and_caps_extra_hits(self):
+        runtime,fighters=self.runtime()
+        hero=fighters[self.p.cid]
+        rng_before=runtime.rng.getstate()
+        self.assertEqual(runtime.spell_double_hits(hero),0)
+        self.assertEqual(runtime.rng.getstate(),rng_before)
+        hero.update(SpellDoubleRate=1000,SpellDoubleCount=12)
+        self.assertEqual(runtime.spell_double_hits(hero),10)
+        hero['SpellDoubleRate']=0
+        self.assertEqual(runtime.spell_double_hits(hero),0)
+
     def test_training_stick_slots_follow_the_saved_school_at_entry_and_death(self):
         from native946_role_systems import save
 

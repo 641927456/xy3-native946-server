@@ -463,6 +463,11 @@ class Campaign:
             t=dict(scene=n['scene_id'],x=n['x']//20,y=n['y']//20)
         if not self.near(t):raise ValueError('请走近剧情联系人再交谈。')
     def menu(self,nid,text,choices):
+        from native946_npc_quests import LOTUS_HELP_TARGET, Quests
+
+        key=(self.g.character['map_id'],nid)
+        if key==LOTUS_HELP_TARGET and Quests(self.g).active('lotus_help'):
+            choices=[('寻求帮助' if label=='其他事务' and a['op']=='service' else label,a) for label,a in choices]
         self.g.dialog_actions=[dict(kind='campaign',**a) for _,a in choices]
         return self.g.menu(text,[label for label,_ in choices],nid)
     def close_menu(self):
