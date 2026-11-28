@@ -1,6 +1,7 @@
 """Daily NPC tasks with durable ownership and reward receipts."""
+from contextlib import contextmanager, nullcontext
 from datetime import datetime,timedelta,timezone
-from functools import lru_cache
+from functools import lru_cache, partial
 from hashlib import sha256
 from pathlib import Path
 from random import Random
@@ -9,14 +10,14 @@ from time import time,monotonic
 import json
 from collections import deque
 
-REFERENCE_WIRE_VERSION=12
+REFERENCE_WIRE_VERSION=13
 
 from native946_codec import packet, screen_notice, text_notice
 from native946_equipment import DATA
 from native946_map import load_map
 from native946_navigation import task_trace_title
 from native946_world import world
-from native946_wilderness import WildBattle,POLICY as WILD_POLICY,enter_shared_battle
+from native946_wilderness import ENEMY_SLOTS, WildBattle,POLICY as WILD_POLICY,enter_shared_battle
 from native946_school import (MASTERS, TASK_LEVEL, TASK_LIMIT, OBJECTIVE_NAMES, PATROL_MAPS, PATROL_RADIUS, VISIT_TARGETS,
                               MEDICINE_SUPPLY_AMOUNT, SUPPLY_MEDICINES, School, add_contribution, base_school, draw_objective)
 from native946_school_daily import completion_packets, record_completion, reward_packets
@@ -30,11 +31,31 @@ ACTIVITIES['treasure']=dict(name='普通藏宝图',level=TREASURE['level'],ascen
                             limit=TREASURE['limit'],giver=TREASURE['giver'],maps=TREASURE['maps'])
 TTL=1200
 ENCOUNTERS=json.loads(Path(__file__).with_name('native946_quest_encounter_data.json').read_text('utf8'))
+SANJIE_DATA=json.loads(Path(__file__).with_name('native946_sanjie_data.json').read_text('utf8'))
+# The three original branch IDs remain valid for tasks already saved.
+SANJIE_TIERS=dict(enumerate(SANJIE_DATA['tiers'], 10))
+SANJIE_OPPONENTS=SANJIE_DATA['opponents']
+SANJIE_KITS={12: 6901, 16: 6902}
+QUEST_PAGE=8
 
 def numbers(mid,*values):return packet(mid,['number']*len(values),values)
 def notice(text):return text_notice(text)
 def day_key(now=None):
     return (datetime.fromtimestamp(time() if now is None else now,timezone.utc)+timedelta(hours=-4)).date().isoformat()
+
+def day_start(now):
+    return (now-14400)//86400*86400+14400
+
+def sanjie_stage_target(tier, stage):
+    node=tier['targets'][stage-1]
+    scene,nid=node['scene_id'],node['npc_id']
+    npc=world().npc(scene,nid)
+    x,y=load_map(scene).nearest_walkable(npc['x']//20,npc['y']//20)
+    return scene,x,y,nid,node['name'],node['shape']
+
+def sanjie_kit_rows(db,cid,kind):
+    return db.execute('SELECT id,amount FROM inventory WHERE character_id=? AND page=? AND type=? '
+                      'AND amount>0 ORDER BY slot',(cid,QUEST_PAGE,kind)).fetchall()
 
 
 def spawn_position(scene,rng):
@@ -144,12 +165,21 @@ def reward(kind,level,ring,rng,branch=0,*,rare_available=True):
         return dict(experience=xp,gold=1+ring*3,guardian_experience=xp,points=0,drops={},
                     rare=False,policy='school-local-v1',victory=True)
     else:
-        if type(branch) is not int or not 0<=branch<3:raise ValueError('三界令分支无效。')
-        target=meta['targets'][branch];den=target['denominator'];xp=level*level*(den+ring)//den
-        cash=1+ring*10;points=target['points']
+        if branch in SANJIE_TIERS:
+            tier=SANJIE_TIERS[branch]
+            if ring>len(tier['targets']):raise ValueError('任务奖励参数无效。')
+            final=ring==len(tier['targets'])
+            den=tier['denominator'];xp=level*level*(den+ring)//den
+            cash=1+ring*10;points=tier['token_points'] if final else 0
+            if final:xp*=2;cash*=2
+        else:
+            if type(branch) is not int or not 0<=branch<3:raise ValueError('三界令分支无效。')
+            target=meta['targets'][branch];den=target['denominator'];xp=level*level*(den+ring)//den
+            cash=1+ring*10;points=target['points']
     rare=False
     if kind=='sanjie':
-        if ring==10 and rng.randint(1,1000)<=500:drops[rng.choice(meta['pools'][0])]=rng.randint(1,5)
+        if (points if branch in SANJIE_TIERS else ring==10) and rng.randint(1,1000)<=500:
+            drops[rng.choice(meta['pools'][0])]=rng.randint(1,5)
     elif (kind!='ghost' or ring%2==0) and (kind!='king' or rng.randint(1,100)<=50):
         roll=rng.randint(1,1000);pools=meta['pools']
         if kind=='king' and roll==1 and rare_available:drops[rng.choice(pools[0])]=1;rare=True
@@ -161,7 +191,7 @@ def reward(kind,level,ring,rng,branch=0,*,rare_available=True):
                 policy=DATA['version'],victory=True)
 
 
-def settle_reward(db, game, task, ring, receipt_id, value):
+def settle_reward(db, game, task, ring, receipt_id, value, *, complete_round=True):
     from native946_experience_charm import reward_experience
     cid = game.progression.cid
     value['experience'] = reward_experience(db, cid, value['experience'], int(time()))
@@ -177,8 +207,9 @@ def settle_reward(db, game, task, ring, receipt_id, value):
                               "WHERE character_id=? AND kind='school' AND day<>?", (day,cid,day)).rowcount
         if rollover:
             next_ring = 2
-    db.execute('UPDATE native_npc_activity_progress SET completed=completed+1,next_ring=? WHERE character_id=? AND kind=?',
-               (next_ring,cid,task['kind']))
+    if complete_round:
+        db.execute('UPDATE native_npc_activity_progress SET completed=completed+1,next_ring=? WHERE character_id=? AND kind=?',
+                   (next_ring,cid,task['kind']))
     if task['kind']=='school':
         add_contribution(db,cid,10)
         value.update(record_completion(db,cid,day))
@@ -252,6 +283,8 @@ class Quests:
                               +'#r本机任务限时30分钟，每日最多10次。右键使用宝图获取地点提示，到点再次使用挖宝。',choices)
         kind=GIVERS.get(location)
         if not kind:return None
+        if kind=='sanjie':
+            return self.sanjie_menu(npc['npc_id'])
         current=next((r for r in self.active() if r['npc']==npc['npc_id'] and r['scene']==npc['scene_id']),None)
         if current:
             choices=[('挑战任务目标',dict(kind='npc_quest',op='fight',task=current['id']))]
@@ -264,16 +297,47 @@ class Quests:
         if current:
             choices.extend([('前往当前任务目标',dict(kind='npc_quest',op='navigate',task=current['id'])),
                             ('取消当前任务',dict(kind='npc_quest',op='cancel',task=current['id']))])
-        elif kind=='sanjie':
-            choices.extend((t['branch'],dict(kind='npc_quest',op='accept',activity=kind,branch=i)) for i,t in enumerate(ACTIVITIES[kind]['targets']))
         else:choices.append(('领取下一环',dict(kind='npc_quest',op='accept',activity=kind,branch=0)))
         if kind=='ghost':
             from native946_afei_expansion import ghost_options
             choices.extend(ghost_options(self.g))
-        if kind=='sanjie':
-            choices.append(('前往吕毅兑换三界令',dict(kind='npc_quest',op='exchange_location',activity=kind)))
         choices.append(('领取暂存任务奖励',dict(kind='npc_quest',op='claim',activity=kind)))
         return self._menu(npc['npc_id'],rule+'#r每10环一轮，限时20分钟完成当前任务。',choices)
+
+    def sanjie_menu(self,nid):
+        current=self.active('sanjie')
+        if current:
+            choices=[('前往当前任务目标',dict(kind='npc_quest',op='navigate',task=current['id'])),
+                     ('取消当前任务',dict(kind='npc_quest',op='cancel',task=current['id'])),
+                     ('查询队员完成三界令任务情况',dict(kind='npc_quest',op='sanjie_team')),
+                     ('算了，让我再考虑一下',dict(kind='npc_quest',op='close'))]
+            if kit:=SANJIE_KITS.get(current['branch']):
+                choices.insert(1,('补领'+SANJIE_DATA['items'][str(kit)]['name'],dict(kind='npc_quest',op='sanjie_kit')))
+            return self._menu(nid,'你还有三界令任务在进行中。',choices)
+        choices=[('好吧，我愿意接受大唐的任务',dict(kind='npc_quest',op='sanjie_tiers')),
+                 ('了解如何做任务',dict(kind='npc_quest',op='sanjie_rules')),
+                 ('查询队员完成三界令任务情况',dict(kind='npc_quest',op='sanjie_team')),
+                 ('我要雇佣侠客帮我完成任务',dict(kind='npc_quest',op='sanjie_hire')),
+                 ('算了，让我再考虑一下',dict(kind='npc_quest',op='close'))]
+        return self._menu(nid,'我是唐王任命的大唐任务发布使，完成我的任务有助于提高你在大唐的地位，你愿意接受这些任务吗？',choices)
+
+    def sanjie_team_menu(self,nid):
+        games=self.g.party_service.participants(self.g)
+        lines=[]
+        with self.p.transaction(write=False) as db:
+            for g in games:
+                progress=db.execute("SELECT accepted,completed FROM native_npc_activity_progress "
+                                    "WHERE character_id=? AND kind='sanjie' AND day=?",
+                                    (g.progression.cid,day_key())).fetchone()
+                branches=db.execute("SELECT count(DISTINCT q.branch) FROM native_npc_quests q "
+                                    "JOIN native_npc_quest_members m ON m.task_id=q.id "
+                                    "WHERE m.character_id=? AND q.kind='sanjie' AND q.created>=? AND m.ring=1",
+                                    (g.progression.cid,day_start(int(time())))).fetchone()[0]
+                completed=progress['completed'] if progress else 0
+                lines.append(f'#r{g.character["name"]}：今日完成 {completed} 环，已领 {branches} 档')
+        return self._menu(nid,'三界令任务完成情况：'+(''.join(lines) if lines else '#r当前没有队员。'),
+                          [('查看可领取档位',dict(kind='npc_quest',op='sanjie_tiers')),
+                           ('算了，让我再考虑一下',dict(kind='npc_quest',op='close'))])
 
     def _menu(self,nid,text,choices):
         self.g.dialog_actions=[action for label,action in choices]
@@ -295,8 +359,27 @@ class Quests:
             raise ValueError('请走到当前任务目标附近。')
 
     def execute(self,nid,action):
-        if self.g.battle:raise ValueError('请先结束当前战斗。')
         op=action['op']
+        if op=='close':return self.g.close_npc_dialogue()
+        if self.g.battle:raise ValueError('请先结束当前战斗。')
+        if op in ('sanjie_tiers','sanjie_rules','sanjie_team','sanjie_hire','sanjie_kit'):
+            self.validate_giver(nid,'sanjie')
+            if op=='sanjie_kit':return self.replenish_sanjie_kit()
+            close=('算了，让我再考虑一下',dict(kind='npc_quest',op='close'))
+            tiers=('查看可领取档位',dict(kind='npc_quest',op='sanjie_tiers'))
+            if op=='sanjie_tiers':
+                choices=[(tier['task_open'],dict(kind='npc_quest',op='accept',activity='sanjie',branch=branch))
+                         for branch,tier in SANJIE_TIERS.items()]
+                return self._menu(nid,'选择任务：',[*choices,close])
+            if op=='sanjie_team':return self.sanjie_team_menu(nid)
+            if op=='sanjie_hire':
+                return self._menu(nid,'雇佣侠客的功能还没有开放，这些任务你可以自己完成，奖励一样丰厚。',[tiers,close])
+            text=('凡是等级达到或超过40级的玩家每天可以组队在我这领取#R三界令任务#W，'
+                  '然后根据任务提示完成任务，我将会给与你们一定的奖励。#r'
+                  '使用一定数量的三界令，可以在三界令兑换使那里兑换装备。')
+            return self._menu(nid,text,[('好吧，我愿意接受大唐的任务',tiers[1]),
+                                     ('前往吕毅兑换三界令',dict(kind='npc_quest',op='exchange_location',activity='sanjie')),
+                                     ('领取暂存任务奖励',dict(kind='npc_quest',op='claim',activity='sanjie')),close])
         if op in ('rules','accept','claim','exchange_location'):
             kind=action['activity'];self.validate_giver(nid,kind)
             if op=='exchange_location':
@@ -319,6 +402,11 @@ class Quests:
             return Workshops.tip(ACTIVITIES[kind]['name'],text+'#r限时20分钟，每10环一轮。取消、超时不会退回当日领取次数。#r暂存奖励：'+pending)
         row=next((r for r in self.active() if r['id']==action['task']),None)
         if row is None:raise ValueError('任务已经完成、取消或超时。')
+        if op=='sanjie_other':
+            if row['kind']!='sanjie' or nid!=row['npc']:raise ValueError('请与目标本人对话。')
+            self.target(row)
+            tier=SANJIE_TIERS[row['branch']]
+            return notice('眼下你只有'+tier['branch']+'这一件事，点上面那行任务就能开始。')
         if op in ('visit','visit_other'):
             if row['school_objective']!='visit' or nid!=row['npc']:
                 raise ValueError('请找本环指定的联系人。')
@@ -347,6 +435,21 @@ class Quests:
             return self.g.defer_packets(lambda:(*self.p.task_packets(),*self.scene_packets(),notice('任务已取消，当日领取次数不返还。')))
         raise ValueError('任务选项无效。')
 
+    def replenish_sanjie_kit(self):
+        from native946_inventory_features import give
+
+        with self.p.transaction() as db:
+            current=next((row for row in active_records(db,self.p.cid) if row['kind']=='sanjie'),None)
+            kit=SANJIE_KITS.get(current['branch']) if current else None
+            if not kit:raise ValueError('当前没有需要补领道具的三界令任务。')
+            need=len(SANJIE_TIERS[current['branch']]['targets'])-current['ring']+1
+            extra=need-sum(row['amount'] for row in sanjie_kit_rows(db,self.p.cid,kit))
+            if extra<=0:return notice('任务道具数量充足。')
+            give(db,self.p,kit,extra,destinations={QUEST_PAGE:24})
+        self.p._cached_snapshot=None
+        name=SANJIE_DATA['items'][str(kit)]['name']
+        return self.g.defer_packets(lambda:(*self.p.item_packets(pages={QUEST_PAGE}),notice(f'已补领{name}×{extra}。')))
+
     def cancel(self,task_id):
         if self.g.battle:raise ValueError('战斗中不能放弃任务。')
         with self.p.transaction() as db:
@@ -358,11 +461,13 @@ class Quests:
     def accept(self,kind,branch=0,*,giver=None):
         if kind not in ACTIVITIES or self.g.battle:raise ValueError('当前不能领取该任务。')
         meta=ACTIVITIES[kind]
+        tier=SANJIE_TIERS.get(branch) if kind=='sanjie' and type(branch) is int else None
         if kind=='school':
             if MASTERS.get((self.g.character['map_id'],giver))!=branch:
                 raise ValueError('师门任务领取人不匹配。')
             self.validate_giver(giver,kind)
-        elif type(branch) is not int or not 0<=branch<(3 if kind=='sanjie' else 1):raise ValueError('任务分支无效。')
+        elif tier is None and (type(branch) is not int or not 0<=branch<(3 if kind=='sanjie' else 1)):
+            raise ValueError('任务分支无效。')
         if kind=='ghost' and getattr(self.g,'_auto_ghost_until',0) > monotonic():
             raise ValueError('请先停止自动抓鬼。')
         if kind=='treasure':
@@ -381,7 +486,7 @@ class Quests:
                 s=g.progression._snapshot(db)
                 if kind=='school' and base_school(s['school'])!=branch:
                     raise ValueError('请向自己门派的师父领取任务。')
-                if s['level']<meta['level'] or s['ascension']<meta['ascension']:
+                if s['level']<(tier['level'] if tier else meta['level']) or s['ascension']<meta['ascension']:
                     raise ValueError(g.character['name']+'尚未满足此任务的客户端等级条件。')
                 if any(r['kind']==kind for r in active_records(db,g.character['id'],now)):raise ValueError(g.character['name']+'已经有此类任务。')
                 cid=g.character['id']
@@ -389,8 +494,16 @@ class Quests:
                 reset_ring = ",next_ring=1" if kind == 'school' else ''
                 db.execute(f'UPDATE native_npc_activity_progress SET day=?,accepted=0,completed=0{reset_ring} WHERE character_id=? AND kind=? AND day<>?',(day,cid,kind,day))
                 progress=db.execute('SELECT * FROM native_npc_activity_progress WHERE character_id=? AND kind=?',(cid,kind)).fetchone()
-                if meta['limit'] and progress['accepted']>=meta['limit']:raise ValueError(g.character['name']+'已达到当日领取上限。')
-                rings[cid]=progress['next_ring']
+                if tier:
+                    accepted=db.execute("SELECT count(*) FROM native_npc_quests q "
+                                        "JOIN native_npc_quest_members m ON m.task_id=q.id "
+                                        "WHERE m.character_id=? AND q.kind='sanjie' AND q.branch=? "
+                                        "AND q.created>=? AND m.ring=1",(cid,branch,day_start(now))).fetchone()[0]
+                    if accepted>=tier['limit']:raise ValueError(g.character['name']+'已达到当日领取上限。')
+                    rings[cid]=1
+                else:
+                    if meta['limit'] and progress['accepted']>=meta['limit']:raise ValueError(g.character['name']+'已达到当日领取上限。')
+                    rings[cid]=progress['next_ring']
             objective,target_id,amount = None,None,1
             if kind == 'school':
                 previous = db.execute('SELECT a.item_type FROM native_school_supply_tasks a '
@@ -421,6 +534,9 @@ class Quests:
                 shape=rng.choice(allowed)['type']
                 name='可疑行人' if objective=='patrol' else rng.choice(['子时','午时','戌时'])+('鬼王' if kind=='king' else '游魂')
                 nid,dynamic,selected=0,1,branch if kind=='school' else 0
+            elif tier:
+                scene,x,y,nid,name,shape=sanjie_stage_target(tier,1)
+                dynamic,selected=0,branch
             else:
                 selected=branch if kind=='sanjie' else rng.randrange(len(meta['targets']));target=meta['targets'][selected]
                 scene=target['scene_id'];grid=load_map(scene);x,y=grid.nearest_walkable(target['x']//20,target['y']//20)
@@ -434,12 +550,19 @@ class Quests:
             for cid,ring in rings.items():
                 db.execute('INSERT INTO native_npc_quest_members VALUES(?,?,?,\'active\')',(qid,cid,ring))
                 db.execute('UPDATE native_npc_activity_progress SET accepted=accepted+1 WHERE character_id=? AND kind=?',(cid,kind))
+            kit=SANJIE_KITS.get(branch) if tier else None
+            if kit:
+                from native946_inventory_features import give
+                for g in games:
+                    missing=len(tier['targets'])-sum(row['amount'] for row in sanjie_kit_rows(db,g.progression.cid,kit))
+                    if missing>0:give(db,g.progression,kit,missing,destinations={QUEST_PAGE:24})
         def publish():
             result=[]
             for g in games:
                 g.progression._cached_snapshot=None
                 task_type=' '+OBJECTIVE_NAMES[objective] if objective else ''
                 replies=(*g.progression.task_packets(),*Quests(g).scene_packets(),notice('已领取'+meta['name']+'第'+str(rings[g.character['id']])+'环'+task_type+'。'))
+                if kit:replies=(*replies,*g.progression.item_packets(pages={QUEST_PAGE}))
                 if g is self.g:result.extend(replies)
                 else:g.party_service.enqueue(g,*replies)
             return tuple(result)
@@ -477,6 +600,22 @@ class Quests:
         self.target(row)
         if row['school_objective']=='patrol':
             return self._menu(nid,'在这一带走动即可巡逻。',[])
+        if row['kind']=='sanjie' and row['branch'] in SANJIE_TIERS:
+            tier=SANJIE_TIERS[row['branch']]
+            choice='任务： ['+tier['branch']+']'
+            if kit:=SANJIE_KITS.get(row['branch']):
+                item=SANJIE_DATA['items'][str(kit)]['name']
+                with self.p.transaction(write=False) as db:
+                    if not sanjie_kit_rows(db,self.p.cid,kit):
+                        return self._menu(nid,'缺少'+item+'。#r回长安找宋寒「补领任务道具」后再来。',
+                                          [('回长安找宋寒补领'+item,dict(kind='npc_quest',op='close')),
+                                           ('离开',dict(kind='npc_quest',op='close'))])
+                choice='使用'+item+'（'+choice+'）'
+            return self._menu(nid,'',[
+                (choice,dict(kind='npc_quest',op='fight',task=row['id'])),
+                ('<我找你有其他事>',dict(kind='npc_quest',op='sanjie_other',task=row['id'])),
+                ('离开',dict(kind='npc_quest',op='close')),
+            ])
         return self._menu(nid,'这是'+ACTIVITIES[row['kind']]['name']+'第'+str(row['ring'])+'环任务目标。',
                           [('挑战任务目标',dict(kind='npc_quest',op='fight',task=row['id']))])
 
@@ -511,12 +650,37 @@ class Quests:
         games=self.g.party_service.participants(self.g)
         games=[g for g in games if any(r['id']==row['id'] for r in Quests(g).active())]
         if not games:raise ValueError('当前没有可以参加此任务战斗的队员。')
+        kit=SANJIE_KITS.get(row['branch']) if row['kind']=='sanjie' else None
+        if kit:
+            @contextmanager
+            def prepare_kit():
+                from native946_inventory_locks import require_unlocked
+                with self.p.transaction() as db:
+                    for g in games:
+                        cid=g.progression.cid
+                        rows=sanjie_kit_rows(db,cid,kit)
+                        if not rows:raise ValueError('队员缺少三界令任务道具，请找宋寒补领。')
+                        item=rows[0]
+                        require_unlocked(db,cid,item['id'])
+                        if item['amount']==1:
+                            db.execute('DELETE FROM inventory WHERE id=? AND character_id=?',(item['id'],cid))
+                        else:
+                            db.execute('UPDATE inventory SET amount=amount-1 WHERE id=? AND character_id=?',(item['id'],cid))
+                    yield
+            return enter_quest_battle(self.g,games,lambda:QuestBattle(self.g,games,row),prepare=prepare_kit)
         return enter_quest_battle(self.g,games,lambda:QuestBattle(self.g,games,row))
 
 
-def enter_quest_battle(game,games,build):
+def enter_quest_battle(game,games,build,*,prepare=nullcontext):
     if any(g.battle or g.progression.snapshot()['hp']<=0 for g in games):raise ValueError('请先恢复队员状态，或结束现有战斗。')
-    return game.defer_packets(lambda: enter_shared_battle(games,build))
+    def enter():
+        result=enter_shared_battle(games,build,prepare=prepare)
+        if prepare is not nullcontext:
+            for g in games:
+                g.progression._cached_snapshot=None
+                g.party_service.enqueue(g,*g.progression.item_packets(pages={QUEST_PAGE}))
+        return result
+    return game.defer_packets(enter)
 
 
 def reference_roster(task, party_size):
@@ -550,10 +714,22 @@ class QuestBattle(WildBattle):
 
     def __init__(self,leader,games,task):
         self.task=dict(task)
+        self.sanjie_tier=SANJIE_TIERS.get(task['branch']) if task['kind']=='sanjie' else None
+        self.sanjie_script=SANJIE_OPPONENTS[str(task['npc'])] if self.sanjie_tier else {}
+        if self.sanjie_script.get('summon'):
+            if self.sanjie_script['summon'].get('trigger')=='party':
+                self.on_round_start=partial(self.reinforce_sanjie,before_actions=True)
+            else:
+                self.after_round=partial(self.reinforce_sanjie,before_actions=False)
         level=max(1,sum(g.progression.snapshot()['level'] for g in games)//len(games))
         roster=reference_roster(task,len(games))
         if roster:
             level=50 if task['kind']=='ghost' else 40
+        if self.sanjie_script:
+            stats=dict(roster[0]['combat_stats'])
+            stats.pop('reference_monster',None)
+            roster=[dict(name=unit['name'],type=unit['shape'],guardian_type=0,combat_stats=dict(stats))
+                    for unit in self.sanjie_script['party']]
         buzhou_patrol = task.get('school_objective') == 'patrol' and task['scene'] == 2360
         if buzhou_patrol:
             # The captured Buzhou patrol has two distinct models. Keep the
@@ -581,7 +757,47 @@ class QuestBattle(WildBattle):
             self.project()
 
     def entry_notice(self):
-        return '任务战斗已开始。'
+        return self.sanjie_script.get('challenge') or '任务战斗已开始。'
+
+    def reinforce_sanjie(self,runtime,before_actions):
+        summon=self.sanjie_script.get('summon')
+        if not summon or (summon.get('trigger')=='party')!=before_actions:
+            return
+        if runtime.round!=summon.get('round',1) or self.state.get('sanjie_reinforced'):
+            return
+        enemies=self.enemies()
+        if not enemies:return
+        self.state['sanjie_reinforced']=True
+        for text in (self.sanjie_script.get('buff_notice'),summon.get('notice')):
+            if text:runtime.out.append(screen_notice(text))
+        ref=enemies[0]
+        occupied={enemy['slot'] for enemy in enemies}
+        slots=[slot for slot in summon.get('slots',()) if slot not in occupied]
+        slots.extend(slot for slot in range(1,ENEMY_SLOTS+1) if slot not in occupied and slot not in slots)
+        fid=max(actor['id'] for actor in runtime.fighters.values() if actor['camp']==3)
+        game=self.games[self.leader]
+        units=(unit for unit in summon['units'] for _ in range(unit.get('count',1)))
+        for slot,unit in zip(slots,units):
+            fid+=1
+            hp=max(1,ref['hpmax']//3)
+            level=ref['level']
+            enemy=dict(id=fid,name=unit['name'],type=unit['shape'],guardian_type=0,kind='enemy',camp=3,
+                       slot=slot,hp=hp,hpmax=hp,mp=0,mpmax=0,level=level,attack=max(1,ref['attack']//2),
+                       initiative=max(1,ref['initiative']//2),defense=0,captured=False,removed=False,exit_on_defeat=False)
+            runtime.fighters[fid]=enemy
+            runtime.prepare(enemy)
+            runtime.out.append(game.fighter(fid,enemy['type'],enemy['name'],3,2,slot,level,mid=2128))
+            runtime.bars(enemy,initialize=True)
+
+    def advance_sanjie(self,db,members):
+        stage=members[0][1]+1
+        scene,x,y,nid,name,shape=sanjie_stage_target(self.sanjie_tier,stage)
+        now=int(time())
+        qid=db.execute('INSERT INTO native_npc_quests(token,kind,branch,leader_id,created,expires,scene,x,y,npc,name,shape,dynamic) '
+                       "VALUES(?,'sanjie',?,?,?,?,?,?,?,?,?,?,0)",
+                       (token_hex(24),self.task['branch'],self.leader,now,now+TTL,scene,x,y,nid,name,shape)).lastrowid
+        db.executemany("INSERT INTO native_npc_quest_members VALUES(?,?,?,'active')",
+                       [(qid,cid,stage) for cid,_ in members])
 
     def settle(self,db,victory):
         if self.state['settled']:return
@@ -590,6 +806,7 @@ class QuestBattle(WildBattle):
         rare_available=True
         double_time = self.task['kind'] in TASKS
         now = int(time())
+        next_members=[]
         for cid,g in self.games.items():
             existing=db.execute('SELECT * FROM native_npc_quest_rewards WHERE task_id=? AND character_id=?',(self.task['id'],cid)).fetchone()
             if existing:
@@ -620,7 +837,9 @@ class QuestBattle(WildBattle):
                         value['experience'] = value['experience'] * hero_rate // 100
                         value['guardian_experience'] *= guardian_rate
                     if value['rare']:rare_available=False
-                    settle_reward(db,g,self.task,member['ring'],self.id,value)
+                    round_complete=not self.sanjie_tier or member['ring']==len(self.sanjie_tier['targets'])
+                    settle_reward(db,g,self.task,member['ring'],self.id,value,complete_round=round_complete)
+                    if not round_complete:next_members.append((cid,member['ring']))
                     if double_time and cid == self.leader and len(self.games) == 5:
                         award_captain(db, cid, now)
                     for ref,amount in value['drops'].items():db.execute('INSERT INTO native_npc_pending_items(task_id,character_id,reference_type,amount) VALUES(?,?,?,?)',(self.task['id'],cid,ref,amount))
@@ -630,6 +849,7 @@ class QuestBattle(WildBattle):
                                      experience=value['guardian_experience'], neidan_experience=base_guardian * neidan_rate,
                                      stunt_experience=base_guardian)
             self.state.setdefault('rewards',{})[cid]=value
+        if next_members:self.advance_sanjie(db,next_members)
         self.state['settled']=True
 
     def finish(self,victory):
@@ -654,6 +874,16 @@ class QuestBattle(WildBattle):
                 guardians = [pet['name'] for pet in self.state['participants'][cid].values()]
                 self.service.enqueue(g,*reward_packets('巡逻',value,guardians),
                                      *completion_packets(value),*School(g).after_task(value))
+            elif value.get('victory') and self.sanjie_tier:
+                g.progression._cached_snapshot=None
+                g.dialog_actions=[dict(kind='npc_quest',op='close')]
+                ending=self.sanjie_script.get('defeat')
+                if not ending:
+                    ending=self.sanjie_tier['task_end_final' if value.get('points') else 'task_end']
+                reward_lines=[f'您获得#G{value["experience"]}#n经验',f'您获得#G{value["gold"]}#n两现金']
+                if value.get('points'):reward_lines.append(f'您获得#G{value["points"]}#n枚三界令')
+                self.service.enqueue(g,screen_notice('#r'.join(reward_lines)),g.menu(ending,['离开'],npc_id=self.task['npc']),
+                                     *g.progression.task_packets())
             else:
                 self.service.enqueue(g,screen_notice(text) if value.get('victory') else notice(text))
             g.last_event=dict(action='npc_quest_battle_finished',task_id=self.task['id'],victory=value.get('victory',False),reward=value)
@@ -661,7 +891,13 @@ class QuestBattle(WildBattle):
 
 def task_details(row):
     title=ACTIVITIES[row['kind']]['name']+' 第'+str(row['ring'])+'环'
-    if row.get('supply_item'):
+    tier=SANJIE_TIERS.get(row['branch']) if row['kind']=='sanjie' else None
+    if tier:
+        title='【三界令】'+tier['branch']
+        total=len(tier['targets'])
+        text=f'前往{world().scene(row["scene"])["scene_name"]}挑战{row["name"]}（{row["x"]}，{row["y"]}）。第{row["ring"]}/{total}场。'
+        description='清完本轮的全部目标后获得三界令。'
+    elif row.get('supply_item'):
         from native946_school import supply_text
         title+=' · 寻物'
         text,description=supply_text(row)

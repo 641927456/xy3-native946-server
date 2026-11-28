@@ -317,8 +317,10 @@ class GrowthFlowTests(unittest.TestCase):
             saved=[(sid,300,7,12,0,17,999,0),(sid,307,8,25,0,33,1234,1)]
             db.executemany('INSERT INTO native_guardian_books VALUES(?,?,?,?,?,?,?,?)',saved)
             schema(db);schema(db)
-            self.assertEqual([tuple(r) for r in db.execute('SELECT * FROM native_guardian_books ORDER BY skill')],saved)
-            db.execute('INSERT INTO native_guardian_books VALUES(?,365,9,1,0,0,40,1)',(sid,))
+            self.assertEqual([tuple(r) for r in db.execute('SELECT * FROM native_guardian_books ORDER BY skill')],
+                             [(*row,0,0) for row in saved])
+            db.execute('INSERT INTO native_guardian_books(summon_id,skill,position,level,rebirth,experience,expnext,tier) '
+                       'VALUES(?,365,9,1,0,0,40,1)',(sid,))
 
     def test_native_control_buffs_change_actions_and_resistance_prevents_them(self):
         self.mature();cid=self.game.progression.cid

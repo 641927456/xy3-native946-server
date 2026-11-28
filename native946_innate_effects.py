@@ -10,6 +10,12 @@ XINYI_TARGETS = 5
 XINYI_SPEED_PERCENT = 900
 XINYI_WRATH = 250
 
+DUOMU = 4804
+XIANZHI_BAOHUN = 4806
+XIANZHI_SHIELD_ROUNDS = 3
+XIANZHI_REDUCTION_ROUNDS = 2
+XIANZHI_REDUCTION_PER_MILLE = 150
+
 CANSHENG_RULES = GUARDIAN_RULES['skills'][str(CANSHENG_YIJIU)]
 CANSHENG_VERIFIED = CANSHENG_RULES['verified_constraints']
 CANSHENG_LOCAL = CANSHENG_RULES['local_battle_rule']
@@ -104,6 +110,7 @@ ACTIVE = {
     4730: dict(targets=5, mana=120, element='thunder', resist_down=True),
     4740: dict(targets=4, mana=100, element='physical'),
     4743: dict(targets=4, mana=100, element='physical', random_targets=True),
+    DUOMU: dict(targets=1, mana=8000, element='support', cooldown_rounds=2),
     4832: dict(targets=3, mana=100, element='thunder', weaken=True, primary_bonus=True),
     4897: dict(targets=1, mana=100, element='physical', hits=4, lost_hp_bonus=True),
     4899: dict(targets=5, mana=150, element='support', revive_heal=True),
@@ -133,6 +140,8 @@ def stats(row):
         if trained:
             skill.update(level=trained['level'], experience=trained['experience'])
         kind = skill['stunt_id']
+        if kind == 308 and has(row, 4724):
+            continue
         calibrated = ASCENDED_180_STATS.get(kind) if ascended_180(skill) else None
         if (kind in (4146,4147,4148,4149,4765) or kind==308 and skill.get('grade',0)>0) and calibrated is None:
             scale=stunt_scale(row,kind)
@@ -159,7 +168,7 @@ def active_rule(pet, skill, *, round_number=None):
         return None
     round_number = pet.get('role_round', 1) if round_number is None else round_number
     if rule.get('cooldown_rounds') and pet.get('role_cooldowns', {}).get(f'skill:{skill}', 0) > round_number:
-        raise ValueError('残生忆旧尚在冷却中。')
+        raise ValueError('夺目尚在冷却中。' if skill == DUOMU else '残生忆旧尚在冷却中。')
     if pet['mp'] < rule['mana']:
         from native946_guardian_magic import InsufficientGuardianMana
         raise InsufficientGuardianMana()
@@ -235,6 +244,10 @@ def echo_spell(runtime,pet,skill):
 def dragon_round_bonus(pet):
     return 15*stunt_scale(pet,4619)//10000*10
 
+def xianzhi_shield_basis_points(pet):
+    # Keep the existing cultivation curve and the official 90% preview anchor.
+    return 9000 * stunt_scale(pet, XIANZHI_BAOHUN) // 10000
+
 def revive_target_count(pet, rule):
     return rule['revive_targets'] + int(has(pet, ZHONGLING_YUXIU))
 
@@ -249,6 +262,8 @@ def combat_skills(pet):
                                f"为满级样本反推值。冷却{rule['cooldown_rounds']}回合。")
             elif skill == 4539:
                 description = f"本机最多作用{target_count(pet, skill, rule)}个目标，造成水法和火法伤害。"
+            elif skill == DUOMU:
+                description = '自身物理减伤50%，持续2回合。使一名敌人误导1回合，冷却2回合。'
             else:
                 description = '本机规则：最多作用5个目标，造成物理伤害并附加雷、火、风伤害。' if skill == 4906 else '本机规则：'+({'physical':'物理','water':'水系','fire':'火系','wind':'风系','thunder':'雷系','poison':'毒系','support':'辅助'}.get(rule['element'],'混合')+'效果。')
             result.append(dict(skill_id=skill, cost='法力：' + str(rule['mana']), des=description))
@@ -264,6 +279,7 @@ def elemental_base(pet,skill,multiplier=1):
 
 def physical(runtime, attacker, target, skill, *, hits=1, lost_hp=False, multiplier=1000, basis_points=10000):
     from native946_book_combat import roll
+    preserve_numbers = hits > 1 or skill == 4906 or ACTIVE.get(skill, {}).get('random_targets', False)
     for index in range(hits):
         if target['hp'] <= 0:
             break
@@ -276,12 +292,13 @@ def physical(runtime, attacker, target, skill, *, hits=1, lost_hp=False, multipl
         amount = outcome['damage'] * multiplier * basis_points * physical_per_mille(attacker,skill) // 10_000_000_000
         if lost_hp:
             lost = target['hpmax'] - target['hp']
-            bonus = max(attacker['attack'], min(attacker['attack'] * 5, lost * 15 // 100))
+            base_attack = attacker.get('role_initial_attack', attacker['attack'])
+            bonus = max(base_attack, min(base_attack * 5, lost * 15 // 100))
             amount += max(0, bonus)
             runtime.out.append(nums(2162, target['id'], outcome['effect'] or 1))
         elif outcome['effect']:
             runtime.out.append(nums(2162, target['id'], outcome['effect']))
-        runtime.damage(attacker, target, amount, 'physical', primary=index == 0)
+        runtime.damage(attacker, target, amount, 'physical', primary=index == 0, preserve_numbers=preserve_numbers)
 
 
 def spirit_factor(attacker):
@@ -319,8 +336,12 @@ def jing_fire_critical(attacker, target, amount, rng):
     return amount
 
 
-def elemental(runtime, attacker, targets, skill, family, *, multiplier=1, damage_per_mille=1000, active=True):
-    for element in family.split('_'):
+def elemental(runtime, attacker, targets, skill, family, *, multiplier=1, damage_per_mille=1000,
+              active=True, preserve_numbers=False):
+    elements = family.split('_')
+    rule = ACTIVE.get(skill, {})
+    preserve_numbers = preserve_numbers or len(elements) > 1 or rule.get('hits', 1) > 1
+    for element in elements:
         for target in targets:
             if target['hp'] <= 0:
                 continue
@@ -345,14 +366,17 @@ def elemental(runtime, attacker, targets, skill, family, *, multiplier=1, damage
                 amount += 1250 * factor // 1000
             if has(attacker, 4729):
                 runtime.buff(target, 'ImmAbsorbDegree', -200 * factor // 1000, 1, 4729)
-            actual = runtime.damage(attacker, target, amount*damage_per_mille//1000, element, primary=False, active=active)
+            primary_bonus = rule.get('primary_bonus', False) and target is targets[0]
+            actual = runtime.damage(attacker, target, amount*damage_per_mille//1000, element,
+                                    primary=False, active=active, preserve_numbers=preserve_numbers or primary_bonus)
             if element == 'poison' and actual and target['hp'] > 0:
                 target.setdefault('role_dots', []).append(dict(kind='poison', source=attacker['id'], skill=skill,
                     damage=max(1, amount // 3), until=runtime.round + 2))
                 runtime.out.append(nums(2130, target['id'], 106, 0))
             if has(attacker, 4723) and element == 'wind' and target['hp'] > 0 and runtime.rng.randrange(1000) < 325 * factor // 1000:
-                runtime.damage(attacker, target, max(1, amount*damage_per_mille//2000), element, primary=False, active=active)
-    if any(element in ('fire','water','wind','thunder') for element in family.split('_')):
+                runtime.damage(attacker, target, max(1, amount*damage_per_mille//2000), element,
+                               primary=False, active=active, preserve_numbers=True)
+    if any(element in ('fire','water','wind','thunder') for element in elements):
         runtime.apply_jade_spell_debuff(attacker,targets)
 
 
@@ -382,6 +406,9 @@ def cast(runtime, game, attacker, target_id, skill):
         return False
     friendly = rule.get('transfer_mana') or rule.get('team_buff') or rule.get('damage_share')
     candidates = runtime.allies(attacker) if friendly else runtime.enemies(attacker)
+    if not friendly and (source := runtime.misdirection_source(attacker)) is not None:
+        candidates = [source, *(target for target in candidates if target is not source)]
+        target_id = source['id']
     count=target_count(attacker,skill,rule)
     extra=attacker.get('new_neidan_power',{}).get(278,0)
     if skill in (4043,4615) and extra and runtime.rng.randrange(10000)<extra:count+=1
@@ -419,6 +446,13 @@ def cast(runtime, game, attacker, target_id, skill):
             mana_transfer = (recipient, amount)
     runtime.bars(attacker)
     runtime.group(attacker, targets, skill)
+    if not friendly:
+        targets = [target for target in targets if not runtime.misdirection_blocks(attacker, target)]
+    if skill == DUOMU:
+        runtime.buff(attacker, 'role_physical_taken', -500, 2, skill)
+        for target in targets:
+            runtime.apply_misdirection(attacker, target)
+        attacker['role_cooldowns'][f'skill:{skill}'] = runtime.round + rule['cooldown_rounds']
     if has(attacker, 4969):
         count = min(10, attacker.get('role_stacks', {}).get('4969', 0) + 1)
         attacker['role_stacks']['4969'] = count
@@ -471,7 +505,8 @@ def cast(runtime, game, attacker, target_id, skill):
         if echo_spell(runtime,attacker,skill):
             runtime.end()
             runtime.group(attacker,live,skill)
-            elemental(runtime,attacker,live,skill,family,damage_per_mille=ECHO_DAMAGE_PER_MILLE)
+            elemental(runtime, attacker, live, skill, family, damage_per_mille=ECHO_DAMAGE_PER_MILLE,
+                      preserve_numbers=True)
     if rule.get('primary_bonus') and targets and targets[0]['hp'] > 0:
         elemental(runtime, attacker, [targets[0]], skill, family)
     if rule.get('heal'):
@@ -616,7 +651,7 @@ def after_damage(runtime, attacker, defender, actual, family):
     if has(attacker, 4559) and family == 'physical' and runtime.rng.randrange(1000) < 350:
         defender['no_revive_until'] = runtime.round + 1
     if has(attacker, 4868) and family != 'poison' and runtime.rng.randrange(1000) < 400 and defender['hp'] > 0:
-        elemental(runtime, attacker, [defender], 4868, 'poison',active=False)
+        elemental(runtime, attacker, [defender], 4868, 'poison', active=False, preserve_numbers=True)
     for skill, family_name in ((4714, 'shock'), (4715, 'thunder'), (4716, 'fire'), (4717, 'poison'), (4718, 'water'), (4719, 'wind'), (4727, 'physical')):
         if has(defender, skill) and family == family_name and defender['hp'] > 0 and runtime.rng.randrange(1000) < 500:
             runtime.heal(defender, defender, 30000 if skill in (4714, 4727) else 21000)
@@ -654,14 +689,17 @@ def prepare(runtime, fighter):
     if not fighter.get('role_entry_initialized') and fighter['hp']>0:
         fighter['role_entry_initialized']=True
         fighter['role_initial_speed']=fighter.get('initiative',0)
+        fighter['role_initial_attack']=fighter.get('attack',0)
         if has(fighter,4631) and runtime.rng.randrange(10000)<min(10000,10232*stunt_scale(fighter,4631)//10000):
             runtime.grant_invisibility(fighter,4631,runtime.round+runtime.rng.randint(2,3)-1)
-        if has(fighter,4806):
-            shield=fighter.get('unmodified_hpmax',fighter['hpmax'])*90*stunt_scale(fighter,4806)//1_000_000
+        if has(fighter, XIANZHI_BAOHUN):
+            shield = fighter.get('unmodified_hpmax', fighter['hpmax']) * xianzhi_shield_basis_points(fighter) // 10000
             for ally in runtime.allies(fighter):
-                ally.setdefault('role_absorb_hp',{})[4806]=shield
-                ally.setdefault('role_buffs',[])
-                runtime.buff(ally,'role_all_reduction',150,2,4806)
+                ally.setdefault('role_absorb_hp', {})[XIANZHI_BAOHUN] = min(shield, ally['hpmax'] * 3 // 2)
+                ally.setdefault('role_absorb_hp_until', {})[XIANZHI_BAOHUN] = runtime.round + XIANZHI_SHIELD_ROUNDS - 1
+                ally.setdefault('role_buffs', [])
+                runtime.buff(ally, 'role_all_reduction', XIANZHI_REDUCTION_PER_MILLE,
+                             XIANZHI_REDUCTION_ROUNDS, XIANZHI_BAOHUN)
         if has(fighter,4908):
             fighter['role_shields'].update(bell_physical=1,bell_element=1,bell_control=1)
     if has(fighter,4765) and 'peach' not in fighter['role_shields']:
@@ -706,6 +744,8 @@ def end_round(runtime, fighter):
 
 def death_effect(runtime, attacker, victim, skill):
     if skill==4619:
+        if victim.get('role_last_damage_family') == 'poison':
+            return False
         if victim.get('role_dragon_revived') or not runtime.revive(victim,victim,victim['hpmax']):return False
         victim['role_dragon_revived']=True
         return True

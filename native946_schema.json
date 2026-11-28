@@ -1674,6 +1674,24 @@
       "number"
     ]
   ],
+  "fu_info": [
+    ["grade", "number"],
+    ["rei", "number"],
+    ["fly", "number"],
+    ["tili", "number"],
+    ["tili_max", "number"],
+    ["mag", "number"],
+    ["str", "number"],
+    ["cor", "number"],
+    ["exp", "number"],
+    ["exp_next", "number"],
+    ["jingjie", "number"],
+    ["duanwei", "number"]
+  ],
+  "zq_skill_info": [
+    ["act_skill", "number"],
+    ["act_desc", "string"]
+  ],
   "newzq_stunt_info": [
     [
       "active",

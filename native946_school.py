@@ -67,8 +67,9 @@ EXTRA_SKILLS = {
     15:(6124,6140), 16:(6133,6139), 17:(6112,6038,6141), 18:(6105,6036,6127),
     19:(1706,1710),
 }
-SCHOOL_SKILLS = frozenset(skill for catalog in (SKILLS,EXTRA_SKILLS)
-                          for skills in catalog.values() for skill in skills)
+SCHOOL_SKILL_TIERS = {skill: tier for school, spells in SKILLS.items()
+                      for tier, skill in enumerate(spells + EXTRA_SKILLS[school], 1)}
+SCHOOL_SKILLS = frozenset(SCHOOL_SKILL_TIERS)
 # 946 configs.wdf b8c85c38 (info_hero_stunt_skill), indexed here by school.
 FLIGHT_STUNTS = {
     1: 27, 2: 17, 3: 7, 4: 37, 5: 57, 6: 67, 7: 77, 8: 47,
@@ -186,21 +187,34 @@ def level_spells(db, cid, role):
 
 def skill_rows(master, snapshot):
     from native946_role_battle import profile
+    from native946_skill6 import EXTRA_FENG_STAGE, SCHOOL_FENG_SKILLS, school_skills
 
     max_practice = practice_limit(snapshot)
     rows = []
-    own_school = base_school(snapshot['school']) == master
-    skills = SKILLS[master] + EXTRA_SKILLS[master] if own_school else SKILLS[master]
-    for tier, skill in enumerate(skills, 1):
+    offered = SKILLS[master]
+    if base_school(snapshot['school']) == master:
+        offered += EXTRA_SKILLS[master]
+    learned = snapshot['skills']
+    # role_feng reflects the current school's actual unlocks for a sealed role.
+    unlocked_feng = snapshot.get('role_feng', {}).keys()
+    if unlocked_feng and snapshot.get('jing_stage', 0) < EXTRA_FENG_STAGE:
+        unlocked_feng = unlocked_feng & school_skills(snapshot['school'])[:1]
+    # A trained spell remains eligible after rebirth lowers the role's level.
+    skills = dict.fromkeys((*offered, *sorted(learned.keys() & SCHOOL_SKILLS)))
+    for skill in skills:
         meta = profile(skill)
-        if not meta or meta['race'] not in (0, snapshot['race']) or snapshot['level'] < meta['level']:
+        if not meta or meta['race'] not in (0, snapshot['race']):
+            continue
+        if skill in SCHOOL_FENG_SKILLS and skill not in unlocked_feng:
+            continue
+        if skill not in learned and snapshot['level'] < meta['level']:
             continue
         if meta.get('sex') and meta['sex']!=snapshot['sex']:
             continue
         if meta.get('schools') and snapshot['school'] not in meta['schools']:
             continue
-        rank = snapshot['skills'].get(skill, 0)
-        rows.append(dict(skill_id=skill, cur_value=rank, max_value=max_practice,
+        tier = SCHOOL_SKILL_TIERS[skill]
+        rows.append(dict(skill_id=skill, cur_value=learned.get(skill, 0), max_value=max_practice,
                          next_money=5 * tier, next_contribute=tier if tier > 1 else 0, next_pote=0))
     return rows
 
@@ -803,7 +817,7 @@ class School:
             self.validate_learning(db, master, snapshot)
             row = next((row for row in skill_rows(master, snapshot) if row['skill_id'] == skill), None)
             if row is None:
-                raise ValueError('未达到法术的学习等级，或此师父不传授该法术。')
+                raise ValueError('该法术当前不可修习。')
             rank = row['cur_value']
             remaining = row['max_value'] - rank
             if times not in (1, 10) or remaining <= 0:

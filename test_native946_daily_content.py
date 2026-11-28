@@ -98,9 +98,66 @@ class DailyContentTests(unittest.TestCase):
             return db.execute('SELECT sanjie FROM native_npc_quest_wallet WHERE character_id=?',
                               (self.a.character['id'],)).fetchone()[0]
 
+    def accept_sanjie(self, choice):
+        self.team()
+        for game in self.games:self.buff(game)
+        self.assertEqual(self.open_npc(2001,4102), [
+            '好吧，我愿意接受大唐的任务', '了解如何做任务', '查询队员完成三界令任务情况',
+            '我要雇佣侠客帮我完成任务', '算了，让我再考虑一下',
+        ])
+        c=self.a.character
+        self.position(self.b,2001,c['x'],c['y'])
+        choices=menu(next(p for p in self.choose(4102,1) if mid(p)==1025))[1]
+        self.assertEqual(len(choices),8)
+        self.choose(4102,choice)
+
+    def test_sanjie_colleague_roster_and_shared_team_continuation(self):
+        from native946_npc_quests import SANJIE_OPPONENTS
+
+        self.accept_sanjie(1)
+        for stage,npc in enumerate((4103,4108,4111,2150,2156),1):
+            leader,follower=[Quests(game).active('sanjie') for game in self.games]
+            self.assertEqual((leader['id'],leader['ring'],leader['npc']),
+                             (follower['id'],stage,npc))
+            self.position(self.b,leader['scene'],leader['x'],leader['y'])
+            self.assertEqual(self.open_npc(leader['scene'],npc),
+                             ['任务： [御前比武]','<我找你有其他事>','离开'])
+            self.choose(npc,1)
+            battle=self.a._wild_battle
+            self.assertIs(battle,self.b._wild_battle)
+            self.assertEqual([(e['name'],e['type']) for e in battle.enemies()],
+                             [(e['name'],e['shape']) for e in SANJIE_OPPONENTS[str(npc)]['party']])
+            for enemy in battle.enemies():enemy.update(hp=1,hpmax=1,initiative=-10)
+            self.fight(battle)
+            self.assertEqual(self.points(),4 if stage==5 else 0)
+            self.svc.drain(self.a)
+            self.assertEqual([mid(p) for p in self.choose(npc,1)], [1183])
+        self.assertTrue(all(Quests(game).active('sanjie') is None for game in self.games))
+
+    def test_sanjie_kit_is_owned_per_member_and_rolls_back_failed_entry(self):
+        from native946_npc_quests import QuestBattle
+
+        self.accept_sanjie(3)
+        task=Quests(self.a).active('sanjie')
+        self.position(self.b,task['scene'],task['x'],task['y'])
+        def quantities():
+            return [sum(i['amount'] for i in game.progression.snapshot()['items']
+                        if i['type']==6901 and i['page']==8) for game in self.games]
+        self.assertEqual(quantities(),[4,4])
+        self.assertEqual(self.open_npc(task['scene'],4121)[0],'使用驱邪水（任务： [长安驱邪]）')
+        with patch.object(QuestBattle,'entry',side_effect=ValueError('测试开战失败')):
+            self.assertIn(98,[mid(p) for p in self.choose(4121,1)])
+        self.assertEqual(quantities(),[4,4])
+        self.assertTrue(all(game.battle is None for game in self.games))
+        self.open_npc(task['scene'],4121)
+        self.choose(4121,1)
+        self.assertIs(self.a._wild_battle,self.b._wild_battle)
+        self.assertEqual(quantities(),[3,3])
+
     def test_exchange_uses_native_panels_without_unverified_offers(self):
         self.set_points(2000)
         choices = self.open_npc(2001, 4102)
+        choices = menu(next(p for p in self.choose(4102, choices.index('了解如何做任务') + 1) if mid(p)==1025))[1]
         self.assertIn(2966, [mid(p) for p in self.choose(4102, choices.index('前往吕毅兑换三界令') + 1)])
         before = self.a.progression.snapshot()['items']
         for scene, npc, panel in ((2001,4101,1686),(2006,4220,1686),(2001,5500,1694)):

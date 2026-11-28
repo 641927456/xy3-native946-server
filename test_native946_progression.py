@@ -6,6 +6,7 @@ from local_accounts import LocalAccounts
 from native946_characters import Characters
 from native946_codec import number, packet
 from native946_gameplay import NativeGameplay, ENEMY_ID
+from native946_game_login import message_id
 from native946_login import MessageReader
 from native946_progression import Progression
 
@@ -80,10 +81,57 @@ class ProgressionTests(unittest.TestCase):
         self.assertEqual(speed(),12)
 
     def test_attribute_plan_quote_only_opens_the_native_confirmation(self):
+        with self.p.transaction() as db:
+            db.execute('UPDATE cultivation_state SET rebirth=2,ascension=1,sanctification=1 WHERE character_id=?',
+                       (self.p.cid,))
         game = NativeGameplay(self.character, self.characters, lambda: ())
         reply = game.receive(3780, MessageReader(b''))
         self.assertEqual(reply, packet(3779, ['number'], [1]))
         self.assertEqual(game.hero_point_quote['cost'], 1)
+
+    def test_point_plan_visibility_on_panel_open_and_after_allocating(self):
+        cases = ((65, 0, 0, 0), (165, 2, 1, 0), (165, 2, 1, 1))
+        game = NativeGameplay(self.character, self.characters, lambda: ())
+        panel_request = number(1)
+        allocation = b''.join(number(n) for n in (1, 0, 2, 1))
+        for level, rebirth, ascension, sanctification in cases:
+            with self.subTest(level=level, sanctification=sanctification):
+                with self.p.transaction() as db:
+                    db.execute('UPDATE characters SET level=? WHERE id=?', (level, self.p.cid))
+                    db.execute('UPDATE cultivation_state SET rebirth=?,ascension=?,sanctification=? WHERE character_id=?',
+                               (rebirth, ascension, sanctification, self.p.cid))
+                    db.execute('UPDATE progression SET cor=?,mag=?,strength=?,speed=?,points=4 WHERE character_id=?',
+                               (level, level, level, level, self.p.cid))
+                expected = packet(1265, ['byte'], [sanctification])
+                self.assertEqual([reply for reply in game.sync_progression() if reply.startswith(message_id(1265))],
+                                 [expected])
+                opened = game.receive(2093, MessageReader(panel_request))
+                self.assertEqual([reply[:3] for reply in opened],
+                                 [message_id(2091), message_id(2092), message_id(1265)])
+                self.assertEqual(opened[-1], expected)
+                allocated = game.receive(739, MessageReader(allocation))
+                self.assertEqual([reply for reply in allocated if reply.startswith(message_id(1265))], [expected])
+                self.assertEqual(self.p.snapshot()['points'], 0)
+                self.assertIn(expected, game.receive(2093, MessageReader(panel_request)))
+
+    def test_unsealed_roles_cannot_quote_or_switch_using_a_plan_book(self):
+        from native946_codec import text_notice
+        from native946_inventory_features import give
+
+        with self.p.transaction() as db:
+            give(db, self.p, 45671)
+        game = NativeGameplay(self.character, self.characters, lambda: ())
+        before = self.p.snapshot()
+        book = next(item for item in before['items'] if item['type'] == 45671)
+        for mid, payload in ((3780, b''), (1387, b''), (807, number(0) + number(book['id']))):
+            with self.subTest(mid=mid):
+                self.assertEqual(game.receive(mid, MessageReader(payload)),
+                                 text_notice('封圣后才能使用左辅右弼加点方案。'))
+        self.assertEqual(self.p.snapshot(), before)
+        self.assertIsNone(getattr(game, 'hero_point_quote', None))
+        with self.p.transaction(write=False) as db:
+            self.assertIsNone(db.execute('SELECT 1 FROM native_point_plans WHERE character_id=?',
+                                        (self.p.cid,)).fetchone())
 
     def test_split_merge_and_reload_conserve_items(self):
         item=self.p.snapshot()['items'][0]

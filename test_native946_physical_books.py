@@ -155,7 +155,8 @@ class PhysicalBookTests(unittest.TestCase):
             db.execute('CREATE TABLE native_guardian_books(summon_id INTEGER,skill INTEGER,position INTEGER,level INTEGER,rebirth INTEGER,experience INTEGER,expnext INTEGER,PRIMARY KEY(summon_id,skill))')
             db.execute('INSERT INTO native_guardian_books VALUES(?,300,7,12,0,17,999)',(self.sid,))
             schema(db);before=raw_list(db,self.sid);schema(db);self.assertEqual(raw_list(db,self.sid),before)
-            self.assertEqual(before,[dict(summon_id=self.sid,skill=300,position=7,level=12,rebirth=0,experience=17,expnext=999,tier=0)])
+            self.assertEqual(before,[dict(summon_id=self.sid,skill=300,position=7,level=12,rebirth=0,experience=17,
+                                          expnext=999,tier=0,ascension=0,sanctification=0)])
 
     def test_inventory_version_change_rebuilds_once_and_rebinds_guardian(self):
         import native946_inventory as inventory

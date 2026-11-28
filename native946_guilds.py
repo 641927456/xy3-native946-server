@@ -6,7 +6,7 @@ from native946_codec import packet, text_notice
 
 
 RECRUITER = (2052, 3443)  # 唐人茶楼·智黎华
-REFERENCE_WIRE_VERSION = 1
+REFERENCE_WIRE_VERSION = 3
 MIN_LEVEL = 50
 MASTER, FELLOW, APPLICANT, ALL = 2, 19, 20, 26
 CORE_GROUP=21
@@ -15,8 +15,11 @@ CORE_GROUP=21
 FOUNDING_CASH=2000
 FOUNDING_CAPACITY=40
 DISBAND_SECONDS=24*3600
-REQUESTS = {1107, 1108, 1109, 1119, 1125, 1126, 1129, 1130, 1131, 1135, 1136, 1137, 1140}
-WRITES = {1107, 1108, 1109, 1119, 1135, 1136}
+REQUESTS = {1107, 1108, 1109, 1111, 1112, 1119, 1125, 1126, 1129, 1130, 1131, 1135, 1136, 1137, 1140, 4961, 4971}
+WRITES = {1107, 1108, 1109, 1111, 1119, 1135, 1136}
+FLAG_WIRE = ('fixed_array', 'number', 8)
+AUTHORITY_WIRE = ('array', 'number')
+RECEIVE_MEMBER, REMOVE_MEMBER = 3, 4
 
 
 def schema(db):
@@ -54,12 +57,12 @@ def _membership(db, cid):
                       (cid,int(time())-DISBAND_SECONDS)).fetchone()
 
 
-def _organizations(db):
+def _organizations(db, guild=None):
     return db.execute('''SELECT g.*,c.name master_name,f.name founder_name,
         (SELECT count(*) FROM native_guild_members m WHERE m.guild_id=g.id) member_count
         FROM native_guilds g JOIN characters c ON c.id=g.master JOIN characters f ON f.id=g.founder
-        WHERE g.underfull_since=0 OR g.underfull_since>?
-        ORDER BY g.id''',(int(time())-DISBAND_SECONDS,))
+        WHERE (g.underfull_since=0 OR g.underfull_since>?) AND (? IS NULL OR g.id=?)
+        ORDER BY g.id''',(int(time())-DISBAND_SECONDS, guild, guild))
 
 
 def _member_count_changed(db, guild, now):
@@ -165,9 +168,8 @@ def _apply(db, game, guild, declaration):
                           'ON CONFLICT(guild_id,character_id) DO NOTHING', (guild, cid, int(time()), declaration))
     if not inserted.rowcount:
         return text_notice('你已提交入帮申请，请等待处理。')
-    recipients = [row[0] for row in db.execute('''SELECT m.character_id FROM native_guild_members m
-        JOIN native_guilds g ON g.id=m.guild_id
-        WHERE g.id=? AND (m.character_id=g.master OR m.can_receive<>0)''', (guild,))]
+    recipients = [row['character_id'] for row in db.execute('''SELECT m.*,g.master FROM native_guild_members m
+        JOIN native_guilds g ON g.id=m.guild_id WHERE g.id=?''', (guild,)) if member_rights(row)[0]]
     return _notify_after_commit(game, text_notice('入帮申请已提交。'), recipients,
                                 f"{game.character['name']}申请加入帮派。")
 
@@ -177,7 +179,7 @@ def _member_list(db, game, membership, list_id):
 
     guild = membership['guild_id']
     if list_id == APPLICANT:
-        if not (membership['master'] == membership['character_id'] or membership['can_receive']):
+        if not member_rights(membership)[0]:
             raise ValueError('你没有查看入帮申请的权限。')
         rows = db.execute('SELECT c.*,a.submitted joined,a.declaration,20 office,20 member_group '
                           'FROM native_guild_applications a JOIN characters c ON c.id=a.character_id '
@@ -197,14 +199,44 @@ def _member_list(db, game, membership, list_id):
     return packet(1084, ['number', ('array', 'org_member_info')], [list_id, out])
 
 
+def member_rights(member):
+    leader = member['master'] == member['character_id']
+    return leader or member['can_receive'], leader or member['can_remove']
+
+
+def authority_list(member):
+    return [right for right, enabled in ((RECEIVE_MEMBER, member['can_receive']),
+                                         (REMOVE_MEMBER, member['can_remove'])) if enabled]
+
+
+def org_detail(db, guild):
+    from native946_guild_construction import _buildings, fund_limit, member_capacity, resources
+
+    detail = _organizations(db, guild).fetchone()
+    if detail is None:
+        raise ValueError('该帮派不存在。')
+    held = resources(db, guild)
+    buildings = _buildings(db, guild)
+    now = int(time())
+    info = dict(detail, creater_name=detail['founder_name'],
+                member_max_count=member_capacity(buildings, detail['capacity'], now),
+                fund=held['fund'], max_fund=fund_limit(buildings, now),
+                science=held['science'], science_grade=held['science_grade'])
+    return info
+
+
 def receive(game, mid, reader):
     cid = game.character['id']
     if game.battle:
         raise ValueError('请先结束战斗。')
-    target = reader.integer() if mid in (1107, 1108, 1109, 1131, 1135, 1136, 1137, 1140) else 0
-    extra = reader.integer() if mid in (1109,1135) else 0
+    target = reader.integer() if mid in (1107, 1108, 1109, 1111, 1131, 1135, 1136, 1137, 1140, 4961, 4971) else 0
+    extra = reader.integer() if mid in (1109,1135,4971) else 0
     appointment = reader.integer() if mid == 1109 else 0
     declaration = reader.string().decode('gb18030') if mid == 1107 else ''
+    if mid == 1111:
+        authorities = {reader.integer() for _ in range(reader.take(1)[0])}
+        if authorities - {RECEIVE_MEMBER, REMOVE_MEMBER}:
+            raise ValueError('当前可以授予接收和驱逐帮众两项职权。')
     if mid == 1119:
         name,tenet=reader.string(),reader.string()
     reader.finish()
@@ -234,25 +266,24 @@ def receive(game, mid, reader):
             if found is None:
                 raise ValueError('该帮派不存在。')
             return packet(1092, ['number', 'string'], [target, found[0]])
+        if mid in (4961, 4971):
+            info = org_detail(db, target)
+            if mid == 4971:
+                if extra not in (0, 1):
+                    raise ValueError('帮派旗帜查询类型无效。')
+                return packet(4962, [FLAG_WIRE, 'number'], [[0]*8, extra])
+            member = _membership(db, cid)
+            return packet(4960, ['org_detail'] + ['string']*6 + [FLAG_WIRE, 'number', 'number', 'number'],
+                          [info, *(['{}']*6), [0]*8, 0, info['master'], member['guild_id'] if member else 0])
         member = _membership(db, cid)
         if member is None:
             raise ValueError('请到唐人茶楼找智黎华申请加入帮派。')
         guild = member['guild_id']
         leader = member['master'] == cid
         office = MASTER if leader else member['office']
-        accept = leader or member['can_receive']
-        remove = leader or member['can_remove']
+        accept, remove = member_rights(member)
         if mid == 1125:
-            from native946_guild_construction import _buildings, fund_limit, member_capacity, resources
-
-            detail = next(g for g in _organizations(db) if g['id'] == guild)
-            held=resources(db,guild)
-            buildings=_buildings(db,guild)
-            now=int(time())
-            info = dict(detail,creater_name=detail['founder_name'],
-                        member_max_count=member_capacity(buildings,detail['capacity'],now),
-                        fund=held['fund'],max_fund=fund_limit(buildings,now),
-                        science=held['science'],science_grade=held['science_grade'])
+            info = org_detail(db, guild)
             core=[dict(row) for row in db.execute('''SELECT c.id,c.name,c.role_id icon,m.office title
                     FROM native_guild_members m JOIN characters c ON c.id=m.character_id
                     WHERE m.guild_id=? AND m.member_group=? ORDER BY m.office,c.id''',(guild,CORE_GROUP))]
@@ -270,6 +301,24 @@ def receive(game, mid, reader):
             if target not in range(FELLOW, ALL+1):
                 raise ValueError('帮派成员分组无效。')
             return _member_list(db, game, member, target)
+        if mid in (1111, 1112):
+            if not leader:
+                raise ValueError('只有帮主可以管理帮派职权。')
+            if mid == 1112:
+                return tuple(packet(1067, ['number', 'string', 'number', 'number', AUTHORITY_WIRE],
+                                    [row['character_id'], row['name'], row['member_group'], row['office'],
+                                     authority_list(row)])
+                             for row in db.execute('SELECT m.*,c.name FROM native_guild_members m '
+                                                   'JOIN characters c ON c.id=m.character_id '
+                                                   'WHERE m.guild_id=? AND m.office NOT IN (?,?) '
+                                                   'ORDER BY m.office,m.character_id', (guild,MASTER,FELLOW)))
+            other = _membership(db, target)
+            if other is None or other['guild_id'] != guild or target == cid or other['office'] == FELLOW:
+                raise ValueError('请选择本帮已任命职位的成员。')
+            db.execute('UPDATE native_guild_members SET can_receive=?,can_remove=? WHERE character_id=?',
+                       (int(RECEIVE_MEMBER in authorities), int(REMOVE_MEMBER in authorities), target))
+            reply = packet(1066, ['number', AUTHORITY_WIRE], [target, sorted(authorities)])
+            return _notify_after_commit(game, reply, [target], '你的帮派职权已更新。')
         if mid == 1109 or (mid==1135 and target==4):
             if not leader:raise ValueError('只有帮主可以任免帮派职位。')
             recipient=target if mid==1109 else extra
@@ -290,8 +339,9 @@ def receive(game, mid, reader):
                            (FELLOW,FELLOW,cid))
             else:
                 raise ValueError('该职位任命暂未开放。')
-            db.execute('UPDATE native_guild_members SET office=?,member_group=?,can_receive=0,can_remove=0 WHERE character_id=?',
-                       (new_office,new_group,recipient))
+            # Default core rights from the supplied reference: ComomFunc.lua:1281,1426.
+            db.execute('UPDATE native_guild_members SET office=?,member_group=?,can_receive=?,can_remove=? WHERE character_id=?',
+                       (new_office,new_group,int(new_office in (3,6)),int(new_office == 3),recipient))
             replies = (_member_list(db,game,member,ALL),text_notice('帮派职位已更新。'))
             return _notify_after_commit(game, replies, [recipient], f"你在{member['name']}的职位已更新。")
         if mid == 1136 and target == 1:

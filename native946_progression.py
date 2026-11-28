@@ -1053,5 +1053,7 @@ class Progression:
     def sync(self):
         s=self.snapshot()
         from native946_equipment_plans import active_packet
+        from native946_hero_page import point_plan_visibility
         with self.transaction(write=False) as db:plan=active_packet(db,self.cid)
-        return (*self.attribute_packets(s),*self.item_packets(s),inventory_controls.page_packet(s['equipment_page']),plan,packet(1265,['byte'],[1]),*self.skill_packets(s=s),*self.task_packets(s))
+        return (*self.attribute_packets(s),*self.item_packets(s),inventory_controls.page_packet(s['equipment_page']),
+                plan,point_plan_visibility(s['sanctification']),*self.skill_packets(s=s),*self.task_packets(s))

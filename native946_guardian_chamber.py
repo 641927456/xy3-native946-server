@@ -31,6 +31,13 @@ def schema(db):
         buyer INTEGER NOT NULL REFERENCES characters(id), summon_id INTEGER NOT NULL REFERENCES summons(id),
         grant_key TEXT NOT NULL, price INTEGER NOT NULL CHECK(price>0),
         proceeds INTEGER NOT NULL CHECK(proceeds>=0), UNIQUE(seller,grant_key))''')
+    db.execute('''CREATE TABLE IF NOT EXISTS native_guardian_trade_transfers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sender INTEGER NOT NULL REFERENCES characters(id),
+        receiver INTEGER NOT NULL REFERENCES characters(id),
+        summon_id INTEGER NOT NULL REFERENCES summons(id),
+        grant_key TEXT NOT NULL,
+        UNIQUE(sender,grant_key))''')
     db.execute('''CREATE TABLE IF NOT EXISTS native_guardian_releases (
         summon_id INTEGER PRIMARY KEY REFERENCES summons(id) ON DELETE CASCADE,
         released_at INTEGER NOT NULL)''')
@@ -38,6 +45,11 @@ def schema(db):
 
 def has_sale(db, owner, grant_key):
     return db.execute('SELECT 1 FROM native_guardian_shop_sales WHERE seller=? AND grant_key=?',
+                      (owner, grant_key)).fetchone() is not None
+
+
+def has_transferred(db, owner, grant_key):
+    return db.execute('SELECT 1 FROM native_guardian_trade_transfers WHERE sender=? AND grant_key=?',
                       (owner, grant_key)).fetchone() is not None
 
 

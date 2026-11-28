@@ -85086,5 +85086,126 @@
       "source_route_ids": [],
       "alternative_arrivals": []
     }
+  ],
+  "local_npc_transports": [
+    {
+      "id": 30009,
+      "from": 2001,
+      "npc_id": 4198,
+      "trans_index": 1,
+      "source": [
+        598,
+        56
+      ],
+      "to": 2003,
+      "to_npc": 4103,
+      "arrival": [
+        60,
+        164
+      ],
+      "label": "御前比武（40~49级）"
+    },
+    {
+      "id": 30010,
+      "from": 2001,
+      "npc_id": 4198,
+      "trans_index": 2,
+      "source": [
+        598,
+        56
+      ],
+      "to": 2003,
+      "to_npc": 4113,
+      "arrival": [
+        7,
+        135
+      ],
+      "label": "捉拿刺客（50~59级）"
+    },
+    {
+      "id": 30011,
+      "from": 2001,
+      "npc_id": 4198,
+      "trans_index": 3,
+      "source": [
+        598,
+        56
+      ],
+      "to": 2001,
+      "to_npc": 4121,
+      "arrival": [
+        326,
+        38
+      ],
+      "label": "长安驱邪（60~69级）"
+    },
+    {
+      "id": 30012,
+      "from": 2001,
+      "npc_id": 4198,
+      "trans_index": 4,
+      "source": [
+        598,
+        56
+      ],
+      "to": 2006,
+      "to_npc": 4133,
+      "arrival": [
+        42,
+        86
+      ],
+      "label": "扬威西域（70~79级）"
+    },
+    {
+      "id": 30013,
+      "from": 2001,
+      "npc_id": 4198,
+      "trans_index": 5,
+      "source": [
+        598,
+        56
+      ],
+      "to": 2027,
+      "to_npc": 4146,
+      "arrival": [
+        416,
+        178
+      ],
+      "label": "收服叛军（80~89级）"
+    },
+    {
+      "id": 30014,
+      "from": 2001,
+      "npc_id": 4198,
+      "trans_index": 6,
+      "source": [
+        598,
+        56
+      ],
+      "to": 2001,
+      "to_npc": 4125,
+      "arrival": [
+        524,
+        274
+      ],
+      "label": "武林盟主（90~99级）"
+    },
+    {
+      "id": 30015,
+      "from": 2001,
+      "npc_id": 4198,
+      "trans_index": 7,
+      "source": [
+        598,
+        56
+      ],
+      "to": 2256,
+      "to_npc": 6025,
+      "arrival": [
+        143,
+        62
+      ],
+      "label": "破除邪阵（100级以上）"
+    }
   ]
 }

@@ -196,7 +196,7 @@ class GuardianCultivationTests(unittest.TestCase):
         sid=self.s.acquire(3374,'cultivation:description')
         with self.p.transaction() as db:
             schema(db)
-            db.execute('UPDATE summons SET strength=1429,level=180,cor=1 WHERE id=?',(sid,))
+            db.execute('UPDATE summons SET strength=1429,level=180,cor=1,rebirth=2,ascension=1 WHERE id=?',(sid,))
             db.execute('INSERT INTO native_innate_training '
                        '(summon_id,skill,level,rebirth,ascension,sanctification,experience) VALUES(?,?,?,?,?,?,?)',
                        (sid,4906,180,2,1,0,0))
@@ -295,9 +295,21 @@ class GuardianCultivationTests(unittest.TestCase):
             self.assertIs(attacks.call_args.args[1],other)
 
     def test_jing_book_and_special_artifact_use_real_item_requests(self):
+        from native946_innate_training import schema
+
         sid=self.s.acquire(3268,'cultivation:jing')
+        with self.p.transaction() as db:
+            schema(db)
+            db.execute('UPDATE summons SET rebirth=2,ascension=1,level=150 WHERE id=?',(sid,))
+            db.execute('INSERT INTO native_innate_training(summon_id,skill,level,experience,rebirth,ascension,sanctification) '
+                       'VALUES(?,302,183,15,2,1,1)',(sid,))
         self.assertIn(722,message_ids(self.send(807,sid,self.item(46585,1))))
-        self.assertEqual([row['stunt_id'] for row in self.s.get(sid)['innate_skills']],[4147])
+        row, = self.s.get(sid)['innate_skills']
+        self.assertEqual((row['stunt_id'],row['fly'],row['feng'],row['grade']),(4147,1,0,150))
+        with self.p.transaction() as db:
+            db.execute('UPDATE summons SET sanctification=1,level=185 WHERE id=?',(sid,))
+        row, = self.s.get(sid)['innate_skills']
+        self.assertEqual((row['stunt_id'],row['fly'],row['feng'],row['grade'],row['stuntexp']),(4147,1,1,183,15))
         self.send(756,sid,4147)
         self.assertIn(302,[row['stunt_id'] for row in self.s.get(sid)['innate_skills']])
         with self.p.transaction() as db:

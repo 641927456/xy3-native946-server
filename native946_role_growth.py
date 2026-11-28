@@ -143,7 +143,25 @@ def star_panel(db,cid,s):
     rows=DATA['xingqiongzhijing']['LevelConfig'];n=min(s['level'],len(rows)-1)
     today=s.get('study',0) if s.get('study_day')==__import__('native946_role_systems').day() else 0
     return wire(5110,s['level'],s['exp'],conditions(db,cid,rows[n]),today)
-def gold_panel(db,cid,s):return wire(3177,s['ranks'],max(0,s['eff_time']))
+GOLDBODY_PRACTICE_GRADE = 2101  # Existing local practice requirement.
+GOLDBODY_RANK_MAX = 10
+GOLDBODY_UNTRAINED_DISPLAY = -1
+
+
+def gold_panel(s, can_practice):
+    ranks = s['ranks'].copy()
+    if can_practice:
+        for index, level in enumerate(ranks):
+            if level < GOLDBODY_RANK_MAX:
+                # The 946 panel disables zero entries. Send an enabled value
+                # for the accessible, untrained realm and keep level zero in
+                # the stored ranks and in the practice detail reply.
+                if level == 0:
+                    ranks[index] = GOLDBODY_UNTRAINED_DISPLAY
+                break
+    return wire(3177, ranks, max(0, s['eff_time']))
+
+
 def gold_practice(db,cid,rank,s):
     number(rank,1,10,'金身境位');lv=s['ranks'][rank-1];race=str(character(db,cid)['race']);rows=DATA['god_body_buff_config']['info'].get(race,DATA['god_body_buff_config']['info']['1']);desc=rows[rank-1]['desc']
     cost=RULES['goldbody_practice_exp']*(lv+1)*rank
@@ -238,12 +256,24 @@ def receive(game,db,mid,a):
         save(db,cid,'talent',s)
         return [talent_panel(db,cid,s),*([talent_upgrade(db,cid,index,s)] if op==4 else [])]
     s=gold(db,cid)
-    if mid in (3181,3182):
-        rank=number(a[0],1,10,'金身境位')
-        if mid==3181:
-            require(grade(db,cid)>=2101,'金身修炼需二转101级。');lv=s['ranks'][rank-1];require(lv<10,'该境已满级。');require(rank==1 or s['ranks'][rank-2]==10,'请先修满上一境。')
-            cost=RULES['goldbody_practice_exp']*(lv+1)*rank;require(s['exp']>=cost,'凝气经验不足，可使用凝气天书或参与实际战斗积累。');pay(db,cid,RULES['goldbody_practice_cash']*rank,RULES['goldbody_user_exp']*rank);s['exp']-=cost;s['ranks'][rank-1]+=1;save(db,cid,'goldbody',s)
-        return [gold_panel(db,cid,s),gold_practice(db,cid,rank,s)]
+    if mid in (3180, 3181, 3182):
+        can_practice = grade(db, cid) >= GOLDBODY_PRACTICE_GRADE
+        if mid == 3180:
+            panel = gold_panel(s, can_practice)
+            return [panel] if can_practice else [panel, notice('本机重塑金身需达到二转101级才能修炼。')]
+        rank = number(a[0], 1, len(s['ranks']), '金身境位')
+        if mid == 3181:
+            require(can_practice, '金身修炼需二转101级。')
+            lv = s['ranks'][rank-1]
+            require(lv < GOLDBODY_RANK_MAX, '该境已满级。')
+            require(rank == 1 or s['ranks'][rank-2] == GOLDBODY_RANK_MAX, '请先修满上一境。')
+            cost = RULES['goldbody_practice_exp'] * (lv + 1) * rank
+            require(s['exp'] >= cost, '凝气经验不足，可使用凝气天书或参与实际战斗积累。')
+            pay(db, cid, RULES['goldbody_practice_cash'] * rank, RULES['goldbody_user_exp'] * rank)
+            s['exp'] -= cost
+            s['ranks'][rank-1] += 1
+            save(db, cid, 'goldbody', s)
+        return [gold_panel(s, can_practice), gold_practice(db, cid, rank, s)]
     if mid in (3183,3184):
         learned=[r[0] for r in db.execute('SELECT skill_id FROM learned_skills WHERE character_id=? ORDER BY skill_id',(cid,))][:4]
         if mid==3183:
@@ -276,7 +306,7 @@ def receive(game,db,mid,a):
             s['eff_time']=max(now,s['eff_time'])+config['EffOnceTime']*86400
         if mid!=4292:save(db,cid,'goldbody',s)
         return [wire(4289,count(db,cid,46988),s['exp'],s['eff_time'],text({int(k):v for k,v in s['forge'].items()}))]
-    return [gold_panel(db,cid,s)]
+    raise ValueError('金身请求无效。')
 
 def effects(db,cid):
     result={};s=gold(db,cid);race=str(character(db,cid)['race']);rows=DATA['goldbody_endpoints'].get(race,DATA['goldbody_endpoints']['1'])

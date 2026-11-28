@@ -127,6 +127,16 @@ class WorkshopTests(unittest.TestCase):
                 self.assertEqual(self.game.progression.snapshot(),before_chain)
                 self.assertIsNone(self.game.progression.snapshot()['task_chain'])
                 continue
+            if giver['npc']==4102:
+                self.assertEqual(choices[0],'好吧，我愿意接受大唐的任务')
+                before_sanjie=self.game.progression.snapshot()
+                reply=self.choose(giver['npc'],1)
+                self.assertEqual(mid(reply),1025)
+                _,tiers,_,_=menu(reply)
+                self.assertEqual(len(tiers),8)
+                self.assertEqual(tiers[-1],'算了，让我再考虑一下')
+                self.assertEqual(self.game.progression.snapshot(),before_sanjie)
+                continue
             self.assertEqual(choices[0],'了解任务规则')
             packets=self.choose(giver['npc'],1);p=next(p for p in packets if mid(p)==227)
             r=MessageReader(p[1:]);self.assertEqual(r.string().decode('gb18030'),giver['name'])

@@ -9,22 +9,27 @@ from pathlib import Path
 from native946_codec import packet
 from native946_codec import text_notice
 from native946_growth import species
-from native946_neidan_legacy import threshold
+from native946_neidan import threshold
 
-REFERENCE_WIRE_VERSION=6
+REFERENCE_WIRE_VERSION=8
 DATA=json.loads(Path(__file__).with_name('native946_skillbooks_data.json').read_text('utf8'))
 EXTENDED=json.loads(Path(__file__).with_name('native946_growth_book_rules.json').read_text('utf8'))
 DATA['rules'].update(EXTENDED['rules'])
 for _item,_coefficients in EXTENDED.get('rule_overrides',{}).items():DATA['rules'][_item]['coefficients'].update(_coefficients)
 BOOKS={int(k):v for k,v in DATA['rules'].items()}
 SKILLS={v['skill']:v for v in BOOKS.values()}
-REQUESTS={754,756}
+REQUESTS={754,756,770,771,772}
+
+
+def schema_ready(sql):
+    return sql is not None and all(marker in sql for marker in
+                                   ('365','sanctification INTEGER','AND 185','rebirth BETWEEN 0 AND 2'))
 
 
 def schema(db):
     old=db.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='native_guardian_books'").fetchone()
     old_columns=[r[1] for r in db.execute('PRAGMA table_info(native_guardian_books)')]
-    migrate=old is not None and ('tier' not in old_columns or '365' not in old[0])
+    migrate=old is not None and ('tier' not in old_columns or not schema_ready(old[0]))
     if migrate:
         for (name,) in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
             if any(fk[2]=='native_guardian_books' for fk in db.execute('PRAGMA foreign_key_list("'+name.replace('"','""')+'")')):
@@ -35,11 +40,13 @@ def schema(db):
       summon_id INTEGER NOT NULL REFERENCES summons(id) ON DELETE CASCADE,
       skill INTEGER NOT NULL CHECK(skill IN (300,301,302,303,304,305,306,307,308,309,336,337,338,339,365,366,367,369,370,371)),
       position INTEGER NOT NULL CHECK(position BETWEEN 7 AND 11),
-      level INTEGER NOT NULL DEFAULT 0 CHECK(level BETWEEN 0 AND 102),
-      rebirth INTEGER NOT NULL DEFAULT 0 CHECK(rebirth=0),
+      level INTEGER NOT NULL DEFAULT 0 CHECK(level BETWEEN 0 AND 185),
+      rebirth INTEGER NOT NULL DEFAULT 0 CHECK(rebirth BETWEEN 0 AND 2),
       experience INTEGER NOT NULL DEFAULT 0 CHECK(experience>=0),
       expnext INTEGER NOT NULL DEFAULT 40 CHECK(expnext>0),
       tier INTEGER NOT NULL DEFAULT 0 CHECK(tier IN (0,1)),
+      ascension INTEGER NOT NULL DEFAULT 0 CHECK(ascension IN (0,1)),
+      sanctification INTEGER NOT NULL DEFAULT 0 CHECK(sanctification IN (0,1)),
       CHECK((skill BETWEEN 300 AND 304 AND tier=0 AND position=7) OR
             (skill IN (305,306,307,308,309,336,337,338,339,365,366,367,369,370,371) AND tier=1 AND position BETWEEN 8 AND 11)),
       PRIMARY KEY(summon_id,skill),UNIQUE(summon_id,position))''')
@@ -56,8 +63,15 @@ def raw_list(db,sid):
 
 
 def effective_books(db, pet):
-    cap = level_cap(pet)
-    return [dict(row, level=min(row['level'], cap)) for row in raw_list(db, pet['id'])]
+    from native946_innate_training import effective_training
+
+    result = []
+    for saved in raw_list(db, pet['id']):
+        row = effective_training(pet, saved)
+        if (row['level'],row['rebirth']) != (saved['level'],saved['rebirth']):
+            row['expnext'] = threshold(row['level'],row['rebirth'])
+        result.append(row)
+    return result
 
 
 def effects(rows):
@@ -88,12 +102,10 @@ def records(rows,pet=None):
         else:args=[next(iter(bonus.values())),0]
         if row['skill']==306:args.append(bonus.get('book_ignore_counter',0))
         result.append(dict(stunt_id=row['skill'],position=row['position'],name=rule['name'],
-                           grade=row['level'],rei=row['rebirth'],stuntexp=row['experience'],
+                           grade=row['level'],rei=row['rebirth'],fly=row.get('ascension',0),
+                           feng=row.get('sanctification',0),stuntexp=row['experience'],
                            stuntexp_next=row['expnext'],desc='{'+','.join(map(str,args))+'}',cost=cost))
     return result
-
-def level_cap(pet):
-    return min(102,pet['level'])
 
 def experience_to_cap(row,cap):
     if row['level']>=cap:return 0
@@ -123,7 +135,7 @@ class SkillBooks:
         with self.p.transaction(write=False) as db:
             pet=self.s._owned(db,sid);rows=effective_books(db,pet)
             stats=self.s.stats(pet)
-            pet['innate_training']=trained_records(db,sid,pet['level'])
+            pet['innate_training']=trained_records(db,sid,pet)
             pet['jing_books']=jing_books(db,sid)
             pet['innate_skills']=innate_records(pet,excluded={row['skill'] for row in rows})
             hidden={entry['base'] for entry in pet['jing_books']}
@@ -152,10 +164,14 @@ class SkillBooks:
             return stunts,empty
 
     def packet(self,sid):
-        stunts,empty=self.list_state(sid)
+        from native946_mount_stunts import panel as mount_panel
+
+        with self.p.transaction(write=False) as db:
+            stunts,empty=self.list_state(sid)
+            mount_stunts,direction=mount_panel(db,self.p.cid,self.s._owned(db,sid))
         return packet(722,['number',('array','stunt_info'),('array','stunt_pos_empty'),
                            ('array','stunt_info'),('array','newzq_stunt_info'),'number'],
-                          [sid,stunts,empty,[],[],0])
+                          [sid,stunts,empty,[],mount_stunts,direction])
 
     def training_reply(self, sid, skill, notice):
         row = next((entry for entry in self.records(sid) if entry['stunt_id'] == skill), None)
@@ -188,11 +204,14 @@ class SkillBooks:
             else:db.execute('UPDATE inventory SET amount=amount-1 WHERE id=?',(iid,))
 
     def add_experience(self,db,sid,amount,skill=None):
+        from native946_innate_training import skill_level_cap, training_stage
+
         if type(amount) is not int or amount<0:raise ValueError('守护特技经验无效。')
         pet=self.s._owned(db,sid)
         for row in raw_list(db,sid):
             if skill is not None and row['skill']!=skill:continue
-            cap=level_cap(pet)
+            if training_stage(row) > training_stage(pet):continue
+            cap=skill_level_cap(pet, row)
             if row['level']>=cap:continue
             new=dict(row);new['experience']+=amount
             while new['level']<cap and new['experience']>=new['expnext']:
@@ -202,6 +221,9 @@ class SkillBooks:
                        (new['level'],new['experience'],new['expnext'],sid,row['skill']))
 
     def receive(self,game,mid,r):
+        from native946_innate_training import SKILL_PROMOTIONS, SKILL_PROMOTION_NOTICES, skill_level_cap
+        from native946_innate_training import skill_promotion, training_stage
+
         sid,skill=r.integer(),r.integer();r.finish()
         if game.battle is not None:raise ValueError('请先完成当前战斗。')
         with self.p.transaction() as db:
@@ -213,13 +235,24 @@ class SkillBooks:
                     raise ValueError('该天生技能的培养规则尚未核实，本次未消耗资源。')
                 raise ValueError('守护没有这个已接通的特技。')
             if mid==754:
-                cap=level_cap(pet)
+                if training_stage(row) > training_stage(pet):raise ValueError('当前特技阶段高于守护，暂不能转换经验。')
+                cap=skill_level_cap(pet, row)
                 if row['level']>=cap:raise ValueError('特技已经达到守护等级或当前阶段上限。')
                 if pet['experience']<500:raise ValueError('守护当前经验不足500，不能转换。')
                 amount=min(pet['experience']//5,experience_to_cap(row,cap))
                 self.add_experience(db,sid,amount,skill)
                 db.execute('UPDATE summons SET experience=experience-? WHERE id=?',(amount,sid))
                 notice='已将'+str(amount)+'点守护经验转换为特技经验。'
+            elif mid in SKILL_PROMOTIONS:
+                changes, fee = skill_promotion(pet, row, mid)
+                schema(db)
+                if mid==772:
+                    changes['expnext'] = threshold(0, changes['rebirth'])
+                columns = ','.join(f'{column}=?' for column in changes)
+                db.execute(f'UPDATE native_guardian_books SET {columns} WHERE summon_id=? AND skill=?',
+                           (*changes.values(), sid, skill))
+                db.execute('UPDATE summons SET experience=experience-? WHERE id=?',(fee,sid))
+                notice=SKILL_PROMOTION_NOTICES[mid]
             elif mid==756:
                 db.execute('DELETE FROM native_guardian_books WHERE summon_id=? AND skill=?',(sid,skill))
                 current=self.s.stats(pet)
@@ -228,7 +261,7 @@ class SkillBooks:
             else:raise ValueError('特技请求无效。')
             # Essential state is built before committing; optional panels do
             # not turn a committed mutation into an apparent failed action.
-            reply=self.training_reply(sid,skill,notice) if mid==754 else (
+            reply=self.training_reply(sid,skill,notice) if mid==754 or mid in SKILL_PROMOTIONS else (
                 *self.s.info_packets(sid),self.packet(sid),text_notice(notice))
         game.last_event=dict(action='guardian_book_changed',message_id=mid,summon_id=sid,skill=skill)
         return reply

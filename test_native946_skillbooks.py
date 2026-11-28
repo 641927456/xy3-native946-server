@@ -41,6 +41,66 @@ class BasicBookTests(unittest.TestCase):
     def book_records(self):
         return [row for row in self.b.records(self.sid) if row['position']>=7]
 
+    def test_crafted_skill_can_rebirth_from_an_old_save_and_stop_at_guardian_level(self):
+        from native946_neidan_legacy import threshold
+
+        with self.p.transaction() as db:
+            original = db.execute("SELECT sql FROM sqlite_master WHERE name='native_guardian_books'").fetchone()[0]
+            db.execute('DROP TABLE native_guardian_books')
+            old = original.replace('level BETWEEN 0 AND 185', 'level BETWEEN 0 AND 102')
+            old = old.replace('rebirth BETWEEN 0 AND 2', 'rebirth=0')
+            db.execute('\n'.join(line for line in old.splitlines()
+                                 if 'ascension INTEGER' not in line and 'sanctification INTEGER' not in line))
+            db.execute('UPDATE summons SET rebirth=1,level=40,experience=100000000 WHERE id=?', (self.sid,))
+            db.execute('INSERT INTO native_guardian_books VALUES(?,366,8,99,0,0,?,1)',
+                       (self.sid, threshold(99, 0)))
+        self.send(754, self.sid, 366)
+        self.assertEqual((self.book_records()[0]['rei'], self.book_records()[0]['grade']), (0,100))
+        self.send(772, self.sid, 366)
+        self.assertEqual((self.book_records()[0]['rei'], self.book_records()[0]['grade']), (1,0))
+        self.send(754, self.sid, 366)
+        before = self.s.get(self.sid)['experience']
+        self.send(754, self.sid, 366)
+        self.send(772, self.sid, 366)
+        with self.p.transaction(write=False) as db:
+            row = db.execute('SELECT rebirth,level,position,experience FROM native_guardian_books WHERE summon_id=?',
+                             (self.sid,)).fetchone()
+            self.assertEqual(tuple(row), (1,40,8,0))
+        self.assertEqual(self.s.get(self.sid)['experience'], before)
+
+    def test_crafted_stages_and_training_through_sanctification(self):
+        from native946_innate_training import schema
+        from native946_neidan import threshold
+
+        initial = 3_000_000_000
+        with self.p.transaction() as db:
+            schema(db)
+            db.execute('UPDATE summons SET rebirth=2,ascension=1,level=150,experience=? WHERE id=?',
+                       (initial,self.sid))
+            db.execute('INSERT INTO native_guardian_books(summon_id,skill,position,level,rebirth,expnext,tier) '
+                       'VALUES(?,366,8,139,2,?,1)', (self.sid,threshold(139,2)))
+        for command in (771,770,754,771,754,770):
+            self.send(command,self.sid,366)
+        wire = self.book_records()[0]
+        self.assertEqual((wire['rei'],wire['fly'],wire['feng'],wire['grade']),(2,1,0,150))
+        with self.p.transaction() as db:
+            db.execute('UPDATE summons SET sanctification=1,level=185 WHERE id=?',(self.sid,))
+        self.send(754,self.sid,366)
+        self.assertEqual(self.book_records()[0]['grade'],180)
+        self.send(770,self.sid,366)
+        self.send(754,self.sid,366)
+        final = self.book_records()[0]
+        self.assertEqual((final['rei'],final['fly'],final['feng'],final['grade']),(2,1,1,185))
+        self.assertEqual(final['stuntexp_next'],threshold(185,2))
+        self.assertEqual(final['stuntexp'],0)
+        before = initial-15000-sum(threshold(level,2) for level in range(139,185))
+        self.send(754,self.sid,366)
+        self.send(770,self.sid,366)
+        self.assertEqual(self.s.get(self.sid)['experience'],before)
+        with self.p.transaction(write=False) as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM native_innate_training '
+                                        'WHERE summon_id=? AND skill=366',(self.sid,)).fetchone()[0],0)
+
     def test_each_basic_book_learns_consumes_one_and_affects_real_stats_after_combat(self):
         for item,rule in BOOKS.items():
             if rule['tier']!=0:continue

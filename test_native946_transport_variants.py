@@ -154,6 +154,20 @@ class PartyRelocationTests(unittest.TestCase):
     def transport(self,route):
         return self.a.receive(1645,MessageReader(number(route['npc_id'])+number(route['trans_index'])))
 
+    def test_qiguan_menu_transports_leader_and_follower(self):
+        self.team()
+        for game in (self.a, self.b):
+            self.place(game, 2001, (598, 56))
+            self.svc.drain(game)
+        self.bind_scene_headers(self.a, self.b)
+        self.a.receive(1034, MessageReader(number(4198)))
+        replies = self.a.receive(1032, MessageReader(b'\x04' + number(4198)))
+        self.assertIn(1597, [mid(p) for p in replies])
+        self.assertIn(1597, [mid(p) for p in self.svc.drain(self.b)])
+        for game in (self.a, self.b):
+            saved = self.characters.list(game.character['owner'])[0]
+            self.assertEqual((saved['map_id'], saved['x'], saved['y']), (2006, 42, 86))
+
     def peer(self,index,sid,point):
         owner='observer'+str(index)
         LocalAccounts(self.path).register(dict(username=owner,password='isolated-fixture-password'))

@@ -48,7 +48,7 @@ for _chapter in (*QUESTS.values(), NEWBIE_CHAPTER):
         REVIEW_GROUPS.setdefault(_first, []).append(_chapter['id'])
         REVIEW_CHAPTERS[_chapter['source_recap_index']] = _chapter
 VERSION=DATA['version']
-REFERENCE_WIRE_VERSION=4
+REFERENCE_WIRE_VERSION=5
 # Local point policy. The milestones use the verified 946 client display.
 REVIEW_COMPLETION_POINTS = 20
 REVIEW_CHAPTER_POINTS = 30
@@ -229,6 +229,10 @@ def settlement_message(chapter,node_index,snapshot,*,guardian_rewards=()):
                 text += f'#r已完成{stage_rule.name}，获得{stage_rule.points}点属性、{stage_rule.resistance}点抗性。'
                 if stage_rule.start_level is not None:
                     text += f'#r当前等级为{stage_rule.start_level}级。'
+                if stage_rule.is_rebirth:
+                    from native946_school import practice_limit
+
+                    text += f'#r法术熟练度已清零，上限提升至{practice_limit(snapshot)}。'
         else:
             text+=f'#r本章通关获得{REVIEW_COMPLETION_POINTS}积分，可在剧情回顾查看。'
         if chapter == BIOPIC_CHAPTER:
@@ -763,6 +767,8 @@ class Campaign:
                 description = node['text']
                 if c['id'] in TRIALS and row['node'] + 1 == len(c['nodes']) and rule and rule.start_level is not None:
                     description += f'#r确认后将从{rule.start_level}级开始，当前经验清空，属性点按新等级重新分配。'
+                    if rule.is_rebirth:
+                        description += '#r已学法术的熟练度将清零，修习上限提高5000。'
                 return self.menu(nid,c['name']+'·'+node['title']+'#r'+description,choices)
         elif key==(2008,5672) and not any(chapter in CHAPTERS for chapter in s['campaign']['runs']):
             self.validate_npc(nid)

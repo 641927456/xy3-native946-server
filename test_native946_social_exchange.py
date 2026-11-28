@@ -19,8 +19,8 @@ class SocialExchangeTests(unittest.TestCase):
             items = db.execute('SELECT id,amount FROM inventory WHERE character_id=? AND type=4000', (cid,)).fetchall()
         return cash, {iid: amount for iid, amount in items}
 
-    def offer(self, game, cash, items=()):
-        data = packet(2065, OFFER_FIELDS, [cash, list(items), []])[3:]
+    def offer(self, game, cash, items=(), guardians=()):
+        data = packet(2065, OFFER_FIELDS, [cash, list(items), list(guardians)])[3:]
         return self.call(game, 2065, tail=data)
 
     def open_gift(self):
@@ -205,6 +205,111 @@ class SocialExchangeTests(unittest.TestCase):
         self.assertEqual(r.string().decode('gb18030'), '这是一条测试留言')
         self.assertEqual([mid(p) for p in self.call(self.b, 929, 1, a)], [3563])
 
+    def test_realm_gem_trade_preserves_the_instance_and_rolls_back_when_blocked(self):
+        from native946_jing_gems import TYPES, level, put
+        from native946_mall_bags import pages
+
+        a, b = self.a.character['id'], self.b.character['id']
+        kind = TYPES[0]
+        with self.a.progression.transaction() as db:
+            gem = put(self.a, db, kind, 11)
+            other = put(self.b, db, kind, 3)
+            for cid in (a, b):
+                for page in pages(db, cid):
+                    db.executemany('INSERT OR IGNORE INTO inventory(character_id,type,page,slot,amount) VALUES(?,4001,?,?,1)',
+                                   ((cid, page, slot) for slot in range(1, 25)))
+
+        original = dict(id=gem, type=kind, amount=1, usable=0)
+        counter = dict(id=other, type=kind, amount=1, usable=0)
+        approved = packet(2062, ['number'], [1])
+        self.assertIn(2058, map(mid, self.call(self.a, 2066, b)))
+        self.assertIn(approved, self.offer(self.a, 0, [original]))
+        self.assertTrue(any('11级'.encode('gb18030') in reply for reply in self.svc.drain(self.b)))
+        self.assertIn(approved, self.offer(self.b, 0))
+        self.call(self.a, 2064)
+        self.assertIn(2059, map(mid, self.call(self.b, 2064)))
+        with self.a.progression.transaction(write=False) as db:
+            self.assertEqual(db.execute('SELECT character_id FROM inventory WHERE id=?', (gem,)).fetchone()[0], a)
+            self.assertEqual(level(db, gem), 11)
+
+        self.call(self.a, 2066, b)
+        self.assertIn(approved, self.offer(self.a, 0, [original]))
+        self.assertIn(approved, self.offer(self.b, 0, [counter]))
+        self.call(self.a, 2064)
+        self.assertIn(2060, map(mid, self.call(self.b, 2064)))
+        with self.a.progression.transaction(write=False) as db:
+            for iid, cid, grade in ((gem, b, 11), (other, a, 3)):
+                row = db.execute('SELECT character_id,slot,amount FROM inventory WHERE id=?', (iid,)).fetchone()
+                self.assertEqual((row['character_id'], row['amount'], level(db, iid)), (cid, 1, grade))
+                self.assertIn(row['slot'], range(1, 25))
+        self.assertNotIn(2060, map(mid, self.call(self.b, 2064)))
+
+    def test_guardian_trade_preserves_identity_and_rechecks_locks(self):
+        a, b = self.a.character['id'], self.b.character['id']
+        sid = self.a.summons.acquire(3197, 'capture:trade-fixture')
+        self.a.summons.status(sid, 2)
+        with self.a.progression.transaction() as db:
+            db.execute('UPDATE summons SET amity=850,experience=23 WHERE id=?', (sid,))
+            db.execute('INSERT INTO cosmetic_guardian_appearance(summon_id,character_id,color1) VALUES(?,?,32)', (sid,a))
+        pet = self.a.summons.get(sid)
+        self.assertTrue(self.a.summons.list_record(pet)['CanTrade'])
+        self.assertNotIn(684, map(mid, self.call(self.b, 727, sid)))
+        for blocked in (True, False):
+            self.call(self.a, 2066, b)
+            self.svc.drain(self.b)
+            if not blocked:
+                self.offer(self.b, 0)
+                self.svc.trades[b].pop('guardian_offers')  # A cash-only offer locked before hot reload.
+            quote = [dict(id=sid, name='客户端假名字')]
+            self.assertIn(packet(2062, ['number'], [1]), self.offer(self.a, 0, guardians=quote))
+            visible = packet(2061, OFFER_FIELDS, [0, [], [dict(id=sid, name=pet['name'])]])
+            self.assertIn(visible, self.svc.drain(self.b))
+            self.assertIn(684, map(mid, self.call(self.b, 727, sid)))
+            if blocked:
+                self.offer(self.b, 0)
+            self.call(self.a, 2064)
+            if blocked:
+                with self.a.progression.transaction() as db:
+                    db.execute("INSERT INTO native_object_locks VALUES(?,'summon',?,1,0)", (a,sid))
+            result = self.call(self.b, 2064)
+            self.assertIn(2059 if blocked else 2060, map(mid, result))
+            with self.a.progression.transaction() as db:
+                saved = db.execute('SELECT character_id,amity,experience FROM summons WHERE id=?', (sid,)).fetchone()
+                self.assertEqual(tuple(saved), (a if blocked else b, 850, 23))
+                db.execute("DELETE FROM native_object_locks WHERE kind='summon' AND object_id=?", (sid,))
+        self.assertNotIn(2060, map(mid, self.call(self.b, 2064)))
+        self.assertEqual(self.b.summons.get(sid)['color1'], 32)
+        self.assertTrue(self.b.summons.list_record(self.b.summons.get(sid))['Wildness'])
+        with self.assertRaises(ValueError):
+            self.a.summons.acquire(3197, 'capture:trade-fixture')
+        with self.a.progression.transaction(write=False) as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM native_guardian_trade_transfers').fetchone()[0], 1)
+
+    def test_guardian_trade_checks_net_slots_before_cash_or_pet_moves(self):
+        from unittest.mock import patch
+
+        a, b = self.a.character['id'], self.b.character['id']
+        left = self.a.summons.acquire(3197, 'fixture:left')
+        right = self.b.summons.acquire(3197, 'fixture:right')
+        self.a.summons.status(left, 2)
+        self.b.summons.status(right, 2)
+        with self.a.progression.transaction() as db:
+            db.execute('UPDATE characters SET gold=100 WHERE id IN (?,?)', (a,b))
+        with patch('native946_mall_bags.summon_limit', return_value=1):
+            for swap in (False, True):
+                self.call(self.a, 2066, b)
+                self.offer(self.a, 25, guardians=[dict(id=left)])
+                self.offer(self.b, 0, guardians=[dict(id=right)] if swap else [])
+                self.call(self.a, 2064)
+                self.assertIn(2060 if swap else 2059, map(mid, self.call(self.b, 2064)))
+                with self.a.progression.transaction(write=False) as db:
+                    owners = [db.execute('SELECT character_id FROM summons WHERE id=?',(sid,)).fetchone()[0]
+                              for sid in (left,right)]
+                    balances = [db.execute('SELECT gold FROM characters WHERE id=?',(cid,)).fetchone()[0]
+                                for cid in (a,b)]
+                self.assertEqual(owners, [b,a] if swap else [a,b])
+                self.assertEqual(balances, [75,125] if swap else [100,100])
+
     def test_group_mail_opt_out_and_blocked_sender(self):
         a, b = self.a.character['id'], self.b.character['id']
         self.call(self.a, 599, b, 1, 0)
@@ -233,3 +338,72 @@ class SocialExchangeTests(unittest.TestCase):
         self.call(self.b, 1108, a)
         self.assertIn(text_notice('已批准入帮申请。'), self.call(self.a, 1135, 1, b))
         self.assertEqual(self.svc.drain(self.b), (text_notice('验收帮派已批准你的入帮申请。'),))
+
+    def test_guild_officer_rights_and_public_namecard(self):
+        from time import time
+        from local_accounts import LocalAccounts
+        from native946_guilds import _create_guild
+        from native946_gameplay import NativeGameplay
+
+        a, b = self.a.character['id'], self.b.character['id']
+        accounts = LocalAccounts(self.path)
+        accounts.register(dict(username='applicant', password='fixture-password'))
+        char = self.characters.create('applicant', '帮派申请', 702)
+        recruit = NativeGameplay(char, self.characters, lambda: ())
+        with self.a.progression.transaction() as db:
+            _create_guild(db, 1, '同心帮', '同心协力', a, int(time()))
+            db.execute('INSERT INTO native_guild_members(character_id,guild_id,joined) VALUES(?,?,?)', (b,1,int(time())))
+            db.execute('UPDATE characters SET level=50 WHERE id=?', (char['id'],))
+        self.assertIn(4960, map(mid, self.call(recruit, 4961, 1)))
+        self.assertIn(4962, map(mid, self.call(recruit, 4971, 1, 0)))
+        self.call(self.a, 1109, b, 21, 6)
+        self.assertIn(1067, map(mid, self.call(self.a, 1112)))
+        self.svc.drain(self.b)
+        self.call(recruit, 1107, 1, tail=string_field('申请入帮'))
+        self.assertIn(text_notice('帮派申请申请加入帮派。'), self.svc.drain(self.b))
+        self.assertIn(1084, map(mid, self.call(self.b, 1131, 20)))
+        self.assertIn(1084, map(mid, self.call(self.b, 1135, 1, char['id'])))
+        self.assertNotIn(1072, map(mid, self.call(self.b, 1135, 3, char['id'])))
+        self.call(self.a, 1109, b, 21, 3)
+        wire = packet(1111, ['number', ('array', 'number')], [b, [3]])
+        self.assertIn(1066, map(mid, self.call(self.a, 1111, tail=wire[3:])))
+        self.assertNotIn(1072, map(mid, self.call(self.b, 1135, 3, char['id'])))
+        wire = packet(1111, ['number', ('array', 'number')], [b, [3,4]])
+        self.assertNotIn(1066, map(mid, self.call(recruit, 1111, tail=wire[3:])))
+        self.assertIn(1066, map(mid, self.call(self.a, 1111, tail=wire[3:])))
+        self.assertIn(1072, map(mid, self.call(self.b, 1135, 3, char['id'])))
+
+    def test_guild_history_tenet_and_leader_permissions_use_native_entrypoints(self):
+        from time import time
+        from native946_guilds import _create_guild
+
+        a, b = self.a.character['id'], self.b.character['id']
+        with self.a.progression.transaction() as db:
+            _create_guild(db, 1, '验收帮派', '旧宗旨', a, int(time()))
+        self.assertEqual(list(map(mid, self.call(self.b, 4981))), [98])
+        with self.a.progression.transaction() as db:
+            db.execute('INSERT INTO native_guild_members(character_id,guild_id,joined) VALUES(?,1,?)',
+                       (b, int(time())))
+        self.assertEqual(self.call(self.b, 4981), (packet(4970, ['string'], ['{}']),))
+        self.assertEqual(list(map(mid, self.call(self.b, 4972))), [98])
+
+        def editor(mid_request):
+            self.assertIn(1023, map(mid, self.call(self.a, mid_request)))
+            return self.a._guild_text_session['token']
+
+        def submit(token, contents):
+            payload = bytes([1]) + string_field(contents) + number(token)
+            return self.call(self.a, 1033, tail=payload)
+
+        token = editor(4972)
+        self.assertIn(4970, map(mid, submit(token, '周末一起组队')))
+        self.assertNotIn(4970, map(mid, submit(token, '重复提交')))
+        history = MessageReader(self.call(self.b, 4981)[0][3:])
+        self.assertIn('周末一起组队', history.string().decode('gb18030'))
+        history.finish()
+        self.assertIn(3506, map(mid, submit(editor(4973), '新的帮派宗旨')))
+        with self.a.progression.transaction(write=False) as db:
+            self.assertEqual(db.execute('SELECT tenet FROM native_guilds WHERE id=1').fetchone()[0], '新的帮派宗旨')
+            announcement = db.execute('SELECT id FROM native_guild_announcements WHERE guild_id=1').fetchone()[0]
+        self.assertNotIn(4970, map(mid, self.call(self.b, 4974, announcement)))
+        self.assertIn(packet(4970, ['string'], ['{}']), self.call(self.a, 4974, announcement))
