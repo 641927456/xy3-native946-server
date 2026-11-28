@@ -77,6 +77,45 @@ class NpcServiceTests(unittest.TestCase):
         self.assertFalse(self.game.dialog_open);self.assertEqual(self.game.dialog_actions,[])
         self.assertEqual(self.game.character,before);self.assertIsNone(self.choose(4002,1))
 
+    def test_qiguan_uses_colleague_seven_routes(self):
+        from native946_map import load_map
+        from native946_npc_quests import SANJIE_TIERS
+
+        catalog = world()
+        options = ['御前比武（40~49级）', '捉拿刺客（50~59级）', '长安驱邪（60~69级）',
+                   '扬威西域（70~79级）', '收服叛军（80~89级）', '武林盟主（90~99级）',
+                   '破除邪阵（100级以上）', '离开']
+        arrivals = [(60,164),(7,135),(326,38),(42,86),(416,178),(524,274),(143,62)]
+        self.assertEqual(len(catalog.available_transports(2001, 4198, self.game.character)), 7)
+        for choice, (tier,arrival) in enumerate(zip(SANJIE_TIERS.values(),arrivals,strict=True), 1):
+            with self.subTest(choice=choice):
+                scene = tier['targets'][0]['scene_id']
+                self.assertTrue(load_map(scene).walkable(*arrival))
+                self.approach(2001, 4198)
+                self.assertEqual(menu(self.send(1034, 4198)), ([('可传送：', 0)], options, 4198, 1))
+                replies = self.choose(4198, choice)
+                self.assertEqual([mid(p) for p in replies[:2]], [1183, 1606 if scene==2001 else 1597])
+                saved = self.characters.list(self.game.character['owner'])[0]
+                self.assertEqual((saved['map_id'], saved['x'], saved['y']), (scene, *arrival))
+                self.assertIsNone(self.send(1645, 4198, choice))
+                self.assertEqual(self.characters.list(self.game.character['owner'])[0], saved)
+
+    def test_qiguan_close_and_out_of_range_keep_position(self):
+        for choice in (8, 255):
+            self.approach(2001, 4198)
+            self.send(1034, 4198)
+            before = dict(self.game.character)
+            self.assertEqual(mid(self.choose(4198, choice)), 1183)
+            self.assertIsNone(self.game.dialog_npc)
+            self.assertFalse(self.game.dialog_open)
+            self.assertEqual(self.game.dialog_actions, [])
+            self.assertEqual(self.game.character, before)
+            self.assertIsNone(self.choose(4198, 1))
+        self.approach(2001, 4002)
+        before = dict(self.game.character)
+        self.assertEqual(mid(self.send(1645, 4198, 1)), 98)
+        self.assertEqual(self.game.character, before)
+
     def test_stale_cancel_and_invalid_zero_cannot_select_first_option(self):
         self.approach(2001,4002);self.send(1034,4002)
         self.assertIsNone(self.choose(999,255));self.assertTrue(self.game.dialog_open)

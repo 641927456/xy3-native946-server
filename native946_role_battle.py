@@ -46,7 +46,7 @@ ENDURE_ROUNDS = 3
 ELEMENTS=('fire','water','wind','thunder');CONTROLS=('disorder','seal','faint','wenxin','jin_gu','entangle')
 PILL_ELEMENTS = {211: 'wind', 212: 'thunder', 213: 'water', 214: 'fire'}
 RESIST={'fire':'ReFire','water':'ReWater','wind':'ReWind','thunder':'ReThunder','disorder':'ReDisorder','seal':'ReSeal','faint':'ReFaint','gushu':'ReGushu','poison':'RePoison','wenxin':'ReWenxin'}
-STATUS={'faint':36,'disorder':37,'seal':38,'wenxin':40,'jin_gu':53,'entangle':52,'soul_seal':198}
+STATUS={'faint':36,'disorder':37,'seal':38,'wenxin':40,'jin_gu':53,'entangle':52,'soul_seal':198,'misdirection':339}
 SHIELD_STATUS={'control_poison':245,'control_sleep':246,'element':191,'physical':192,'endure':170}
 BUFF_STATUS={'initiative':195,'role_reveal':218,'role_reflect':30,'role_heal_reduce':174,'hpmax':248,
              'race_fabao_slash':365,'race_fabao_spell_reduction':366,'race_fabao_physical_reduction':367,
@@ -495,6 +495,23 @@ class Runtime:
     def enemies(self,a):
         from native946_innate_effects import has as has_innate
         return [f for f in self.living() if f['camp']!=a['camp'] and (not f.get('invisible') or a.get('role_reveal',0)>0 or has_innate(a,4733))]
+    def apply_misdirection(self, source, target):
+        target['controls']['misdirection'] = self.round
+        target.setdefault('role_control_info', {})['misdirection'] = dict(source=source['id'])
+        self.out.append(nums(2130, target['id'], STATUS['misdirection'], 0))
+    def misdirection_source(self, actor):
+        if actor.get('controls', {}).get('misdirection', 0) < self.round:
+            return None
+        status = actor.get('role_control_info', {}).get('misdirection', {})
+        source = self.fighters.get(status.get('source'))
+        if source and source['hp'] > 0 and not source.get('removed'):
+            return source
+        return None
+    def misdirection_blocks(self, actor, target):
+        if self.misdirection_source(actor) is target:
+            self.out.append(nums(2144, target['id']))
+            return True
+        return False
     def pvp(self,a,t):return bool(a.get('owner') and t.get('owner') and a['camp']!=t['camp'])
     def invisibility_sources(self,f):
         return invisibility_sources(f)
@@ -530,7 +547,9 @@ class Runtime:
         pending=self.__dict__.get('_guardian_deaths',[])
         for item in list(pending):
             if not any(e['target']['hp']>0 and not e['target'].get('removed') for e in item[2]):
-                pending.remove(item);self.kill(item[0],item[1],active=item[3])
+                attacker, victim, _, active, preserve_numbers = item
+                pending.remove(item)
+                self.kill(attacker, victim, active=active, preserve_numbers=preserve_numbers)
         self.out.append(nums(2126,2))
         self._presentation_actor=None
         for fid,message in self.__dict__.pop('_presentation_deaths',{}).items():
@@ -540,7 +559,7 @@ class Runtime:
         self.guardian_deaths()
     def guardian_deaths(self):
         pending=self.__dict__.pop('_guardian_deaths',[])
-        for attacker,victim,events,active in pending:
+        for attacker,victim,events,active,preserve_numbers in pending:
             events=[event for event in events if event['target']['hp']>0 and not event['target'].get('removed')]
             for index,event in enumerate(events):
                 source,target=event['source'],event['target']
@@ -559,7 +578,7 @@ class Runtime:
                 # A source's own death must follow act_end. Embedding it in
                 # its cast makes the native actor die during the return move.
                 # A standalone do_fighter_die runs after that move completes.
-                if index==len(events)-1:self.kill(attacker,victim,active=active)
+                if index==len(events)-1:self.kill(attacker,victim,active=active,preserve_numbers=preserve_numbers)
     @staticmethod
     def power_values(f):
         # c_set_hpmp selectors. Update ceilings first, then the current values.
@@ -651,14 +670,14 @@ class Runtime:
         if max_recovery is not None:amount=min(amount,max_recovery)
         if restore_limit:t['hp_limit']=min(t['hpmax'],t.get('hp_limit',t['hpmax'])+restore_limit)
         t['hp']=min(t.get('hp_limit',t['hpmax']),t['hp']+amount);self.out.append(nums(2164,t['id'],t['hp']-before,1,0));self.bars(t);return t['hp']-before
-    def kill(self,a,t,*,active=False):
-        if t['hp']>0:return
+    def kill(self,a,t,*,active=False,preserve_numbers=False):
+        if t['hp']>0 or t.get('removed'):return
         if t['role_shields'].get('endure',0):self.shield(t,'endure');t['hp']=1;self.bars(t);return
         from native946_guardian_passives import ready,death_effects
         if ready(t):
             events=death_effects(t,a,self.fighters.values(),self.rng,apply=False,runtime=self)
             if events:
-                self.__dict__.setdefault('_guardian_deaths',[]).append((a,t,events,active))
+                self.__dict__.setdefault('_guardian_deaths',[]).append((a,t,events,active,preserve_numbers))
                 return
         t['role_stacks'].clear()
         t['role_death_round']=self.round
@@ -666,10 +685,11 @@ class Runtime:
         self.out.extend(stick_packets(t))
         for b in list(t['role_buffs']):
             if b['until']==10**9:t[b['key']]-=b['amount'];t['role_buffs'].remove(b)
-        # Ordinary monsters have no revival action. Native mode 3 removes
-        # their view immediately; special encounters and owned fighters keep corpses.
-        die_mode=3 if t.get('exit_on_defeat') else 2
-        if die_mode==3:t['removed']=True
+        # Native mode 2 lets queued numbers finish on the defeated fighter.
+        # The combat roster still removes ordinary monsters at zero HP.
+        exits=t.get('exit_on_defeat')
+        if exits:t['removed']=True
+        die_mode=3 if exits and not preserve_numbers else 2
         death=nums(2142,t['id'],die_mode)
         if self.__dict__.get('_presentation_actor')==t['id']:
             self.__dict__.setdefault('_presentation_deaths',{})[t['id']]=death
@@ -702,10 +722,14 @@ class Runtime:
         if game is None or victim.get('removed'):return
         used=set(self.fighters)
         speed_bonus=7000 if has(victim,4735) else 0
+        attempts = 0
         for incoming in game.summons.snapshot():
             if incoming['id'] in used or incoming['hp']<=0 or incoming.get('honesty',100)<50:continue
-            chance=3057*stunt_scale(incoming,4630)//10000 if has(incoming,4630) else 2500 if has(incoming,4144) else 0
+            chance=2500 if has(incoming,4144) else 3057*stunt_scale(incoming,4630)//10000 if has(incoming,4630) else 0
             if not (chance or speed_bonus):continue
+            if attempts == 3:
+                break
+            attempts += 1
             chance+=speed_bonus+incoming.get('new_neidan_power',{}).get(279,0)
             speed_bonus=0
             if self.rng.randrange(10000)>=min(10000,chance):continue
@@ -738,12 +762,13 @@ class Runtime:
         chance=actor.get('jade_skills',{}).get(15,0)
         if not chance or self.rng.randrange(1000)>=chance:return
         for target in targets:
-            if target['hp']<=0 or target.get('removed'):continue
+            if target['hp']<=0 or target.get('removed') or self.misdirection_source(actor) is target:continue
             current=next((entry['amount'] for entry in target['role_buffs'] if entry['source']==4661),0)
             self.buff(target,'role_heal_reduce',min(300,current+100),3,4661)
 
-    def damage(self,a,t,amount,family='physical',*,primary=True,penetration=0,hit=True,allow_protection=True,active=True,minimum=0):
+    def damage(self,a,t,amount,family='physical',*,primary=True,penetration=0,hit=True,allow_protection=True,active=True,minimum=0,preserve_numbers=False):
         if t['hp']<=0:return 0
+        if active and self.misdirection_blocks(a, t):return 0
         family='physical' if family in ('physical','wuli','pierce','stick','dispel_strike') else family
         offense=a.get('new_neidan_power',{})
         defense=t.get('new_neidan_power',{})
@@ -827,7 +852,8 @@ class Runtime:
         source=self.fighters.get(share.get('source'))
         if source and source['id']!=t['id'] and source['hp']>0 and not source.get('removed') and share.get('until',0)>=self.round:
             transferred=amount*share['percent']//1000;amount-=transferred
-            self.damage(a,source,transferred,family,primary=False,allow_protection=False,active=active)
+            self.damage(a, source, transferred, family, primary=False, allow_protection=False,
+                        active=active, preserve_numbers=preserve_numbers)
         if family=='physical':amount=self.defended_damage(t,amount)
         if family=='physical':amount+=a.get('strength',0)*offense.get(254,0)//10000
         elif family in ELEMENTS:amount+=a.get('mag',0)*offense.get(252,0)//10000
@@ -839,9 +865,11 @@ class Runtime:
                 # The 946 client shows the pair. The split is the local combat rule.
                 transferred=min(guard['hp'],amount//2)
                 self.out.append(nums(2159,t['id'],guard['id']))
-                self.apply_damage(a,guard,self.defended_damage(guard,transferred),family,0,active=active)
+                self.apply_damage(a, guard, self.defended_damage(guard, transferred), family, 0,
+                                  active=active, preserve_numbers=preserve_numbers)
                 amount-=transferred
-        return self.apply_damage(a,t,amount,family,breaker if breaks else 0,active=active)
+        return self.apply_damage(a, t, amount, family, breaker if breaks else 0,
+                                 active=active, preserve_numbers=preserve_numbers)
 
     def defended_damage(self,target,amount):
         if target['id'] in self.defending and amount>0:
@@ -859,7 +887,7 @@ class Runtime:
     def restore_wrath(self, target, amount):
         target['role_wrath'] = min(RULE['wrath_max'], target['role_wrath'] + amount)
 
-    def apply_damage(self,a,t,amount,family,breaker,*,active=True):
+    def apply_damage(self,a,t,amount,family,breaker,*,active=True,preserve_numbers=False):
         from native946_innate_effects import lethal_guard
         if family=='physical' or family in ELEMENTS:
             shields=t.get('role_absorb_hp',{})
@@ -895,7 +923,7 @@ class Runtime:
         if actual and family in (*ELEMENTS,'poison') and a['hp']>0:
             life=actual*a.get('new_neidan_power',{}).get(282,0)//10000
             if life:self.heal(a,a,life)
-        self.kill(a,t,active=active)
+        self.kill(a,t,active=active,preserve_numbers=preserve_numbers)
         if actual and a['id']!=t['id'] and t.get('role_reflect') and a['hp']>0:
             reflected=actual*t['role_reflect']//1000
             if family=='physical':reflected=self.defended_damage(a,reflected)
@@ -916,6 +944,7 @@ class Runtime:
                     self.kill(t,a);self.bars(a)
         self.bars(t);return actual
     def control(self,a,t,kind,*,primary=True,duration=CONTROL_ROUNDS,base=700):
+        if self.misdirection_blocks(a,t):return False
         if kind=='seal' and t.get('race_fabao_seal_immunity'):
             self.out.append(nums(2144,t['id']));return False
         if self.shield(t,kind) or self.shield(t,'bell_control'):self.out.append(nums(2144,t['id']));return False
@@ -953,6 +982,7 @@ class Runtime:
         innate_after_control(self,a,t)
         return True
     def shock(self,a,t,primary=True,boost=0):
+        if self.misdirection_blocks(a,t):return 0
         rate=shock_rate(a,t,boost);damage=t['hp']*rate//1000
         minimum=0
         if self.pvp(a,t):
@@ -1019,6 +1049,11 @@ class Runtime:
                 if b['until']<self.round:
                     a[b['key']]=a.get(b['key'],0)-b['amount'];a['role_buffs'].remove(b)
                     if b['key'] in BUFF_STATUS and not any(v['key']==b['key'] for v in a['role_buffs']):self.out.append(nums(2138,a['id'],BUFF_STATUS[b['key']]))
+            absorb_expiry = a.get('role_absorb_hp_until', {})
+            for skill, until in list(absorb_expiry.items()):
+                if until < self.round:
+                    a['role_absorb_hp'].pop(skill, None)
+                    del absorb_expiry[skill]
             a['hp']=min(a['hp'],a['hpmax']);a['mp']=min(a['mp'],a['mpmax'])
             if not a.get('removed'):self.bars(a)
             for key,until in list(a['controls'].items()):
@@ -1068,6 +1103,9 @@ class Runtime:
         if meta['family']=='dispel_strike' and selected_target:friendly=selected_target['camp']==a['camp']
         candidates=self.allies(a) if friendly else self.enemies(a)
         if not friendly:candidates=[t for t in candidates if not t.get('invisible') or a.get('role_reveal',0)>0]
+        if not friendly and (source := self.misdirection_source(a)) is not None:
+            candidates = [source, *(target for target in candidates if target is not source)]
+            target_id = source['id']
         if meta['cast_id'] == FEIXUE_WUHEN:
             candidates = [t for t in candidates if self.pvp(a, t)]
         if meta['cast_id']==46:candidates+=self.allies(a,True)
@@ -1159,6 +1197,11 @@ class Runtime:
         if a['hp']<=0 or self.control_blocked(a):return
         if a['controls'].get('entangle',0)>=self.round:return
         if not self.action_gushu(a,False):return
+        if active and (source := self.misdirection_source(a)) is not None:
+            self.group(a, [source], 10)
+            self.misdirection_blocks(a, source)
+            self.end()
+            return
         skill=self.child_proc(a,723,724)
         if skill:self.group(a,[a],skill,True);self.buff(a,'attack',500,1,skill);self.buff(a,'AttValue',500,1,skill);self.end()
         from native946_book_combat import roll
@@ -1175,7 +1218,8 @@ class Runtime:
             if a['hp']<=0 or hit['miss'] or t['hp']<=0 or self.rng.randrange(1000)>=combo_chance:break
             extra=roll(a,t,self.rng);self.group(a,[t],10)
             if extra['miss']:self.out.append(nums(2144,t['id']))
-            else:self.damage(a,t,extra['damage'],'physical',primary=False,active=active)
+            else:
+                self.damage(a, t, extra['damage'], 'physical', primary=False, active=active, preserve_numbers=True)
             self.end()
         a.pop('_normal_attack',None)
         self.reveal(a,t)
@@ -1222,6 +1266,9 @@ class Runtime:
         # 946 treats power updates inside a cast group as a hit on that unit.
         self.bars(a)
         self.group(a,targets,sid)
+        blocked_target = self.misdirection_source(a) if family not in FRIENDLY or family in ('cleanse','dispel_strike') else None
+        if blocked_target is not None and any(target is blocked_target for target in targets):
+            self.misdirection_blocks(a, blocked_target)
         repeats=1
         if sid in (44,54,64,74) and self.proc(a,7007):repeats+=1
         if family=='wind' and self.proc(a,7025):repeats+=1
@@ -1231,11 +1278,18 @@ class Runtime:
         if sid==36:repeats=3
         if sid in (1702,1704):repeats=2
         if sid in (1706,1708):repeats=(2 if sid==1708 else 1)+sticks
-        if sid in (6018,6105,6036) and self.rng.randrange(1000)<SECONDARY_PROC_RATE:repeats+=1
+        can_repeat = sid in (6018, 6105, 6036)
+        if can_repeat and self.rng.randrange(1000)<SECONDARY_PROC_RATE:repeats+=1
+        has_secondary_element = sid in (6016, 6018, 6020, 6022, 6032, 6034)
+        strikes = 2 if sid in (4552, 4554) else 1
         for turn in range(repeats):
             for i,t in enumerate(targets):
+                if t is blocked_target:
+                    continue
                 if sid==1708 and turn and i:continue
                 primary=i==0
+                preserve_numbers = (strikes > 1 or can_repeat or has_secondary_element
+                                    or (repeats > 1 and (sid != 1708 or primary)))
                 if family in CONTROLS:
                     if self.control(a,t,family,primary=primary,base=700+feng_power):
                         if sid==6000 and self.rng.randrange(1000)<SECONDARY_PROC_RATE:t.setdefault('role_dots',[]).append(dict(kind='poison',source=a['id'],skill=sid,damage=max(1,self.base_damage(a,t,dict(meta,family='poison'))//3),until=self.round+2))
@@ -1357,7 +1411,7 @@ class Runtime:
                     continue
                 if t['hp']<=0:continue
                 if family == 'fixed':
-                    self.apply_damage(a, t, self.base_damage(a, t, meta), family, 0)
+                    self.apply_damage(a, t, self.base_damage(a, t, meta), family, 0, preserve_numbers=preserve_numbers)
                     continue
                 if family=='poison':
                     chance=min(990,max(0,750+value(a,'AddPoison')+value(a,'RoleLineupPoisonHit')+value(a,'EquipPoisonHit')-value(t,'RePoison')-value(t,'RePoisonAtt')))
@@ -1377,14 +1431,16 @@ class Runtime:
                 if family=='poison':damage=min(damage,t['hpmax']*4//10)
                 if sid==4552:self.buff(t,'PhyAbsorbDegree',-200,1,4552)
                 actual=0
-                for strike in range(2 if sid in (4552,4554) else 1):
-                    actual+=self.damage(a,t,damage,family,primary=primary and not turn and not strike)
+                for strike in range(strikes):
+                    actual += self.damage(a, t, damage, family, primary=primary and not turn and not strike,
+                                          preserve_numbers=preserve_numbers)
                 if sid==36 and a.get('race_fabao_slash') and t['hp']>0:
-                    self.damage(a,t,damage*a['race_fabao_slash']//1000,family,primary=False)
+                    self.damage(a, t, damage*a['race_fabao_slash']//1000, family, primary=False, preserve_numbers=True)
                 if (sid==1706 or sid==1708 and turn) and actual and self.rng.randrange(1000)<(STICK_SEAL_RATE//2 if actual<STICK_SEAL_DAMAGE else STICK_SEAL_RATE):t['controls']['soul_seal']=max(t['controls'].get('soul_seal',0),self.round+2);self.out.append(nums(2130,t['id'],198,0))
-                if sid in (6016,6018,6020,6022,6032,6034) and t['hp']>0 and self.rng.randrange(1000)<SECONDARY_PROC_RATE:
+                if has_secondary_element and t['hp']>0 and self.rng.randrange(1000)<SECONDARY_PROC_RATE:
                     secondary='water' if sid in (6016,6032) else 'thunder'
-                    self.damage(a,t,self.base_damage(a,t,dict(meta,family=secondary))*7//10,secondary,primary=False)
+                    self.damage(a, t, self.base_damage(a, t, dict(meta, family=secondary))*7//10, secondary,
+                                primary=False, preserve_numbers=True)
                 if sid==6004 and self.rng.randrange(1000)<SECONDARY_PROC_RATE:
                     for b in list(t['role_buffs']):
                         if b['source'] in (81,82,83,84,85,91,92,93,94,95,101,102,103,104,105,6010,6012,6014) and not b['locked']:t[b['key']]-=b['amount'];t['role_buffs'].remove(b)
@@ -1402,7 +1458,8 @@ class Runtime:
         if meta['source']=='secret' and meta['anger']<=3 and self.proc(a,7442):a['role_anger']=min(RULE['anger_max'],a['role_anger']+1)
         if 1701<=sid<=1705:a['role_stick']=min(a.get('role_stick_max',2),a.get('role_stick',0)+1)
         if family=='stick':self.out.extend(stick_packets(a))
-        self.bars(a);self.end();self.shadow_follow(a,targets[0],meta)
+        self.bars(a);self.end()
+        if targets[0] is not blocked_target:self.shadow_follow(a,targets[0],meta)
     def shadow(self,a):
         if any(f.get('shadow_owner')==a['id'] and not f.get('removed') and f['hp']>0 for f in self.fighters.values()):return
         if a['role_cooldowns'].get('shadow',0)>self.round:return
@@ -1433,11 +1490,14 @@ class Runtime:
         for a in self.fighters.values():
             if a.get('kind')=='pet':
                 from native946_guardian_innate import CANSHENG_YIJIU
-                key=f'skill:{CANSHENG_YIJIU}'
+                from native946_innate_effects import DUOMU
                 cooldowns=a['role_cooldowns']
-                if key in cooldowns:
+                for skill in (CANSHENG_YIJIU, DUOMU):
+                    key = f'skill:{skill}'
+                    if key not in cooldowns:
+                        continue
                     remaining=max(0,cooldowns[key]-self.round-1)
-                    self.out.append(packet(2168,['number',('array','number'),('array','number')],[a['id'],[CANSHENG_YIJIU],[remaining]]))
+                    self.out.append(packet(2168,['number',('array','number'),('array','number')],[a['id'],[skill],[remaining]]))
                     if not remaining:del cooldowns[key]
                 continue
             if a.get('kind')!='hero':continue
@@ -1451,16 +1511,21 @@ class Runtime:
             xinyi_follow_up(self,a,target_id)
             return
         from native946_guardian_magic import prepared,RULE as GR
-        v=prepared(a,skill);targets=sorted(self.enemies(a),key=lambda t:(t['id']!=target_id,t['id']))[:v['targets']]
+        v = prepared(a, skill)
+        enemies = self.enemies(a)
+        if (source := self.misdirection_source(a)) is not None:
+            enemies = [source, *(target for target in enemies if target is not source)]
+            target_id = source['id']
+        targets = sorted(enemies, key=lambda t: (t['id'] != target_id, t['id']))[:v['targets']]
         if not targets:return
         a['mp']-=v['mana']
         self.bars(a)
         if skill==4906:
             self.group(a,targets,skill)
             for i,t in enumerate(targets):
-                self.damage(a,t,max(1,a.get('attack',0)-t.get('defense',0)),'physical',primary=not i)
+                self.damage(a,t,max(1,a.get('attack',0)-t.get('defense',0)),'physical',primary=not i,preserve_numbers=True)
                 for element in ('thunder','fire','wind'):
-                    if t['hp']>0:self.damage(a,t,max(1,a.get('strength',a.get('str',0))*2+a.get('level',1)*10),element,primary=False)
+                    if t['hp']>0:self.damage(a,t,max(1,a.get('strength',a.get('str',0))*2+a.get('level',1)*10),element,primary=False,preserve_numbers=True)
             self.apply_jade_spell_debuff(a,targets)
             self.bars(a);self.end()
             xinyi_follow_up(self,a,target_id)
@@ -1483,7 +1548,7 @@ class Runtime:
                 amount=amount*(1000+value(a,'XQAddHurtHpP')+value(a,'RoleSpellMastery'))//1000
                 amount=amount*max(0,1000-value(t,'XQSubHurtHpP'))//1000
                 if echo:amount=amount*ECHO_DAMAGE_PER_MILLE//1000
-                self.damage(a,t,amount,v['element'],primary=not i and not n)
+                self.damage(a, t, amount, v['element'], primary=not i and not n, preserve_numbers=skill == 339 or echo)
             self.bars(a);self.end()
         self.apply_jade_spell_debuff(a,targets)
         xinyi_follow_up(self,a,target_id)
@@ -1589,7 +1654,10 @@ class Runtime:
             if not v['enabled'] or self.rng.random()*100>=v['chance']:continue
             for _ in range(v['counter_count']):
                 if pet['hp']<=0 or target['hp']<=0:break
-                self.group(pet,[target],10);self.damage(pet,target,max(1,pet['attack']-target.get('defense',0)),active=False);self.end()
+                self.group(pet, [target], 10)
+                self.damage(pet, target, max(1, pet['attack']-target.get('defense', 0)),
+                            active=False, preserve_numbers=v['counter_count'] > 1)
+                self.end()
 
 def vim_limit(s):return RULE['tianji_vim_max']+(100 if 2001 in s.get('active',[]) else 0)
 
@@ -1692,6 +1760,8 @@ def play_round(runtime,orders,db,*,battle=None):
         if any(order.get('kind')=='defend' for order in submitted):
             runtime.defending.add(fid)
     runtime.begin_round()
+    round_start=getattr(battle,'on_round_start',None)
+    if round_start:round_start(runtime)
     roster=sorted(list(runtime.fighters.values()),key=lambda f:(-f['initiative'],f['id']))
     local=runtime.owner_packets
     for actor in roster:

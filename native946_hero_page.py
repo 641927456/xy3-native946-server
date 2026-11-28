@@ -3,6 +3,7 @@ from pathlib import Path
 from time import time
 import json
 from native946_codec import packet
+from native946_training import state as training_state
 DATA=json.loads(Path(__file__).with_name('native946_character_page_data.json').read_text('utf8'))
 RULES=DATA['local_rules'];WIRE_VERSION=1
 REQUESTS={2093,3136,3780,1387,740,1471,1472,743,744,745,746,747,2606,2607,2608}
@@ -29,6 +30,11 @@ def active_plan(db,cid):
     row=db.execute('SELECT active_plan FROM native_hero_page_state WHERE character_id=?',(cid,)).fetchone()
     return row[0] if row else 1
 
+def point_plan_visibility(sanctification):
+    # The 946 c_open_two_points handler shows both buttons only for status 1.
+    return packet(1265, ['byte'], [int(bool(sanctification))])
+
+
 class HeroPage:
     def __init__(self,game):self.g=game;self.p=game.progression
     def raw(self,db):
@@ -49,18 +55,24 @@ class HeroPage:
         state=db.execute('SELECT active_plan,switch_count FROM native_hero_page_state WHERE character_id=?',(self.p.cid,)).fetchone()
         raw=self.raw(db)
         return (state[0],state[1],raw['level'],*(raw[k] for k in NAMES),raw['points'])
+    def require_point_plans(self, db):
+        if not training_state(db, self.p.cid)['sanctification']:
+            raise ValueError('封圣后才能使用左辅右弼加点方案。')
+
     def quote_switch(self):
         with self.p.transaction() as db:
+            self.require_point_plans(db)
             self.initialize(db);signature=self.signature(db)
             count=RULES['switch_book_base']+signature[1]*RULES['switch_book_increment']
         self.g.hero_point_quote=dict(signature=signature,cost=count,expires=time()+120)
         return packet(3779,['number'],[count])
     def switch(self):
-        quote=getattr(self.g,'hero_point_quote',None)
-        if not quote or quote['expires']<time():raise ValueError('请先点击属性页的方案切换按钮查看消耗。')
         from native946_mall_bags import pages
         from native946_inventory_features import consume
         with self.p.transaction() as db:
+            self.require_point_plans(db)
+            quote=getattr(self.g,'hero_point_quote',None)
+            if not quote or quote['expires']<time():raise ValueError('请先点击属性页的方案切换按钮查看消耗。')
             self.initialize(db)
             if self.signature(db)!=quote['signature']:raise ValueError('加点或切换次数已经变化，请重新查看切换消耗。')
             current=self.raw(db);old=active_plan(db,self.p.cid);target=3-old
@@ -86,7 +98,7 @@ class HeroPage:
                 if item['page']==after['equipment_page']:self.p.validate_equipment(after,item,item['slot'],item['page'])
             db.execute('UPDATE progression SET hp=?,mp=? WHERE character_id=?',(min(before['hp'],after['hpmax']),min(before['mp'],after['mpmax']),self.p.cid))
         self.g.hero_point_quote=None;self.g.last_event=dict(action='hero_point_plan_changed',plan=target)
-        return self.g.defer_packets(lambda:(*self.p.sync(),packet(1265,['byte'],[1])))
+        return self.g.defer_packets(self.p.sync)
     def additive(self,mode):
         if mode not in (1,2):raise ValueError('附加属性查询类型无效。')
         from native946_hero_extra_points import values,counters
@@ -99,8 +111,12 @@ class HeroPage:
         if mid==2093:
             window=r.integer();r.finish()
             from native946_hero_extra_points import values
-            with self.p.transaction(write=False) as db:raw=self.raw(db);extra=values(db,self.p.cid)
-            return (packet(2091,['number']*4,[raw[k]+extra[k] for k in NAMES]),packet(2092,['number',('array','ui_btnstatus')],[window,[]]))
+            with self.p.transaction(write=False) as db:
+                raw=self.raw(db);extra=values(db,self.p.cid)
+                sanctification=training_state(db,self.p.cid)['sanctification']
+            return (packet(2091,['number']*4,[raw[k]+extra[k] for k in NAMES]),
+                    packet(2092,['number',('array','ui_btnstatus')],[window,[]]),
+                    point_plan_visibility(sanctification))
         if mid==3136:
             mode=r.take(1)[0];r.finish();return self.additive(mode)
         if mid in (743,744,745,746,747,2606,2607,2608):

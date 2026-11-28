@@ -3,7 +3,7 @@ from pathlib import Path
 from time import monotonic
 import json
 
-REFERENCE_WIRE_VERSION=9
+REFERENCE_WIRE_VERSION=10
 
 from native946_codec import packet
 from native946_codec import text_notice

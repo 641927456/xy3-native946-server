@@ -1,5 +1,5 @@
 """Native species/zones with an explicit local encounter and reward policy."""
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from copy import deepcopy
 from hashlib import sha256
 from math import ceil
@@ -46,7 +46,7 @@ def level_experience(level, sample, team_bonus):
     base = level * sample['experience'] // sample['level']
     return base * (100 + team_bonus) // 100
 
-def enter_shared_battle(games, build):
+def enter_shared_battle(games, build, *, prepare=nullcontext):
     """Prepare every peer's entry before publishing any battle packets."""
     missing = object()
     fields = ('battle', '_wild_battle', 'dialog_open', 'dialog_actions', 'dialog_npc')
@@ -54,8 +54,9 @@ def enter_shared_battle(games, build):
               {name: getattr(g, name, missing) for name in fields},
               g.character.get('appearance', missing)) for g in games]
     try:
-        battle = build()
-        replies = [(g, tuple(battle.entry(g))) for g in games]
+        with prepare():
+            battle = build()
+            replies = [(g, tuple(battle.entry(g))) for g in games]
     except BaseException:
         for g, previous, attributes, appearance in saved:
             cid = g.character['id']
@@ -255,6 +256,13 @@ class WildBattle:
         result.extend(bell_entry(self.state))
         from native946_race_fabao_battle import view as artifact_view
         result.extend(artifact_view(self.state,cid))
+        team = self.service.team(cid) if len(self.games) > 1 else None
+        if team and self.can_direct(cid, team):
+            result.append(packet(4021, ['number', 'string', 'byte'], [cid, '', 1]))
+        for target, text in self.state.get('direct_marks', {}).items():
+            fighter = self.state['fighters'].get(target)
+            if fighter and not fighter.get('removed'):
+                result.append(packet(4021, ['number', 'string', 'byte'], [target, text, 0]))
         result.append(numbers(2135,self.state['round']))
         if self.state['phase']=='input':
             actor=self.pending_actor(cid)
@@ -320,8 +328,40 @@ class WildBattle:
         reveal=actor.get('role_reveal') or (actor['kind']=='pet' and has_innate(actor,4733))
         return next((enemy['id'] for enemy in self.enemies() if not enemy.get('invisible') or reveal),target)
 
+    def can_direct(self, cid, team):
+        member_ids = {member['character_id'] for member in team['members']}
+        return (len(member_ids.intersection(self.games)) > 1
+                and (cid == self.leader or cid in team['direct_ids']))
+
+    def direct(self, cid, reader):
+        target = reader.integer()
+        text = reader.string().decode('gb18030')
+        reader.finish()
+        team = self.service.team(cid)
+        if not team or not self.can_direct(cid, team):
+            raise ValueError('只有当前战斗的队长或受委托队员可以标记。')
+        if len(text) > 4 or '#' in text or any(not char.isprintable() for char in text):
+            raise ValueError('战斗指挥标记最多四个文字。')
+        if target == -1:
+            if text:
+                raise ValueError('清除全部标记时无需填写文字。')
+            self.state.pop('direct_marks', None)
+        else:
+            fighter = self.state['fighters'].get(target)
+            if not fighter or fighter.get('removed'):
+                raise ValueError('请选择在场的战斗单位。')
+            marks = self.state.setdefault('direct_marks', {})
+            if text:
+                marks[target] = text
+            else:
+                marks.pop(target, None)
+        reply = packet(4021, ['number', 'string', 'byte'], [target, text, 0])
+        self.broadcast(reply)
+
     def receive(self,game,mid,reader):
         cid=game.character['id'];state=self.state
+        if mid == 4022:
+            return self.direct(cid, reader)
         from native946_race_fabao_battle import COMMAND, submit, view
         if mid==COMMAND:
             submit(state,state['fighters'],cid,reader)

@@ -79,7 +79,11 @@ class Summons:
             ready=len(names)==8
             if ready:ready=db.execute("SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('native_new_neidan','native_guardian_jade','native_guardian_jade_luck','native_guardian_stones','native_guardian_special_slot')").fetchone()[0]==5
             if ready:ready='tier' in {r[1] for r in db.execute('PRAGMA table_info(native_guardian_books)')}
-            if ready:ready='365' in db.execute("SELECT sql FROM sqlite_master WHERE name='native_guardian_books'").fetchone()[0]
+            if ready:
+                from native946_skillbooks import schema_ready
+
+                book_sql = db.execute("SELECT sql FROM sqlite_master WHERE name='native_guardian_books'").fetchone()[0]
+                ready = schema_ready(book_sql)
             if ready:
                 columns={r[1] for r in db.execute('PRAGMA table_info(summons)')}
                 required={'formula_version','direction','growth_base','initial_hp_adj','initial_mp_adj','initial_attack_adj',
@@ -174,15 +178,18 @@ class Summons:
         from native946_guardian_innate import records as innate_records
         from native946_innate_training import jing_books, trained_records, visible_innate
         with self.progression.transaction(write=False) as db:
-            row['innate_training']=trained_records(db,row['id'],row['level'])
+            row['innate_training']=trained_records(db,row['id'],row)
             row['jing_books']=jing_books(db,row['id'])
             row['innate_skills']=innate_records(row)
             row['innate_skills']=visible_innate(db,row)
         hidden_books={entry['base'] for entry in row['jing_books']}
         row['learned_books']=[book for book in row['learned_books'] if book['skill'] not in hidden_books]
-        from native946_innate_effects import stats as innate_stats
+        from native946_innate_effects import has, stats as innate_stats
         row=innate_stats(row)
-        for key,value in book_effects(row['learned_books']).items():row[key]=row.get(key,0)+value
+        active_books = row['learned_books']
+        if has(row, 4724):
+            active_books = [book for book in active_books if book['skill'] != 308]
+        for key,value in book_effects(active_books).items():row[key]=row.get(key,0)+value
         from native946_mall_guardians import appearance
         with self.progression.transaction(write=False) as db:row.update(appearance(db,self.progression.cid,row['id']))
         from native946_guardian_ui import marks,mark_wire
@@ -203,16 +210,23 @@ class Summons:
         return row
 
     def snapshot(self):
+        from native946_inventory_locks import records
+        from native946_trade import guardian_block
+
         with self.progression.transaction(write=False) as db:
-            from native946_inventory_locks import records
             locks=records(db,self.progression.cid,'summon')
-            return [dict(self.stats(row),**locks.get(row['id'],dict(lock=0,lock_block_time=0))) for row in db.execute(
+            return [dict(self.stats(row), can_trade=not guardian_block(db, row),
+                         **locks.get(row['id'],dict(lock=0,lock_block_time=0))) for row in db.execute(
                 'SELECT * FROM summons WHERE character_id=? AND '+guardian_chamber.AVAILABLE+' ORDER BY id', (self.progression.cid,))]
 
     def get(self, sid):
+        from native946_inventory_locks import records
+        from native946_trade import guardian_block
+
         with self.progression.transaction(write=False) as db:
-            from native946_inventory_locks import records
-            return dict(self.stats(self._owned(db, sid)),**records(db,self.progression.cid,'summon').get(sid,dict(lock=0,lock_block_time=0)))
+            row = self._owned(db, sid)
+            return dict(self.stats(row), can_trade=not guardian_block(db, row),
+                        **records(db,self.progression.cid,'summon').get(sid,dict(lock=0,lock_block_time=0)))
 
     def active(self):
         return next((s for s in self.snapshot() if s['fight']), None)
@@ -286,7 +300,10 @@ class Summons:
             previous=db.execute('SELECT id FROM summons WHERE character_id=? AND grant_key=?',
                                 (self.progression.cid,grant_key)).fetchone()
             if previous:return previous[0]
-            if guardian_chamber.has_sale(db,self.progression.cid,grant_key):raise ValueError('此来源的守护已经转售。')
+            if guardian_chamber.has_sale(db,self.progression.cid,grant_key):
+                raise ValueError('此来源的守护已经转售。')
+            if guardian_chamber.has_transferred(db,self.progression.cid,grant_key):
+                raise ValueError('此来源的守护已经转让。')
             hero=self.progression._snapshot(db)
             if carry_rank(hero)<native['take_grade_num']:raise ValueError('尚未达到该守护的携带等级。')
             if level > guardian_level_cap(hero['level']):
@@ -489,7 +506,7 @@ class Summons:
         # Current-client help 0x83a21957: +1% combo per 4000 amity,
         # +1% fatal and +1 combo count per 7000; percentage wire units are per mille.
         values=dict(Name=s['name'],Amity=s['amity'],Grow=s['growth'],ShowGrow=s['growth']*10,DefAll=s['defense'],
-                    NoTrade=1,Kind=WILDERNESS['kind_names'][str(native['kind'])],CanTakeGrade=carry_label(native['take_grade_num']),
+                    NoTrade=int(not s['can_trade']),Kind=WILDERNESS['kind_names'][str(native['kind'])],CanTakeGrade=carry_label(native['take_grade_num']),
                     Fly=s['ascension'],Rei=s['rebirth'],Feng=s['sanctification'],LongGu=s['longgu'],
                     DoubleRate=(s['amity']//4000)*10,FatalRate=(s['amity']//7000)*10,
                     DoubleCount=s['amity']//7000)
@@ -506,7 +523,7 @@ class Summons:
         return dict(Id=s['id'], SId=str(s['id']), Mark=s.get('mark','{}'), Type=s['type'], ShowType=s['show_type'],
                     Name=s['name'], Grade=s['level'], Race=native['race'], Kind=native['kind'], ValueType=s['direction'],
                     Rei=s['rebirth'], Fly=s['ascension'], Feng=s['sanctification'],
-                    Fight=s['fight'], Show=s['show'], CanTrade=0,Lock=s.get('lock',0),Wildness=int(s.get('grant_key','').startswith('capture:')),
+                    Fight=s['fight'], Show=s['show'], CanTrade=int(s.get('can_trade',False)),Lock=s.get('lock',0),Wildness=int(s.get('grant_key','').startswith('capture:')),
                     Color1=s.get('color1',0),Color2=s.get('color2',0),Color3=s.get('color3',0),Halo=s.get('halo',0),FootHalo=s.get('foot_halo',0),
                     LockBlockTime=s.get('lock_block_time',0),WeaponColor=s['weapon_color'])
 

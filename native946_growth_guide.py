@@ -1,4 +1,6 @@
 """Player-facing growth guidance for connected item/activity consumers."""
+REFERENCE_WIRE_VERSION=1
+
 def pages():
     from native946_crafting import MAKE, REFRESH, production_cash
     from native946_task_chain import RULE
@@ -11,7 +13,7 @@ def pages():
     second, third=RULE['quality_value_thresholds'][1:3]
     return [
       ('人物成长','通过战斗、剧情与日常任务积累经验，达到要求后自动升级，再在人物界面分配潜力。#r装备提供的根骨、灵性、力量、敏捷会参与人物实际属性计算；攻击、气血、法力、速度、防御直接影响战斗表现。#r选择装备时同时确认角色、种族、人物阶段及能力需求。'),
-      ('日常修行','捉鬼：幽冥地府驹处领取，人物80级起。#r鬼王：幽冥地府钟馗处领取，需人物飞升。#r天庭：花果山马元帅处领取。#r三界令：长安宋寒处领取，完成后积累三界令积分。#r这些任务每10环一轮，人物与参战守护均可获得成长奖励；物品奖励需在背包中查看和使用。'),
+      ('日常修行','捉鬼：幽冥地府驹处领取，人物80级起。#r鬼王：幽冥地府钟馗处领取，需人物飞升。#r天庭：花果山马元帅处领取。#r三界令：40级起在长安宋寒处组队领取，齐冠可传送到对应任务地点，击败本轮全部对手可获得三界令。#r人物与参战守护均可获得成长奖励；物品奖励需在背包中查看和使用。'),
       ('任务链',f"飞升{RULE['min_level']}级可在长安白居士处单人领取。每周可领取{RULE['weekly_chains']}轮，每轮{RULE['rings']}环，每环限时{RULE['ring_seconds']//60}分钟。"
        '#r拜访、交付、挑战或捕捉可推进任务。捕捉目标会直接交付。每环给经验与通宝，整轮完成额外获得现金和随机道具。'
        f'#r累计交付价值达到{second:,}或{third:,}时，整轮奖励提升一档。寻物可交一份或两份，向白居士采办只按缺额收费。'

@@ -30,6 +30,10 @@ if getattr(_battle_actions,'REFERENCE_WIRE_VERSION',0)<12:reload(_battle_actions
 from native946_battle_actions import BattleActions
 _innate_effects=sys.modules.get('native946_innate_effects')
 if _innate_effects is not None and getattr(_innate_effects,'WIRE_VERSION',0)<10:reload(_innate_effects)
+_innate_training=sys.modules.get('native946_innate_training')
+if _innate_training is not None and getattr(_innate_training,'WIRE_VERSION',0)<10:reload(_innate_training)
+_mount_stunts=sys.modules.get('native946_mount_stunts')
+if _mount_stunts is not None and getattr(_mount_stunts,'WIRE_VERSION',0)<2:reload(_mount_stunts)
 _role_battle=sys.modules.get('native946_role_battle')
 if _role_battle is not None and (getattr(_role_battle,'GUARDIAN_PASSIVE_WIRE_VERSION',0)<3 or getattr(_role_battle,'PRESENTATION_WIRE_VERSION',0)<4 or getattr(_role_battle,'WIRE_VERSION',0)<25 or getattr(_role_battle,'MEDICINE_WIRE_VERSION',0)<1):reload(_role_battle)
 _bell=sys.modules.get('native946_zhuziguo_bell')
@@ -53,10 +57,12 @@ if _realm_gems_stale:reload(_realm_gems)
 _ornaments=sys.modules.get('native946_guardian_ornaments')
 if _ornaments is not None and (_realm_gems_stale or getattr(_ornaments,'REFERENCE_WIRE_VERSION',0)<1):reload(_ornaments)
 _guilds=sys.modules.get('native946_guilds')
-if _guilds is not None and getattr(_guilds,'REFERENCE_WIRE_VERSION',0)<1:reload(_guilds)
+if _guilds is not None and getattr(_guilds,'REFERENCE_WIRE_VERSION',0)<3:reload(_guilds)
 
 _shops=sys.modules.get('native946_shops')
 if _shops is not None and getattr(_shops,'REFERENCE_WIRE_VERSION',0)<8:reload(_shops)
+_growth_guide=sys.modules.get('native946_growth_guide')
+if _growth_guide is not None and getattr(_growth_guide,'REFERENCE_WIRE_VERSION',0)<1:reload(_growth_guide)
 _growth_battle=sys.modules.get('native946_growth_battle')
 if _growth_battle is not None and getattr(_growth_battle,'ICON_LIST_VERSION',0)<3:reload(_growth_battle)
 _reserve_food = sys.modules.get('native946_reserve_food')
@@ -69,7 +75,7 @@ for _feature in ('native946_book_combat','native946_refinement','native946_fashi
                        'native946_wilderness' in sys.modules and hasattr(_loaded,'QuestBattle') and
                        _loaded.QuestBattle.__bases__[0] is not sys.modules['native946_wilderness'].WildBattle)
     _minimum=5 if _feature=='native946_guardian_acquisition' else 2 if _feature=='native946_guardian_channels' else 5 if _feature=='native946_skillbooks' else 13 if _feature=='native946_guardian_ui' else 6 if _feature in ('native946_crafting','native946_party','native946_npc_services') else 5
-    _minimum=2 if _feature=='native946_task_chain' else max(_minimum,{'native946_crafting':11,'native946_party':8,'native946_equipment':8,'native946_workshops':9,'native946_skillbooks':4,'native946_npc_quests':12}.get(_feature,0))
+    _minimum=2 if _feature=='native946_task_chain' else max(_minimum,{'native946_crafting':11,'native946_party':8,'native946_equipment':8,'native946_workshops':10,'native946_skillbooks':4,'native946_npc_quests':13}.get(_feature,0))
     if _feature=='native946_task_chain' and _loaded is not None and 'native946_wilderness' in sys.modules:
         _battle_base_stale=hasattr(_loaded,'ChainBattle') and _loaded.ChainBattle.__bases__[0] is not sys.modules['native946_wilderness'].WildBattle
     if _feature=='native946_guardian_magic':_minimum=5
@@ -88,7 +94,7 @@ for _feature in ('native946_book_combat','native946_refinement','native946_fashi
     if _feature=='native946_book_combat':_minimum=6
     if _feature=='native946_neidan':_minimum=4
     if _feature=='native946_neidan_legacy':_minimum=8
-    if _feature=='native946_party':_minimum=30
+    if _feature=='native946_party':_minimum=31
     if _feature=='native946_guardian_lottery':_minimum=9
     elif _feature in ('native946_guardian_acquisition','native946_guardian_channels'):
         _minimum=max(_minimum,{'native946_guardian_acquisition':8,'native946_guardian_channels':4}[_feature])
@@ -453,7 +459,7 @@ class NativeGameplay(BattleActions):
     def world_npc_look(self,nid,*,include_mount_guide=True,include_school_visit=True):
         from native946_timed_npcs import ENTRANCE_IDS, look as look_timed_npc
         if nid in ENTRANCE_IDS:return look_timed_npc(self,nid)
-        from native946_world import world
+        from native946_world import SANJIE_TRANSPORT_NPC, world
         catalog = world()
         c = self.character
         if not catalog.event_npc_is_open(c['map_id'], nid):
@@ -496,8 +502,12 @@ class NativeGameplay(BattleActions):
         routes=catalog.available_transports(c['map_id'],nid,c)
         self.dialog_actions=[row['trans_index'] for row in routes]
         self.last_event={'action':'npc_dialogue','npc_id':nid}
-        if routes:return with_npc_options(self.menu('请选择要前往的地方：',
-                                                    [catalog.transport_label(row) for row in routes],nid))
+        if routes:
+            labels = [catalog.transport_label(row) for row in routes]
+            if key == SANJIE_TRANSPORT_NPC:
+                self.dialog_actions.append({'kind': 'close_dialogue'})
+                return self.menu('可传送：', [*labels, '离开'], nid)
+            return with_npc_options(self.menu('请选择要前往的地方：', labels, nid))
         from native946_npc_services import NpcServices
         service_menu=NpcServices(self).menu(npc)
         if service_menu is not None:return with_npc_options(service_menu)
@@ -998,7 +1008,7 @@ class NativeGameplay(BattleActions):
         actions=getattr(self,'dialog_actions',())
         if not self.dialog_open or not 1<=choice<=len(actions):return False
         action=actions[choice-1]
-        return isinstance(action,dict) and (action.get('kind') in ('bank','pawnshop','medicine','merchant','shengzhu','task_rules','story','activity') or
+        return isinstance(action,dict) and (action.get('kind') in ('bank','pawnshop','medicine','merchant','shengzhu','task_rules','story','activity','close_dialogue') or
                     (action.get('kind')=='cosmetic' and action['op'] in ('specmall','shop_catalog','shop_catalog_detail','shop_npcs','classified_mall')) or
                     (action.get('kind')=='storage' and action['op']=='open') or
                     (action.get('kind')=='workshop' and action['op'] not in ('join','study','advance','forge_confirm')) or
@@ -1077,6 +1087,8 @@ class NativeGameplay(BattleActions):
         writes.update(GROWTH_BATTLE_WRITES)
         from native946_innate_training import WRITES as INNATE_TRAINING_WRITES
         writes.update(INNATE_TRAINING_WRITES)
+        from native946_mount_stunts import WRITES as MOUNT_STUNT_WRITES
+        writes.update(MOUNT_STUNT_WRITES)
         from native946_friends import WRITES as FRIEND_WRITES
         writes.update(FRIEND_WRITES)
         from native946_race_fabao import WRITES as RACE_FABAO_WRITES
@@ -1091,6 +1103,8 @@ class NativeGameplay(BattleActions):
         writes.update(GUILD_BUILD_WRITES)
         from native946_guild_war import WRITES as GUILD_WAR_WRITES
         writes.update(GUILD_WAR_WRITES)
+        from native946_guild_announcements import WRITES as GUILD_TEXT_WRITES
+        writes.update(GUILD_TEXT_WRITES)
         from native946_dungeons import PUZZLE_REQUEST
         writes.add(PUZZLE_REQUEST)
         memory_only=mid==3819 or mid==1643 and getattr(self.characters,'position_writer',None) is not None
@@ -1158,6 +1172,11 @@ class NativeGameplay(BattleActions):
 
     def _receive(self, mid, reader):
         self.last_event = None
+        if mid == 4022:
+            battle = self.party_service.battles.get(self.character['id'])
+            if not battle or battle.state['phase'] == 'finished':
+                raise ValueError('当前没有可指挥的组队战斗。')
+            return battle.receive(self, mid, reader)
         from native946_song_fireworks import SEND_FIREWORK, release as release_fireworks
         if mid == SEND_FIREWORK:
             return release_fireworks(self, reader)
@@ -1197,6 +1216,10 @@ class NativeGameplay(BattleActions):
             return view(self.battle,cid)
         from native946_guilds import REQUESTS as GUILD_REQUESTS, receive as guild_receive
         if mid in GUILD_REQUESTS:return guild_receive(self,mid,reader)
+        from native946_guild_announcements import INPUT as GUILD_TEXT_INPUT, REQUESTS as GUILD_TEXT_REQUESTS
+        from native946_guild_announcements import matches as guild_text_matches, receive as guild_text_receive
+        if mid in GUILD_TEXT_REQUESTS or (mid == GUILD_TEXT_INPUT and guild_text_matches(self, reader)):
+            return guild_text_receive(self, mid, reader)
         from native946_guild_construction import REQUESTS as GUILD_BUILD_REQUESTS, receive as guild_build_receive
         if mid in GUILD_BUILD_REQUESTS:return guild_build_receive(self,mid,reader)
         from native946_guild_war import REQUESTS as GUILD_WAR_REQUESTS, receive as guild_war_receive
@@ -1205,6 +1228,8 @@ class NativeGameplay(BattleActions):
         if mid == PUZZLE_REQUEST:return receive_puzzle(self,reader)
         from native946_innate_training import InnateTraining, REQUESTS as INNATE_TRAINING_REQUESTS
         if mid in INNATE_TRAINING_REQUESTS:return InnateTraining(self).receive(mid,reader)
+        from native946_mount_stunts import MountStunts, REQUESTS as MOUNT_STUNT_REQUESTS
+        if mid in MOUNT_STUNT_REQUESTS:return MountStunts(self).receive(mid,reader)
         from native946_growth_battle import GrowthBattle, REQUESTS as GROWTH_BATTLE_REQUESTS, ICON as GROWTH_BATTLE_ICON
         if mid in GROWTH_BATTLE_REQUESTS:return GrowthBattle(self).receive(mid,reader)
         from native946_skill6 import REQUESTS as SKILL6_REQUESTS, receive as skill6_receive
@@ -1244,6 +1269,13 @@ class NativeGameplay(BattleActions):
         from native946_guardian_ui import GuardianUI,REQUESTS as GUARDIAN_UI_REQUESTS
         from native946_guardian_jade import Cultivation,REQUESTS as JADE_REQUESTS
         if mid in JADE_REQUESTS:return Cultivation(self).receive(mid,reader)
+        if mid == 727 and self.character['id'] in getattr(self.party_service, 'trades', {}):
+            from native946_trade import Trade
+
+            sid = reader.integer()
+            reader.finish()
+            preview = Trade(self.party_service, self).guardian_preview(sid)
+            return preview if preview is not None else GuardianUI(self).information(sid)
         if mid in GUARDIAN_UI_REQUESTS:return GuardianUI(self).receive(mid,reader)
         from native946_tasks import TaskJournal
         from native946_shops import Shops,REQUESTS as SHOP_REQUESTS
@@ -1365,6 +1397,8 @@ class NativeGameplay(BattleActions):
             return NpcServices(self).buy(npc,kind,amount)
         if mid==2317:
             reader.finish()
+            if self.battle is None:
+                return MountStunts(self).control_list(2274)
             return self.battle_call_list()
         if mid==729:
             mode=reader.integer();reader.finish()
@@ -1507,7 +1541,7 @@ class NativeGameplay(BattleActions):
             if mid == 761:
                 return self.summons.stunt_packet(sid)
             if mid == 762:
-                return packet(712, ['number','byte'], [sid,0])
+                return MountStunts(self).bound(sid)
             if mid in (727,733) or self.battle is not None:
                 return self.summons.info_packets(sid)
             from native946_reserve_food import sync as reserve_packet
@@ -1591,6 +1625,9 @@ class NativeGameplay(BattleActions):
                 from native946_inventory_features import ITEM_TYPES as INVENTORY_FEATURE_TYPES,use as inventory_feature_use
                 feature_snapshot=self.progression.snapshot()
                 feature_item=next((i for i in feature_snapshot['items'] if i['id']==item),None)
+                from native946_mount_stunts import MEDICINE as MOUNT_STUNT_MEDICINE
+                if feature_item and feature_item['type'] == MOUNT_STUNT_MEDICINE:
+                    return MountStunts(self).use_medicine(target, item)
                 from native946_experience_charm import ITEM as EXPERIENCE_CHARM, open_item as open_charm
                 if feature_item and feature_item['type'] == EXPERIENCE_CHARM:
                     return open_charm(self, target, item)
@@ -1598,6 +1635,10 @@ class NativeGameplay(BattleActions):
                 if feature_item and (feature_item['type'] in MEDICINES or feature_item['type'] == RESTORE):
                     if target not in (0, self.character['id']):raise ValueError('请由人物使用催长丹。')
                     return use_medicine(self, item)
+                from native946_inventory_features import SANJIE_ITEMS
+                if feature_item and str(feature_item['type']) in SANJIE_ITEMS:
+                    name=SANJIE_ITEMS[str(feature_item['type'])]['name']
+                    raise ValueError('请在三界令目标的对话中选择使用'+name+'。')
                 from native946_anniversary_cards import CARD_ITEMS as ANNIVERSARY_CARD_ITEMS, reject_card_use
                 if feature_item and feature_item['type'] in ANNIVERSARY_CARD_ITEMS:
                     reject_card_use(feature_snapshot['level'])
@@ -1813,6 +1854,8 @@ class NativeGameplay(BattleActions):
                 return self.close_npc_dialogue()
             if self.dialog_open and callback==getattr(self,'dialog_npc',None) and 1<=choice<=len(self.dialog_actions):
                 action=self.dialog_actions[choice-1]
+                if isinstance(action, dict) and action.get('kind') == 'close_dialogue':
+                    return self.close_npc_dialogue()
                 if isinstance(action,dict) and action.get('kind')=='experience_charm':
                     from native946_experience_charm import activate
                     return activate(self, action)

@@ -124,36 +124,55 @@ class InnateTrainingTests(unittest.TestCase):
                 self.send(763, sid, skill)
                 self.assertIn(skill, [entry['stunt_id'] for entry in self.s.get(sid)['innate_skills']])
                 with self.p.transaction() as db:
-                    db.execute('UPDATE summons SET level=180 WHERE id=?', (sid,))
+                    db.execute('UPDATE summons SET level=180,rebirth=2,ascension=1 WHERE id=?', (sid,))
                     db.execute('INSERT INTO native_innate_suppressed VALUES(?,?)', (sid, skill))
                 before = self.s.get(sid)
                 with self.p.transaction() as db:
                     db.execute('DELETE FROM native_innate_suppressed WHERE summon_id=? AND skill=?', (sid, skill))
-                    db.execute('UPDATE native_innate_training SET level=180,ascension=1 WHERE summon_id=? AND skill=?',
+                    db.execute('UPDATE native_innate_training SET level=180,rebirth=2,ascension=1 WHERE summon_id=? AND skill=?',
                                (sid, skill))
                 pet = self.s.get(sid)
                 self.assertEqual(sum(entry['stunt_id'] == skill for entry in pet['innate_skills']), 1)
                 self.assertEqual(pet.get(field, 0) - before.get(field, 0), bonus)
-                self.assertEqual(pet['score'] - before['score'], 40 + 180 * 13 // 2 + 100)
+                self.assertEqual(pet['score'] - before['score'], 40 + 180 * 13 // 2 + 2*60 + 100)
 
     def test_available_list_and_stage_upgrades(self):
         self.assertIsNotNone(self.send(759, self.sid))
+        initial = 3_000_000_000
         with self.p.transaction() as db:
             schema(db)
-            db.execute('UPDATE summons SET level=50,experience=20000 WHERE id=?', (self.sid,))
-            db.execute('INSERT INTO native_innate_training(summon_id,skill,level,experience) VALUES(?,307,20,0)', (self.sid,))
-        self.send(768, self.sid, 307)
+            db.execute('UPDATE summons SET rebirth=2,level=139,experience=? WHERE id=?', (initial,self.sid))
+            db.execute('INSERT INTO native_innate_training(summon_id,skill,level,rebirth) VALUES(?,307,138,2)', (self.sid,))
+        for command in (768, 771, 770):
+            self.assertEqual(self.send(command,self.sid,307)[0],98)
+        self.assertEqual(self.s.get(self.sid)['innate_training'][307]['level'],138)
+        self.assertEqual(self.s.get(self.sid)['experience'],initial)
+        self.assert_training_update(self.send(754,self.sid,307),self.sid,307,139,2)
         with self.p.transaction() as db:
-            self.assertEqual(tuple(db.execute('SELECT level,experience FROM native_innate_training WHERE summon_id=? AND skill=?',
-                                        (self.sid, 307)).fetchone()), (1, 0))
-        self.send(771, self.sid, 307)
+            db.execute('UPDATE summons SET ascension=1,level=150 WHERE id=?', (self.sid,))
+        self.assertEqual(self.send(771,self.sid,307)[0],98)
+        self.assert_training_update(self.send(754,self.sid,307),self.sid,307,140,2)
+        self.assert_training_update(self.send(771,self.sid,307),self.sid,307,140,2,fly=1)
+        self.assert_training_update(self.send(754,self.sid,307),self.sid,307,150,2,fly=1)
+        self.assertEqual(self.send(770,self.sid,307)[0],98)
         with self.p.transaction() as db:
-            db.execute('UPDATE native_innate_training SET level=50 WHERE summon_id=? AND skill=?', (self.sid, 307))
-        self.send(770, self.sid, 307)
+            db.execute('UPDATE summons SET sanctification=1,level=185 WHERE id=?', (self.sid,))
+        self.assert_training_update(self.send(754,self.sid,307),self.sid,307,180,2,fly=1)
+        self.assert_training_update(self.send(770,self.sid,307),self.sid,307,180,2,fly=1,feng=1)
+        self.assert_training_update(self.send(754,self.sid,307),self.sid,307,185,2,fly=1,feng=1)
+        after = initial - 15000 - sum(threshold(level,2) for level in range(138,185))
+        for command in (754, 770, 771):
+            self.assertEqual(self.send(command,self.sid,307)[0],98)
+        self.assertEqual(self.s.get(self.sid)['experience'],after)
+        with self.p.transaction() as db:
+            db.execute('UPDATE summons SET sanctification=0,level=150 WHERE id=?', (self.sid,))
+        visible = next(row for row in SkillBooks(self.s).records(self.sid) if row['stunt_id']==307)
+        self.assertEqual((visible['rei'],visible['fly'],visible['feng'],visible['grade']),(2,1,0,150))
+        self.assertEqual(self.send(754,self.sid,307)[0],98)
         with self.p.transaction(write=False) as db:
-            row = db.execute('SELECT rebirth,ascension,sanctification FROM native_innate_training WHERE summon_id=? AND skill=?',
-                             (self.sid, 307)).fetchone()
-            self.assertEqual(tuple(row), (0, 1, 1))
+            row = db.execute('SELECT rebirth,ascension,sanctification,level FROM native_innate_training '
+                             'WHERE summon_id=? AND skill=?',(self.sid,307)).fetchone()
+            self.assertEqual(tuple(row),(2,1,1,185))
 
     def test_jinguang_taisui_learns_its_current_stage_and_restores_it_from_save(self):
         sid = self.s.acquire(3374, 'taisui:stunt-unlock')
@@ -184,7 +203,7 @@ class InnateTrainingTests(unittest.TestCase):
         self.assert_training_update(reply, sid, 302, 4, 0)
         self.assertGreater(self.s.get(sid)['initiative'], before['initiative'])
 
-    def assert_training_update(self, reply, sid, skill, level, rebirth):
+    def assert_training_update(self, reply, sid, skill, level, rebirth, *, fly=0, feng=0):
         ids = [int.from_bytes(part[1:3], 'little') if not part[0] else part[0] for part in reply]
         self.assertNotIn(713, ids)
         self.assertNotIn(722, ids)
@@ -194,6 +213,7 @@ class InnateTrainingTests(unittest.TestCase):
         row = decode_record(reader, 'stunt_info')
         reader.finish()
         self.assertEqual((row['stunt_id'], row['grade'], row['rei']), (skill, level, rebirth))
+        self.assertEqual((row['fly'],row['feng']), (fly,feng))
         self.assertEqual(row['stuntexp_next'], threshold(level, rebirth))
         return row
 
@@ -244,7 +264,7 @@ class InnateTrainingTests(unittest.TestCase):
     def test_ordinary_rebirth_requires_skill_threshold_and_resets_grade_and_experience(self):
         with self.p.transaction() as db:
             schema(db)
-            db.execute('UPDATE summons SET experience=10000,level=120 WHERE id=?', (self.sid,))
+            db.execute('UPDATE summons SET experience=10000,rebirth=2,level=120 WHERE id=?', (self.sid,))
             db.execute('INSERT INTO native_innate_training(summon_id,skill,level,experience) VALUES(?,307,99,99)',
                        (self.sid,))
         for current, required in ((0, 100), (1, 120)):
@@ -258,6 +278,29 @@ class InnateTrainingTests(unittest.TestCase):
             self.assertEqual((training['level'], training['experience'], training['rebirth']), (0, 0, current + 1))
         self.assertEqual(self.send(772, self.sid, 307)[0], 98)
         self.assertEqual(self.s.get(self.sid)['experience'], 5000)
+
+    def test_reborn_taisui_can_train_baixi_to_the_guardian_stage_and_level(self):
+        sid = self.s.acquire(3374, 'taisui:baixi-rebirth')
+        initial = 500_000_000
+        with self.p.transaction() as db:
+            schema(db)
+            db.execute('UPDATE summons SET experience=?,rebirth=1,level=40 WHERE id=?', (initial,sid))
+            db.execute('INSERT INTO native_innate_training(summon_id,skill,level,position) VALUES(?,366,40,3)', (sid,))
+        self.assertEqual(self.send(772, sid, 366)[0], 98)
+        self.assertEqual(self.s.get(sid)['experience'], initial)
+        row = self.assert_training_update(self.send(754, sid, 366), sid, 366, 100, 0)
+        self.assertEqual(row['stuntexp'], 0)
+        remaining = initial - sum(threshold(level, 0) for level in range(40, 100))
+        self.assertEqual(self.s.get(sid)['experience'], remaining)
+        self.assertEqual(self.send(754, sid, 366)[0], 98)
+        self.assert_training_update(self.send(772, sid, 366), sid, 366, 0, 1)
+        row = self.assert_training_update(self.send(754, sid, 366), sid, 366, 40, 1)
+        self.assertEqual(row['stuntexp'], 0)
+        self.assertEqual(self.send(754, sid, 366)[0], 98)
+        self.assertEqual(self.send(772, sid, 366)[0], 98)
+        saved = Summons(self.p).get(sid)
+        self.assertEqual(saved['experience'], remaining - 2500 - sum(threshold(level, 1) for level in range(40)))
+        self.assertEqual(saved['innate_training'][366]['position'], 3)
 
     def test_shared_candidates_use_open_slots_and_keep_their_saved_positions(self):
         sid = self.s.acquire(2103, 'langtaosha:stunt-unlock')

@@ -686,6 +686,27 @@ class BattlePresentationTests(unittest.TestCase):
         runtime.attack(actor,target)
         self.assertLess(runtime.out.index(packet(2142,['number','number'],[target['id'],3])),runtime.out.index(close))
 
+    def test_repeat_and_secondary_hero_hits_preserve_the_native_number_queue(self):
+        cases = ((36, [100, 100, 100], 2), (1702, [100, 100], 2),
+                 (4552, [120, 120], 2), (6105, [100, 100], 2),
+                 (6016, [100, 70], 2), (6100, [100], 3))
+        for skill, amounts, death_mode in cases:
+            for hp, expected in ((1, [1]), (sum(amounts), amounts)):
+                with self.subTest(skill=skill, hp=hp):
+                    runtime, fighters = self.runtime()
+                    hero, enemy = fighters[self.p.cid], fighters[ENEMY_ID]
+                    hero.update(mp=10000, role_anger=10, role_wrath=1000, role_talents={})
+                    enemy.update(hp=hp, hpmax=hp, defense=0)
+                    with patch.object(runtime, 'base_damage', return_value=100), \
+                         patch.object(runtime.rng, 'randrange', return_value=0):
+                        runtime.cast(hero, skill, ENEMY_ID)
+                    self.assertEqual([p for p in runtime.out if p.startswith(nums(2164, ENEMY_ID))],
+                                     [nums(2164, ENEMY_ID, -amount, 1, 0) for amount in expected])
+                    self.assertEqual(enemy['hp'], 0)
+                    self.assertTrue(enemy['removed'])
+                    self.assertIn(nums(2142, ENEMY_ID, death_mode), runtime.out)
+                    self.g.battle = None
+
     def test_same_action_revival_cancels_the_deferred_corpse(self):
         runtime,fighters=self.runtime();actor=fighters[self.p.cid];enemy=fighters[ENEMY_ID]
         runtime.group(actor,[enemy],10);actor['hp']=0;runtime.kill(enemy,actor)

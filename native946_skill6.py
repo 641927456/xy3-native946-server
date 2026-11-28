@@ -25,8 +25,12 @@ POWER_FAMILIES = {'fire', 'water', 'thunder', 'wind', 'gushu', 'poison', 'wuli',
                   'physical', 'heal', 'attack_buff', 'guard_buff', 'speed_buff',
                   'shock', 'seal', 'disorder', 'faint', 'wenxin', 'jin_gu', 'entangle'}
 AFFIXES = {'mana': ('节省法力（千分比）', 10, 60), 'power': ('秘法效果（千分比）', 10, 100)}
-# Native info_hero_school_skill classifies these alongside the modern spells.
-SCHOOL_FENG_SKILLS = frozenset({1710, 6105, 6112, 6124, 6133})
+# 946 info_hero_school_skill entries with series='圣心秘法'.
+SCHOOL_FENG_SKILLS = frozenset({
+    1710, 6000, 6002, 6004, 6006, 6008, 6010, 6012, 6014, 6016,
+    6018, 6020, 6022, 6024, 6026, 6028, 6030, 6032, 6034, 6036,
+    6038, 6105, 6112, 6124, 6133,
+})
 EXTRA_FENG_STAGE = 2
 SECOND_PASSIVE_STAGE = 5
 PASSIVE_START = {1:6051, 2:6056, 3:6061}
@@ -39,7 +43,7 @@ def school_skills(school):
 
     available = EXTRA_SKILLS.get(base_school(school), ())
     modern = tuple(skill for skill in available if profile(skill)['source'] == 'modern')
-    return modern + tuple(skill for skill in available if skill in SCHOOL_FENG_SKILLS)
+    return modern + tuple(skill for skill in available if skill in SCHOOL_FENG_SKILLS and skill not in modern)
 
 
 def saved(db, cid):

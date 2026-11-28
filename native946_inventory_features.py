@@ -5,6 +5,8 @@ from time import time
 from native946_codec import packet
 DATA=json.loads(Path(__file__).with_name('native946_inventory_features_data.json').read_text('utf8'))
 RULES=DATA['local_rules']
+SANJIE_ITEMS=json.loads(Path(__file__).with_name('native946_sanjie_data.json').read_text('utf8'))['items']
+for _kind,_meta in SANJIE_ITEMS.items():DATA['items'].setdefault(_kind,_meta)
 from native946_hero_page import REQUESTS as HERO_REQUESTS,WRITES as HERO_WRITES,DATA as HERO_DATA
 from native946_hero_extra_points import ITEM_TYPES as EXTRA_POINT_ITEMS
 from native946_daily_content import ITEMS as DAILY_CONTENT_ITEMS

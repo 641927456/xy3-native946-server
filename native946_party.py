@@ -22,7 +22,7 @@ from native946_world import INSTANCE_SCENES
 
 CONTRACTS=json.loads(Path(__file__).with_name('native946_party_data.json').read_text('utf8'))
 REQUESTS={r['id']:r for r in CONTRACTS.values() if r.get('id') and '/s_' in r.get('path','')}
-REFERENCE_WIRE_VERSION=30
+REFERENCE_WIRE_VERSION=31
 # dlg_team_desc.refresh_teammate_detail operations 1..6, in native order.
 # The role panel uses the effective maximum for both Min and Max.
 TEAM_VITAL_FIELDS = ('hp', 'hpmax', 'hpmax', 'mp', 'mpmax', 'mpmax')
@@ -304,6 +304,9 @@ class PartyService:
             raise ValueError('请先离开帮派驻地或家园再组队。')
         close=leader and other.character['map_id']==leader.character['map_id'] and max(abs(other.character[k]-leader.character[k]) for k in ('x','y'))<=12
         slot=next((n for n in range(1,6) if n not in {m['position'] for m in team['members']}),max(m['position'] for m in team['members'])+1)
+        direct_ids = json.dumps(team['direct_ids'])
+        db.execute('UPDATE native_teams SET direct_ids=? WHERE id=? AND direct_ids<>?',
+                   (direct_ids, team['id'], direct_ids))
         db.execute('INSERT INTO native_team_members VALUES(?,?,?,?)',(cid,team['id'],slot,int(not close)))
         return self.team(team['leader_id'],db)
 
@@ -415,7 +418,6 @@ class PartyService:
                     message=f'已拒绝{len(declined)}条入队申请。' if declined else '没有待处理的入队申请。'
                     outgoing.append((game,notice(message)))
                 elif mid in (2049,2050,2051):
-                    self.leader_votes.pop(team['id'],None) if team else None
                     if team is None:raise ValueError('你还没有加入队伍。')
                     self.stable(team);leader=team['leader_id']
                     if mid in (2049,2050) and leader!=cid:raise ValueError('只有队长可以解散队伍或请离队员。')
@@ -433,6 +435,9 @@ class PartyService:
                         removed=next((m for m in team['members'] if m['character_id']==target),None)
                         if removed is None:raise ValueError('该角色不在队伍中。')
                         db.execute('DELETE FROM native_team_members WHERE character_id=?',(target,))
+                        if target in team['direct_ids']:
+                            direct_ids = [member for member in team['direct_ids'] if member != target]
+                            db.execute('UPDATE native_teams SET direct_ids=? WHERE id=?',(json.dumps(direct_ids),team['id']))
                         for m in team['members']:
                             other=self.online(m['character_id'])
                             if other:
@@ -452,6 +457,7 @@ class PartyService:
                                 other=self.online(m['character_id'])
                                 if other and other is not game:outgoing.append((other,numbers(2028,new,leader)))
                         refresh=self.team(next(m['character_id'] for m in team['members'] if m['character_id']!=target),db)
+                    self.leader_votes.pop(team['id'],None)
                 elif mid in (2044,2045):
                     if not team:raise ValueError('你还没有加入队伍。')
                     self.stable(team)
@@ -475,6 +481,7 @@ class PartyService:
                         if other:outgoing.append((other,packet(3577,['string'],[game.character['name']])))
                 elif mid==3579:
                     if not team:raise ValueError('你还没有加入队伍。')
+                    self.stable(team)
                     vote=self.leader_votes.get(team['id'])
                     if vote is None:raise ValueError('当前没有正在进行的队长投票。')
                     if not any(m['character_id']==cid for m in team['members']):raise ValueError('你已经离开当前队伍。')
@@ -499,13 +506,13 @@ class PartyService:
                     else:
                         outgoing.append((game,notice('投票已记录，等待其他成员投票。')))
                 elif mid==2046:
-                    self.leader_votes.pop(team['id'],None) if team else None
                     if not team or team['leader_id']!=cid:raise ValueError('只有队长可以移交队长。')
                     self.stable(team);target=args[0]
                     successor=self.online(target)
                     if target==cid or successor is None or not any(m['character_id']==target and not m['away'] for m in team['members']):
                         raise ValueError('请选择已归队的其他在线队员。')
                     db.execute('UPDATE native_teams SET leader_id=? WHERE id=?',(target,team['id']))
+                    self.leader_votes.pop(team['id'],None)
                     retired_leader=cid
                     from native946_lineups import reset_invalid_selection
                     reset_invalid_selection(db,team['id'],target);refresh=self.team(cid,db)

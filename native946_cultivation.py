@@ -16,6 +16,10 @@ class Advancement:
     points: int
     resistance: int
 
+    @property
+    def is_rebirth(self):
+        return self.after[0] > self.before[0]
+
 
 MENG_PO = (2009, 2121)
 LAO_JUN = (2018, 3093)
@@ -83,6 +87,8 @@ def settle(progression, db, snapshot, rule):
                          (*rule.after, rule.resistance, cid, *rule.before)).rowcount
     if not changed:
         raise ValueError('当前修行阶段已改变，无法重复办理修行。')
+    if rule.is_rebirth:
+        db.execute('UPDATE learned_skills SET rank=0 WHERE character_id=? AND rank<>0', (cid,))
     if rule.start_level is None:
         if not rule.points:
             return

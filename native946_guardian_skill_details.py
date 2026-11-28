@@ -1,10 +1,12 @@
 """Numerical arguments for the 946 guardian panel's native skill templates."""
 from native946_innate_effects import (
-    ACTIVE, ASCENDED_180_STATS, STATS, XINYI_FOLLOW_UP, XINYI_SPEED_PERCENT, XINYI_TARGETS, XINYI_WRATH,
+    ACTIVE, ASCENDED_180_STATS, DUOMU, STATS, XIANZHI_BAOHUN, XIANZHI_REDUCTION_PER_MILLE,
+    XIANZHI_REDUCTION_ROUNDS, XIANZHI_SHIELD_ROUNDS, XINYI_FOLLOW_UP,
+    XINYI_SPEED_PERCENT, XINYI_TARGETS, XINYI_WRATH,
     ascended_180, cold_values, dragon_round_bonus,
     echo_chance, elemental_base, intimacy_heal, jing_fire_bonuses, physical_per_mille, residual_recovery,
     resistance_pierce, revive_target_count,
-    spell_strengthening, stunt_scale, tai_sui_values, target_count, water_fire_damage,
+    spell_strengthening, stunt_scale, tai_sui_values, target_count, water_fire_damage, xianzhi_shield_basis_points,
 )
 
 ABSORB_SKILLS=(4714,4715,4716,4717,4718,4719,4727)
@@ -35,6 +37,7 @@ LOCAL_DETAILS = {
     4144:'本场未出战且满足闪现条件时，可在参战守护倒地后入场。当前队列基准概率25%，可受内丹和其他守护特技影响。',
     4548:'物理攻击命中时有40%概率夺取目标一项可移除的正面效果，持续时间取该效果剩余回合。亲密加成待核实。',
     4739:'入场时给本方存活单位各一层仙法护盾，每层抵挡一次仙法伤害。',
+    4755:'进行4至7次物理攻击。攻击达到3000、4500、6000时分别为5、6、7次。另有命中率加成。',
     4797:'力量不低于灵性时有50%概率避开非物理伤害；灵性不低于力量时有50%概率避开物理伤害。',
     4969:'主动施放特技时获得一层水魄。本机每层增加50点速度及2%减伤，最多叠加10层。',
     4971:'主动施放特技时获得一层火魂。本机每层增加5%法术伤害及2%减伤，最多叠加10层。',
@@ -107,15 +110,17 @@ def arguments(pet,entry):
     if kind==4721:
         chance, extra_damage = jing_fire_bonuses(pet)
         return chance/10, extra_damage/10
+    if kind==4724:return STATS[kind]['CruelRate']/10,STATS[kind]['role_cruel_multiplier']/10
     if kind==4732:return (180,)
     if kind==4735:return 320,70
     if kind==4736:return (50000,)
     if kind==4737:return (50,)
+    if kind==4748:return STATS[kind]['initiative'],40
     if kind==4762:return 20,1
     if kind==4765:
         from native946_innate_effects import has_ascended_180
         return 1500*scale//10000,2 if has_ascended_180(pet,4765) else 1
-    if kind==4806:return 9000*scale//10000/100,2,15
+    if kind==DUOMU:return 2,50,100
     if kind==4908:
         chance=min(10000,10192*scale//10000)/100
         return chance,chance
@@ -124,6 +129,12 @@ def arguments(pet,entry):
 
 def local_detail(pet,kind):
     if kind in LOCAL_DETAILS:return LOCAL_DETAILS[kind]
+    if kind==XIANZHI_BAOHUN:
+        shield = xianzhi_shield_basis_points(pet) / 100
+        reduction = XIANZHI_REDUCTION_PER_MILLE / 10
+        return (f'入场时为友方全体附加相当于守护基础气血{shield:.2f}%的护盾，'
+                f'上限为每个接收者最大气血的1.5倍，持续{XIANZHI_SHIELD_ROUNDS}回合。'
+                f'同时使其受到的伤害降低{reduction:g}%，持续{XIANZHI_REDUCTION_ROUNDS}回合。')
     if kind==4578:
         return ('同时攻击最多3名敌人。自身攻击不低于目标时，按本机普通攻击的130%结算，'
                 '否则按85%。玩家对战中，同回合重复命中伤害减半。原生额外命中和亲密加成待核实。')

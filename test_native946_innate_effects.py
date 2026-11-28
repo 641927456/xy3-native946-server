@@ -52,6 +52,90 @@ class InnateEffectTests(unittest.TestCase):
         self.assertLess(self.g.battle['enemy_hp'], before)
         self.assertIn(2157, [int.from_bytes(row[1:3], 'little') if row[0] == 0 else row[0] for row in replies])
 
+    def test_tai_sui_lethal_damage_preserves_native_number_queue(self):
+        from native946_innate_effects import tai_sui_values
+        from native946_login import MessageReader
+        from native946_role_battle import Runtime, nums
+
+        caster = fighter(1, 4, (4906,))
+        ratio, attached = tai_sui_values(caster)
+        physical = 500 * ratio // 10000
+        first_hit_hp = 1
+        last_hit_hp = physical + attached * 2 + 1
+        targets = {fid: fighter(fid, 3) for fid in (2, 3, 4)}
+        for target, hp in zip(targets.values(), (first_hit_hp, last_hit_hp, 10000)):
+            target.update(hp=hp, hpmax=hp, exit_on_defeat=True)
+        runtime = Runtime({1: caster, **targets}, {}, 1, AlwaysProc(), {})
+        with patch('native946_book_combat.roll', return_value=dict(miss=False, damage=500, effect=0)):
+            runtime.guardian_cast(self.g, caster, 2, 4906)
+
+        amounts = {fid: [] for fid in targets}
+        for packet in runtime.out:
+            if packet[:3] == nums(2164):
+                reader = MessageReader(packet[3:])
+                fid, amount = reader.integer(), reader.integer()
+                amounts[fid].append(-amount)
+        self.assertEqual(amounts, {
+            2: [first_hit_hp],
+            3: [physical, attached, attached, 1],
+            4: [physical, attached, attached, attached],
+        })
+        for fid in (2, 3):
+            self.assertTrue(targets[fid]['removed'])
+            self.assertIn(nums(2142, fid, 2), runtime.out)
+            self.assertNotIn(nums(2142, fid, 3), runtime.out)
+        self.assertEqual([t['id'] for t in runtime.enemies(caster)], [4])
+
+    def test_other_guardian_multihits_keep_numbers_through_lethal_hit(self):
+        from native946_login import MessageReader
+        from native946_role_battle import Runtime, nums
+
+        def cast_with_hp(skill, hp):
+            caster, target = fighter(1, 4, (skill,)), fighter(2, 3)
+            if skill == 339:
+                caster['innate_skills'] = []
+                caster['learned_books'] = [dict(skill=339, level=30)]
+            target.update(kind='enemy', hp=hp, hpmax=hp, exit_on_defeat=True)
+            runtime = Runtime({1: caster, 2: target}, {}, 1, AlwaysProc(), {})
+            runtime.guardian_cast(self.g, caster, 2, skill)
+            amounts = []
+            for packet in runtime.out:
+                if packet[:3] == nums(2164):
+                    reader = MessageReader(packet[3:])
+                    if reader.integer() == 2:
+                        amounts.append(-reader.integer())
+            return amounts, target, runtime.out
+
+        cases = ((317, 2), (339, 2), (346, 2), (4044, 2), (4539, 2),
+                 (4743, 4), (4832, 2), (4897, 4), (4909, 2))
+        with patch('native946_book_combat.roll', return_value=dict(miss=False, damage=500, effect=0)):
+            for skill, count in cases:
+                with self.subTest(skill=skill):
+                    amounts, _, _ = cast_with_hp(skill, 1000000)
+                    self.assertEqual(len(amounts), count)
+                    for hp, expected in ((1, [1]), (sum(amounts), amounts)):
+                        numbers, target, packets = cast_with_hp(skill, hp)
+                        self.assertEqual(numbers, expected)
+                        self.assertEqual(target['hp'], 0)
+                        self.assertTrue(target['removed'])
+                        self.assertEqual(packets.count(nums(2142, 2, 2)), 1)
+                        self.assertNotIn(nums(2142, 2, 3), packets)
+
+    def test_guardian_poison_follow_up_keeps_prior_hit_visible(self):
+        from native946_role_battle import Runtime, nums
+
+        caster, target = fighter(1, 4, (4868,)), fighter(2, 3)
+        target.update(kind='enemy', hp=101, hpmax=101, exit_on_defeat=True)
+        runtime = Runtime({1: caster, 2: target}, {}, 1, AlwaysProc(), {})
+        runtime.group(caster, [target], 10)
+        runtime.damage(caster, target, 100)
+        runtime.end()
+        self.assertEqual(target['hp'], 0)
+        self.assertIn(nums(2164, 2, -100, 1, 0), runtime.out)
+        self.assertIn(nums(2164, 2, -1, 1, 0), runtime.out)
+        self.assertEqual(runtime.out.count(nums(2142, 2, 2)), 1)
+        self.assertNotIn(nums(2142, 2, 3), runtime.out)
+
     def test_jade_rain_revives_and_heals_allies(self):
         sid = self.s.acquire(3372, 'innate:jade-rain')
         with self.p.transaction() as db:
@@ -101,6 +185,131 @@ class InnateEffectTests(unittest.TestCase):
                 stats(row)
                 for key, amount in modifiers.items():
                     self.assertEqual(row[key], amount)
+
+    def test_xianzhi_shields_use_each_recipient_cap_and_expire_separately(self):
+        from native946_role_battle import Runtime
+
+        caster = fighter(1, 3, (4806,))
+        caster['innate_skills'][0].update(grade=180, fly=1)
+        caster['unmodified_hpmax'] = 8000
+        ally = fighter(2, 3)
+        ally.update(hp=1000, hpmax=1000, role_absorb_hp={4656: 300})
+        enemy = fighter(3, 4)
+        runtime = Runtime({1: caster, 2: ally, 3: enemy}, {}, 5, AlwaysProc(), {})
+
+        self.assertEqual(caster['role_absorb_hp'][4806], 7200)
+        self.assertEqual(ally['role_absorb_hp'], {4656: 300, 4806: 1500})
+        self.assertNotIn('role_absorb_hp', enemy)
+        self.assertEqual(ally['role_all_reduction'], 150)
+        runtime.round = 7
+        runtime.begin_round()
+        self.assertEqual(ally['role_all_reduction'], 0)
+        self.assertEqual(ally['role_absorb_hp'][4806], 1500)
+        runtime.round = 8
+        runtime.begin_round()
+        self.assertEqual(ally['role_absorb_hp'], {4656: 300})
+        runtime.prepare(caster)
+        self.assertNotIn(4806, ally['role_absorb_hp'])
+
+    def test_duomu_native_misdirection_protects_the_caster_then_expires(self):
+        from native946_innate_effects import active_rule, cast, nums
+        from native946_role_battle import Runtime, profile
+
+        caster = fighter(1, 3, (4804,))
+        caster.update(mp=16000, mpmax=16000)
+        ally = fighter(2, 3)
+        target = fighter(3, 4)
+        other = fighter(4, 4)
+        runtime = Runtime({1: caster, 2: ally, 3: target, 4: other}, {}, 5, AlwaysProc(), {})
+
+        self.assertTrue(cast(runtime, self.g, caster, 3, 4804))
+        self.assertEqual(caster['mp'], 8000)
+        self.assertIn(nums(2130, 3, 339, 0), runtime.out)
+        self.assertIs(runtime.targets(target, profile(52), 2)[0][0], caster)
+        runtime.attack(target, ally)
+        self.assertIn(nums(2144, 1), runtime.out)
+        self.assertEqual((caster['hp'], ally['hp']), (10000, 10000))
+        self.assertEqual(runtime.shock(target, caster), 0)
+        self.assertFalse(runtime.control(target, caster, 'seal'))
+        self.assertEqual(runtime.damage(other, caster, 1000, 'physical'), 500)
+        self.assertEqual(runtime.damage(other, caster, 1000, 'fire'), 1000)
+
+        runtime.round = 6
+        runtime.begin_round()
+        self.assertIn(nums(2138, 3, 339), runtime.out)
+        self.assertIsNone(runtime.misdirection_source(target))
+        self.assertEqual(caster['role_physical_taken'], -500)
+        with self.assertRaisesRegex(ValueError, '夺目尚在冷却'):
+            active_rule(caster, 4804, round_number=6)
+        runtime.round = 7
+        runtime.begin_round()
+        self.assertEqual(caster['role_physical_taken'], 0)
+        self.assertEqual(active_rule(caster, 4804, round_number=7)['mana'], 8000)
+
+    def test_duomu_is_available_from_the_native_guardian_learning_slot(self):
+        from native946_guardian_skill_details import arguments
+
+        sid = self.s.acquire(3363, 'innate:duomu')
+        with self.p.transaction() as db:
+            db.execute('UPDATE summons SET level=100 WHERE id=?', (sid,))
+        self.send(763, sid, 4804)
+        pet = self.s.get(sid)
+        entry = next(skill for skill in pet['innate_skills'] if skill['stunt_id'] == 4804)
+        self.assertEqual(entry['position'], 3)
+        self.assertEqual(arguments(pet, entry), (2, 50, 100))
+        self.assertIn('法力：8000', [row['cost'] for row in combat_skills(pet)])
+
+    def test_fire_lance_fixed_bonus_uses_attack_at_entry(self):
+        from native946_innate_effects import physical
+        from native946_role_battle import Runtime
+
+        caster = fighter(1, 3, (4897,))
+        target = fighter(2, 4)
+        target['hp'] = 6000
+        runtime = Runtime({1: caster, 2: target}, {}, 5, AlwaysProc(), {})
+        runtime.buff(caster, 'attack', 400)
+        with patch('native946_book_combat.roll', return_value=dict(miss=False, damage=100, effect=0)):
+            physical(runtime, caster, target, 4897, lost_hp=True)
+        self.assertEqual(target['hp'], 5400)
+
+    def test_jing_cruelty_suppresses_the_ordinary_innate_bonus(self):
+        pet = fighter(1, 3, (308, 4724))
+        pet['innate_skills'][0].update(grade=180, fly=1)
+        stats(pet)
+        self.assertEqual(pet['CruelRate'], 400)
+        self.assertEqual(pet['role_cruel_multiplier'], 400)
+        self.assertNotIn('cruel_basis_points', pet)
+        self.assertEqual([skill['stunt_id'] for skill in pet['innate_skills']], [308, 4724])
+
+    def test_dragon_war_cannot_revive_from_poison_or_revive_ban(self):
+        from native946_role_battle import Runtime
+
+        for family, banned in (('poison', False), ('physical', True)):
+            with self.subTest(family=family, banned=banned):
+                pet = fighter(1, 3, (4619,))
+                pet['no_revive_until'] = 5 if banned else 0
+                foe = fighter(2, 4)
+                runtime = Runtime({1: pet, 2: foe}, {}, 5, AlwaysProc(), {})
+                runtime.damage(foe, pet, 100000, family)
+                self.assertEqual(pet['hp'], 0)
+                self.assertNotIn('role_dragon_revived', pet)
+
+    def test_flash_checks_at_most_three_and_prefers_da_sha_si_fang(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock
+        from native946_role_battle import Runtime
+
+        victim = fighter(1, 3)
+        candidates = [fighter(i, 3, (4144, 4630)) for i in range(2, 6)]
+        for candidate in candidates:
+            candidate['innate_skills'][1].update(grade=180, fly=1)
+        game = SimpleNamespace(summons=SimpleNamespace(snapshot=lambda: candidates))
+        rng = Mock()
+        rng.randrange.return_value = 2700
+        runtime = Runtime({1: victim}, {victim['owner']: game}, 5, rng, {})
+        runtime.flash_guardian(victim)
+        self.assertEqual(rng.randrange.call_count, 3)
+        self.assertFalse(victim.get('removed'))
 
     def test_cansheng_yijiu_shocks_three_enemies_and_revives_only_eligible_allies(self):
         from native946_codec import packet

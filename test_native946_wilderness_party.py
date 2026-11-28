@@ -80,6 +80,37 @@ class WildernessPartyTests(unittest.TestCase):
         self.assertNotIn(5349,[mid(p) for p in replies])
         self.assertIn(2146,[mid(p) for p in replies])
 
+    def test_battle_direction_marks_follow_current_team_authority(self):
+        from native946_login import string_field
+
+        self.team()
+        a, b = self.a.character['id'], self.b.character['id']
+        battle = WildBattle(self.a, self.games, DATA['zones'][0])
+        target = battle.enemies()[0]['id']
+        mark = packet(4021, ['number','string','byte'], [target,'集火',0])
+        self.svc.drain(self.a)
+        self.svc.drain(self.b)
+        self.assertNotIn(4021, map(mid, self.call(self.b, 4022, target, tail=string_field('集火'))))
+        self.assertEqual(self.svc.drain(self.a), ())
+        self.assertIn(packet(4021, ['number','string','byte'], [a,'',1]), battle.entry(self.a))
+        self.assertNotIn(packet(4021, ['number','string','byte'], [b,'',1]), battle.entry(self.b))
+        self.assertIn(mark, self.call(self.a, 4022, target, tail=string_field('集火')))
+        self.assertIn(mark, self.svc.drain(self.b))
+        self.assertIn(mark, battle.entry(self.b))
+        self.assertNotIn(4021, map(mid, self.call(self.a, 4022, target, tail=string_field('超过四个字'))))
+        clear_all = packet(4021, ['number','string','byte'], [-1,'',0])
+        self.assertIn(clear_all, self.call(self.a, 4022, -1, tail=string_field('')))
+        self.assertIn(clear_all, self.svc.drain(self.b))
+        self.assertNotIn(mark, battle.entry(self.b))
+        battle.finish(False)
+        self.svc.drain(self.a)
+        self.svc.drain(self.b)
+        self.call(self.a, 4020, b, tail=b'\x01')
+        battle = WildBattle(self.a, self.games, DATA['zones'][0])
+        self.assertIn(packet(4021, ['number','string','byte'], [b,'',1]), battle.entry(self.b))
+        self.assertIn(mark, self.call(self.b, 4022, target, tail=string_field('集火')))
+        self.assertIn(mark, self.svc.drain(self.a))
+
     def test_world_portraits_follow_only_the_changed_member(self):
         self.team()
         observer = self.a
@@ -852,6 +883,7 @@ class WildernessPartyTests(unittest.TestCase):
         self.call(self.b,3578)
         notice=next(p for p in self.svc.drain(self.a) if mid(p)==3577)
         self.assertEqual(MessageReader(notice[3:]).string().decode('gb18030'),self.b.character['name'])
+        self.call(self.b,2049)
         response=self.call(self.a,3579,1)
         self.assertEqual(self.svc.team(self.a.character['id'])['leader_id'],candidate)
         self.assertIn(3580,[mid(p) for p in (*response,*self.svc.drain(self.a))])
@@ -860,6 +892,22 @@ class WildernessPartyTests(unittest.TestCase):
         self.call(self.b,3579,0)
         self.assertEqual(self.svc.team(self.a.character['id'])['leader_id'],candidate)
         self.assertFalse(self.svc.leader_votes)
+
+    def test_leaving_and_rejoining_does_not_restore_old_battle_delegation(self):
+        self.team()
+        leader, member = self.a.character['id'], self.b.character['id']
+        self.call(self.a, 4020, member, tail=b'\x01')
+        team = self.svc.team(leader)
+        self.assertEqual(team['direct_ids'], [member])
+        self.call(self.b, 2051)
+        with self.a.progression.transaction() as db:
+            self.assertEqual(db.execute('SELECT direct_ids FROM native_teams WHERE id=?', (team['id'],)).fetchone()[0], '[]')
+            # An older save could still contain a delegation for a departed member.
+            db.execute('UPDATE native_teams SET direct_ids=? WHERE id=?', (f'[{member}]',team['id']))
+        self.call(self.a, 2039, member)
+        result = self.call(self.b, 2038, leader)
+        self.assertEqual(self.svc.team(leader)['direct_ids'], [])
+        self.assertIn(packet(4019, [('array','number')], [[]]), result)
 
     def test_membership_survives_service_reconstruction(self):
         self.team()
@@ -1479,8 +1527,9 @@ class WildernessPartyTests(unittest.TestCase):
             db.execute('UPDATE learned_skills SET rank=10000 WHERE character_id=?', (cid,))
             self.assertIsNone(battle.school_practice_reward(db, cid, 260))
 
-    def test_water_curtain_trains_a_learned_school_stunt(self):
-        from native946_school import LIZARD_MASTER, add_contribution
+    def test_water_curtain_trains_an_unlocked_feng_spell(self):
+        from native946_role_systems import save
+        from native946_school import LIZARD_MASTER
         from native946_world import world
 
         game = self.a
@@ -1491,18 +1540,19 @@ class WildernessPartyTests(unittest.TestCase):
         arrival = load_map(scene).nearest_walkable(npc['x'] // 20, npc['y'] // 20)
         game.change_scene(dict(id=0, to=scene, arrival=arrival), None)
 
-        for operation in ('join', 'learn'):
-            self.assertIn(1025, [mid(p) for p in self.call(game, 1034, master)])
-            choice = next(i for i, action in enumerate(game.dialog_actions, 1) if action['op'] == operation)
-            game.receive(1032, MessageReader(bytes([choice]) + number(master)))
+        self.assertIn(1025, [mid(p) for p in self.call(game, 1034, master)])
+        choice = next(i for i, action in enumerate(game.dialog_actions, 1) if action['op'] == 'join')
+        game.receive(1032, MessageReader(bytes([choice]) + number(master)))
         with game.progression.transaction() as db:
-            add_contribution(db, cid, 10)
-            db.execute('UPDATE characters SET gold=100 WHERE id=?', (cid,))
+            db.execute('UPDATE cultivation_state SET rebirth=2,ascension=1,sanctification=1 WHERE character_id=?',
+                       (cid,))
+            save(db, cid, 'jing', {'level':2,'exp':0})
         self.assertNotIn(6105, game.progression.snapshot()['skills'])
-        self.assertIn(699, [mid(p) for p in self.call(game, 749, 6105, 1)])
+        self.assertIn(1867, [mid(p) for p in self.call(game, 1874)])
+        self.assertIn(686, [mid(p) for p in self.call(game, 2817, 6105)])
         self.assertEqual(game.progression.snapshot()['skills'][6105], 1)
         with game.progression.transaction() as db:
-            db.execute('UPDATE learned_skills SET rank=10000 WHERE character_id=? AND skill_id<>6105', (cid,))
+            db.execute('UPDATE learned_skills SET rank=25000 WHERE character_id=? AND skill_id<>6105', (cid,))
 
         game.change_scene(dict(id=0, to=2269, arrival=(20, 56)), None)
         battle = WildBattle(game, [game], zone_at(2269, 20, 56))

@@ -67,6 +67,72 @@ class CultivationTests(unittest.TestCase):
     def choose(self, location, op):
         return self.fixture.login.receive(packet(1032, ['byte', 'number'], [op, location[1]]))
 
+    def test_rebirth_resets_practice_and_sends_the_new_learning_cap(self):
+        from native946_campaign import Campaign
+        from native946_progression import DATA, Progression
+        from native946_school import SCHOOL_SKILLS, add_contribution
+
+        master = (2361, 6311)
+        skill = 6100
+
+        def select(location, op):
+            index = next(i for i, action in enumerate(self.game.dialog_actions, 1)
+                         if isinstance(action, dict) and action.get('op') == op)
+            return packets(self.choose(location, index))
+
+        self.level(100)
+        self.open(master)
+        select(master, 'join')
+        self.progress.shortcut(2, skill)
+        with self.progress.transaction() as db:
+            db.executemany('INSERT INTO learned_skills VALUES(?,?,0)', ((self.cid, 6036), (self.cid, 6127)))
+            db.execute('UPDATE characters SET gold=1000 WHERE id=?', (self.cid,))
+
+        for chapter, level, stage, cap in (('912101', 100, 1, 15000), ('912201', 120, 2, 20000)):
+            with self.subTest(chapter=chapter):
+                self.level(level)
+                final = len(TRIALS[chapter]['nodes']) - 1
+                with self.progress.transaction() as db:
+                    self.progress._learn_level_spells(db)
+                    db.execute("INSERT INTO native_campaign_runs VALUES(?,?,?,'active',?,0)",
+                               (self.cid, chapter, final, VERSION))
+                    db.execute('UPDATE learned_skills SET rank=? WHERE character_id=?', (cap - 5000, self.cid))
+                    add_contribution(db, self.cid, 50)
+                before = self.progress.snapshot()
+                self.open(MENG_PO)
+                reply = select(MENG_PO, 'complete')
+                self.assertIn(packet(695, ['number', 'number'], [int(DATA['attributes']['Rei']), stage]), reply)
+                raw = next(value for value in reply if value.startswith(message_id(699)))
+                reader = MessageReader(raw[3:])
+                reader.integer()
+                for _ in range(reader.take(1)[0]):
+                    read_record(reader, 'fly_stunt_info')
+                skills = {row['skill_id']: row['practice']
+                          for row in (read_record(reader, 'hero_skill_info') for _ in range(reader.take(1)[0]))}
+                self.assertIn(skill, skills)
+                self.assertEqual(set(skills.values()), {0})
+                saved = Progression(self.fixture.path, 'npc_owner', self.cid).snapshot()
+                self.assertEqual(saved['skills'], dict.fromkeys(before['skills'], 0))
+                self.assertEqual(saved['shortcuts'], before['shortcuts'])
+
+                self.open(master)
+                raw = next(value for value in select(master, 'learn') if value.startswith(message_id(701)))
+                reader = MessageReader(raw[3:])
+                rows = [read_record(reader, 'learn_skill_info') for _ in range(reader.take(1)[0])]
+                self.assertEqual(len(rows), 16)
+                self.assertEqual({row['skill_id'] for row in rows}, (saved['skills'].keys() & SCHOOL_SKILLS) - {6036})
+                self.assertEqual({(row['cur_value'], row['max_value']) for row in rows}, {(0, cap)})
+                cross_school = next(row for row in rows if row['skill_id'] == 6111)
+                self.assertEqual((cross_school['next_money'], cross_school['next_contribute']), (25, 5))
+                self.fixture.login.receive(packet(749, ['number', 'number'], [skill, 1]))
+                gold = self.progress.snapshot()['gold']
+                reply = packets(self.fixture.login.receive(packet(749, ['number', 'number'], [6111, 10])))
+                self.assertTrue(any(value.startswith(message_id(701)) for value in reply))
+                learned = Progression(self.fixture.path, 'npc_owner', self.cid).snapshot()
+                self.assertEqual((learned['skills'][6111], learned['gold']), (10, gold - 250))
+                self.assertFalse(Campaign(self.game).advance(chapter, final))
+                self.assertEqual(self.progress.snapshot()['skills'][skill], 1)
+
     def test_npc_advancement_updates_actor_observers_and_character_select(self):
         self.assertEqual(self.stage(), (0, 0, 0))
         self.level(99)

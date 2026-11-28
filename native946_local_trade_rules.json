@@ -1,0 +1,5 @@
+{
+  "source": "本机规则，经用户授权用于同服的面对面守护交易",
+  "guardian_offer_limit": 1,
+  "guardian_excluded_grant_keys": ["starter", "campaign:newbie:guardian", "lingyou-complete"]
+}

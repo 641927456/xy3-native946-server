@@ -14,7 +14,7 @@ from native946_login import MessageReader, string_field
 from native946_map import DIRECTIONS, load_map
 from native946_npc_quests import Quests, day_key
 from native946_progression import DATA, Progression
-from native946_school import (EXTRA_SKILLS, MASTERS, NATIVE_SCHOOL_DESCRIPTIONS, SKILLS, SUPPLY_TIERS,
+from native946_school import (EXTRA_SKILLS, MASTERS, NATIVE_SCHOOL_DESCRIPTIONS, SCHOOL_SKILLS, SKILLS, SUPPLY_TIERS,
                               VISIT_TIERS, contribution, draw_objective)
 from native946_world import world
 from test_native946_wilderness_party import mid
@@ -325,6 +325,7 @@ class SchoolTests(unittest.TestCase):
         from client_archive import Archive
         from literal_schema import replay
         from build_world import plain
+        from native946_skill6 import SCHOOL_FENG_SKILLS
         root = Path(__file__).parent
         archive = Archive(root/'client-946/resource/configs.wdf')
         raw = archive.read('info/info_school_skill.lua')
@@ -332,6 +333,8 @@ class SchoolTests(unittest.TestCase):
         self.assertEqual(SKILLS, {int(k):tuple(v[f'skill_id{i}'] for i in range(1,6)) for k,v in table.items()})
         raw = Archive(root/'client-946/resource/configs.wdf').read('info/info_hero_school_skill.lua')
         actual = plain(replay(raw)[0])
+        self.assertEqual(SCHOOL_FENG_SKILLS,
+                         {int(skill) for skill, row in actual.items() if row['series'] == '圣心秘法'})
         self.assertEqual({skill: school for school, base in SKILLS.items()
                           for skill in base+EXTRA_SKILLS[school]},
                          {int(skill): row['school_id'] for skill,row in actual.items()})
@@ -425,10 +428,12 @@ class SchoolTests(unittest.TestCase):
         self.assertIn(98, [mid(p) for p in self.request(749,11,1)])
         self.visit(2030,3101)
         rows, points = self.read_learn_list(self.choose_op('learn'))
-        self.assertEqual([r['skill_id'] for r in rows], [11,12])
-        self.assertEqual([(r['next_money'],r['next_contribute'],r['next_pote']) for r in rows],[(5,0,0),(10,2,0)])
+        learned = self.progression.snapshot()['skills'].keys() & SCHOOL_SKILLS
+        self.assertEqual({r['skill_id'] for r in rows}, {11,12} | learned)
+        self.assertEqual([r['skill_id'] for r in rows[:2]], [11,12])
+        self.assertEqual([(r['next_money'],r['next_contribute'],r['next_pote']) for r in rows[:2]],[(5,0,0),(10,2,0)])
         self.assertEqual(points, 0)
-        for skill, times, extra in ((12,1,b''), (13,1,b''), (21,1,b''), (11,1,number(7)), (11,2,b'')):
+        for skill, times, extra in ((12,1,b''), (13,1,b''), (23,1,b''), (11,1,number(7)), (11,2,b'')):
             self.assertIn(98,[mid(p) for p in self.request(749,skill,times,suffix=extra)])
         self.assertEqual(self.progression.snapshot()['gold'],500)
         self.assertIn(699,[mid(p) for p in self.request(749,11,1)])
@@ -445,8 +450,11 @@ class SchoolTests(unittest.TestCase):
         self.visit(2080,2709)
         self.assertFalse(any(isinstance(a,dict) and a.get('op') in ('join','task') for a in self.game.dialog_actions))
         rows,_=self.read_learn_list(self.choose_op('learn'))
-        self.assertEqual([r['skill_id'] for r in rows],[21,22])
+        learned = self.progression.snapshot()['skills'].keys() & SCHOOL_SKILLS
+        self.assertEqual({r['skill_id'] for r in rows}, {21,22} | learned)
         self.assertIn(98,[mid(p) for p in self.request(749,11,1)])
+        cross_rows,_=self.read_learn_list(self.request(749,31,1))
+        self.assertEqual(next(row['cur_value'] for row in cross_rows if row['skill_id']==31),1)
 
     def test_learning_rejection_uses_native_system_chat_instead_of_login_popup(self):
         import sys
@@ -591,6 +599,57 @@ class SchoolTests(unittest.TestCase):
         self.assertIn(1183, [mid(p) for p in self.choose_op('leave')])
         self.assertFalse(self.game.dialog_open)
         self.assertEqual(self.progression.snapshot()['school'], 18)
+
+    def test_feng_spells_can_only_be_practiced_after_their_own_unlocks(self):
+        from native946_role_systems import save
+        from native946_school import add_contribution
+
+        self.hero = self.characters.create('school_fixture', '天地合测试', 702)
+        self.game = NativeGameplay(self.hero, self.characters, lambda: ())
+        self.progression = self.game.progression
+        cid = self.progression.cid
+        with self.progression.transaction() as db:
+            save(db, cid, 'school', {'school': 18})
+            db.execute('UPDATE characters SET level=165,gold=500 WHERE id=?', (cid,))
+            db.execute('UPDATE cultivation_state SET rebirth=2,ascension=1 WHERE character_id=?', (cid,))
+            db.executemany('INSERT INTO learned_skills VALUES(?,?,0)', ((cid,6036), (cid,6105)))
+            add_contribution(db, cid, 20)
+
+        for sealed in (0, 1):
+            with self.subTest(sealed=sealed):
+                with self.progression.transaction() as db:
+                    db.execute('UPDATE cultivation_state SET sanctification=? WHERE character_id=?', (sealed, cid))
+                self.visit(2361, 6311)
+                rows, points = self.read_learn_list(self.choose_op('learn'))
+                self.assertTrue({6036,6105}.isdisjoint(row['skill_id'] for row in rows))
+                for skill in (6036,6105):
+                    self.assertIn(98, [mid(p) for p in self.request(749, skill, 1)])
+                saved = self.progression.snapshot()
+                self.assertEqual((saved['skills'][6036], saved['gold'], points), (0, 500, 20))
+
+        self.assertIn(1867, [mid(p) for p in self.request(1874)])
+        self.visit(2361, 6311)
+        rows, _ = self.read_learn_list(self.choose_op('learn'))
+        self.assertNotIn(6105, {row['skill_id'] for row in rows})
+        unlocked = next(row for row in rows if row['skill_id'] == 6036)
+        self.assertEqual((unlocked['cur_value'], unlocked['max_value']), (0, 25000))
+        rows, points = self.read_learn_list(self.request(749, 6036, 1))
+        self.assertEqual(next(row['cur_value'] for row in rows if row['skill_id'] == 6036), 1)
+        self.assertEqual((self.progression.snapshot()['gold'], points), (465, 13))
+
+        self.assertIn(98, [mid(p) for p in self.request(2817, 6105)])
+        with self.progression.transaction() as db:
+            save(db, cid, 'jing', {'level':2,'exp':0})
+        self.visit(2361, 6311)
+        rows, _ = self.read_learn_list(self.choose_op('learn'))
+        self.assertNotIn(6105, {row['skill_id'] for row in rows})
+        self.assertIn(686, [mid(p) for p in self.request(2817, 6105)])
+        self.visit(2361, 6311)
+        rows, _ = self.read_learn_list(self.choose_op('learn'))
+        self.assertIn(6105, {row['skill_id'] for row in rows})
+        rows, points = self.read_learn_list(self.request(749, 6105, 1))
+        self.assertEqual(next(row['cur_value'] for row in rows if row['skill_id'] == 6105), 1)
+        self.assertEqual((self.progression.snapshot()['gold'], points), (435, 7))
 
     def test_unaffiliated_witches_use_their_actual_cloud_palace_masters(self):
         for role,name,school,master,other_school,other in (

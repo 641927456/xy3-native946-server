@@ -21,6 +21,7 @@ PORTAL_APPROACH_CELLS=10
 # Native NPC auto-pilot finishes within 40 pixels of its configured from_pos.
 # One extra grid cell covers floor conversion of its pixel coordinates.
 NPC_ROUTE_APPROACH_CELLS=3
+SANJIE_TRANSPORT_NPC = (2001, 4198)
 
 # The ordinary-server selector in 946 bin_script.wdf/24842d05 uses a
 # 28-day rotation from 2011-06-25. Times are local to the game (UTC+8).
@@ -89,6 +90,9 @@ class World:
         self.portals=defaultdict(list);self.transports=defaultdict(list);self.buckets=defaultdict(list)
         for row in data['portals']:self.portals[row['from']].append(row)
         for row in data['npc_transports']:self.transports[(row['from'],row['npc_id'])].append(row)
+        # Service destinations are separate from the native anchors used for encounter spawning.
+        for row in data.get('local_npc_transports', ()):
+            self.transports[(row['from'], row['npc_id'])].append(row)
         for sid,rows in self.npcs.items():
             for npc in rows.values():self.buckets[(sid,npc['x']//640,npc['y']//640)].append(npc)
         self._npc_packets={};self._portal_packets={}
@@ -207,6 +211,8 @@ class World:
 
     def transport_label(self,route):
         """Use native destination aliases (e.g. 西市 inside 长安), not coordinates."""
+        if 'label' in route:
+            return route['label']
         npc=self.npc(route['from'],route['npc_id']) or {}
         labels=[re.sub(r'#c[0-9a-fA-F]{6}|#[A-Za-z]','',s).strip()
                 for s in npc.get('desc','').split('#r')[1:]]

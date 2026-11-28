@@ -35,7 +35,7 @@ def skill_score(db, pet):
     hidden={entry['base'] for entry in upgrades}
     learned = [row for row in effective_books(db, pet) if row['skill'] not in hidden]
     learned_ids = {row['skill'] for row in learned}
-    training = trained_records(db, sid, pet['level'])
+    training = trained_records(db, sid, pet)
     innate_records = records(dict(pet, innate_training=training,jing_books=upgrades), excluded=learned_ids)
     innate = visible_innate(db, dict(pet, innate_skills=innate_records))
     trained = [training[row['stunt_id']] for row in innate if row['stunt_id'] in training]
