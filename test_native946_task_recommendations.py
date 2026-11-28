@@ -103,7 +103,7 @@ class RecommendationTests(unittest.TestCase):
 
     def test_lists_only_implemented_flows_and_marks_unmet_requirements(self):
         rows={r['name']:r for r in TaskRecommendations(self.g).rows()}
-        self.assertEqual(set(rows),{'捉鬼任务','鬼王任务','天庭任务','三界令','任务链','师门任务','普通藏宝图'})
+        self.assertEqual(set(rows),{'捉鬼任务','鬼王任务','天庭任务','三界令','任务链','师门任务','普通藏宝图','莲花洞差事'})
         self.assertEqual(rows['捉鬼任务']['type'],'条件不足')
         self.assertEqual(rows['鬼王任务']['type'],'条件不足')
         self.assertEqual(rows['三界令']['type'],'条件不足')
@@ -114,6 +114,26 @@ class RecommendationTests(unittest.TestCase):
         self.assertEqual(rows['师门任务']['active'],'0/60')
         self.assertEqual(rows['天庭任务']['active'],'0/30')
         self.assertEqual(rows['任务链']['active'],'0')
+
+    def test_lotus_recommendation_checks_stage_group_and_tokens(self):
+        def lotus():
+            return next(row for row in TaskRecommendations(self.g).rows() if row['name']=='莲花洞差事')
+
+        with self.p.transaction() as db:
+            db.execute('UPDATE characters SET level=100 WHERE id=?',(self.p.cid,))
+            db.execute('INSERT INTO native_npc_quest_wallet(character_id,sanjie) VALUES(?,10)',(self.p.cid,))
+        self.assertEqual(lotus()['type'],'条件不足')
+        with self.p.transaction() as db:
+            db.execute('INSERT INTO cultivation_state(character_id,rebirth) VALUES(?,2) '
+                       'ON CONFLICT(character_id) DO UPDATE SET rebirth=2',(self.p.cid,))
+            db.execute('UPDATE native_npc_quest_wallet SET sanjie=9 WHERE character_id=?',(self.p.cid,))
+        self.assertEqual(lotus()['type'],'条件不足')
+        with self.p.transaction() as db:
+            db.execute('UPDATE native_npc_quest_wallet SET sanjie=10 WHERE character_id=?',(self.p.cid,))
+        self.assertEqual(lotus()['type'],'日常任务')
+        self.assertIn('每环需10枚三界令',lotus()['desc'])
+        with patch.object(self.g.party_service,'team',return_value={}):
+            self.assertEqual(lotus()['type'],'条件不足')
 
     def test_counts_are_owned_and_reset_with_the_existing_daily_period(self):
         from native946_npc_quests import day_key

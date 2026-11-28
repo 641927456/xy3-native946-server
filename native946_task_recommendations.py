@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from native946_codec import packet, screen_notice, text_notice
 from native946_liveness import ACTIVITY_POINTS, TIERS, award, balances, daily_claims, day_start, score, total
 
-WIRE_VERSION = 2
+WIRE_VERSION = 3
 REQUESTS={1450,1400,4310}
 CLAIM_REWARD = 1400
 
@@ -141,32 +141,44 @@ class TaskRecommendations:
         self.p=game.progression
 
     def rows(self, by_activity=None):
+        from native946_daily_content import exchange_balance
         from native946_npc_quests import ACTIVITIES,day_key
+        from native946_training import grade_number
+
         s=self.p.snapshot()
+        grouped=self.g.party_service.team(self.p.cid) is not None
         with self.p.transaction(write=False) as db:
             if by_activity is None:
                 by_activity = score(db, self.p.cid, day_start())
+            sanjie_balance=exchange_balance(db,self.p.cid)
             progress={r['kind']:dict(r) for r in db.execute(
                 'SELECT kind,accepted,completed FROM native_npc_activity_progress WHERE character_id=? AND day=?',
                 (self.p.cid,day_key()))}
         result=[]
         for kind,meta in ACTIVITIES.items():
+            if kind=='lotus_help':continue
             row=progress.get(kind,{})
             accepted,completed=row.get('accepted',0),row.get('completed',0)
             available=s['level']>=meta['level'] and s['ascension']>=meta['ascension']
             if kind=='school' and not s['school']:available=False
-            if meta['team'] and self.g.party_service.team(self.p.cid) is None:available=False
+            if meta['team'] and not grouped:available=False
             if meta['limit'] and accepted>=meta['limit']:available=False
+            requirements='最低等级'+str(meta['level'])+'级'+(
+                '，需要飞升' if meta['ascension'] else '')+(
+                '，需要先建立队伍' if meta['team'] else '')+(
+                '，需要拜师并在本门派师父处单人领取' if kind=='school' else '')
+            if kind=='lotus':
+                cost=meta['cost_sanjie']
+                available=(available and not grouped and sanjie_balance>=cost and
+                           grade_number(s,s['cultivation_state'])>=meta['min_grade'])
+                requirements=f'二转{meta["level"]}级起，单人找莲花洞精细鬼领取，每环需{cost}枚三界令'
             rule = ACTIVITY_POINTS.get(kind)
             # The native status controls sorting/color, not authorization.
             # Expose unmet conditions as text rather than guessing an enum.
             result.append(dict(name=meta['name'],type='日常任务' if available else '条件不足',time='每日',
                 done=str(completed)+'/'+(str(meta['limit']) if meta['limit'] else '不限'),
                 active=f'{by_activity.get(kind, 0)}/{rule[1]}' if rule else '0',status=1,icon_list='{}',
-                desc='最低等级'+str(meta['level'])+'级'+
-                     ('，需要飞升' if meta['ascension'] else '')+
-                     ('，需要先建立队伍' if meta['team'] else '')+
-                     ('，需要拜师并在本门派师父处单人领取' if kind=='school' else '')+
+                desc=requirements+
                      '。今日已领取'+str(accepted)+'次，完成'+str(completed)+'次；每次任务限时20分钟。'+
                      ('当前条件不足。' if not available else '')+
                      (f'本机每次完成增加{rule[0]}点活跃度，本项每日上限{rule[1]}点。' if rule else '')))

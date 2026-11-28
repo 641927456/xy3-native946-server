@@ -45,7 +45,7 @@ if _liveness_stale:
     reload(_liveness)
 _task_recommendations = sys.modules.get('native946_task_recommendations')
 if _task_recommendations is not None and (
-        _liveness_stale or getattr(_task_recommendations, 'WIRE_VERSION', 0) < 2):
+        _liveness_stale or getattr(_task_recommendations, 'WIRE_VERSION', 0) < 3):
     reload(_task_recommendations)
 
 # The existing controller reloads this module on its owning socket thread.
