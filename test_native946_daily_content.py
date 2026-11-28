@@ -154,27 +154,24 @@ class DailyContentTests(unittest.TestCase):
         self.assertIs(self.a._wild_battle,self.b._wild_battle)
         self.assertEqual(quantities(),[3,3])
 
-    def test_exchange_uses_native_panels_without_unverified_offers(self):
+    def test_sanjie_exchange_uses_configured_offers_and_debits_once(self):
+        from native946_daily_content import EXCHANGE
+
         self.set_points(2000)
         choices = self.open_npc(2001, 4102)
         choices = menu(next(p for p in self.choose(4102, choices.index('了解如何做任务') + 1) if mid(p)==1025))[1]
         self.assertIn(2966, [mid(p) for p in self.choose(4102, choices.index('前往吕毅兑换三界令') + 1)])
-        before = self.a.progression.snapshot()['items']
-        for scene, npc, panel in ((2001,4101,1686),(2006,4220,1686),(2001,5500,1694)):
-            with self.subTest(scene=scene,npc=npc):
-                reply = self.talk(scene,npc)
-                self.assertNotIn(1025,[mid(p) for p in reply])
-                r = MessageReader(next(p for p in reply if mid(p) == panel)[3:])
-                self.assertEqual(r.integer(),npc)
-                if panel == 1686:
-                    self.assertEqual(r.integer(),2)
-                self.assertEqual(r.take(1),b'\0')
-                r.finish()
-                self.assertEqual(self.choose(npc,1),())
-                self.assertEqual(self.a.dialog_actions,[])
-        self.call(self.a,1714,5500,6021,1,1)
-        self.assertEqual(self.points(),2000)
-        self.assertEqual(self.a.progression.snapshot()['items'],before)
+        for scene,npc in ((2001,4101),(2006,4220),(2001,5500)):
+            self.assertEqual(self.open_npc(scene,npc)[-1],'离开')
+            offered=[action['item'] for action in self.a.dialog_actions if action['kind']=='sanjie_exchange']
+            self.assertTrue(offered)
+            self.assertTrue(set(offered)<=set(EXCHANGE['npcs'][f'{scene}:{npc}']))
+        choices=self.open_npc(2001,4101)
+        choice=next(i for i,label in enumerate(choices,1) if label.startswith('三千年蟠桃'))
+        self.assertIn(786,[mid(p) for p in self.choose(4101,choice)])
+        self.assertEqual(self.choose(4101,choice),())
+        self.assertEqual(self.points(),1967)
+        self.assertTrue(any(i['type']==6029 for i in self.a.progression.snapshot()['items']))
 
     def test_unverified_exchange_is_closed_and_owned_super_map_still_digs(self):
         from native946_inventory_features import give
@@ -222,12 +219,204 @@ class DailyContentTests(unittest.TestCase):
 
     def test_stale_exchange_menu_cannot_spend_points(self):
         self.set_points(2000)
-        self.talk(2001,4101)
+        self.talk(2006,4220)
         self.a.dialog_actions = [dict(kind='sanjie_exchange',item=11685)]
-        self.a.menu('旧兑换对话',['旧商品'],4101)
-        self.assertIn(100,[mid(p) for p in self.choose(4101,1)])
+        self.a.menu('旧兑换对话',['旧商品'],4220)
+        self.assertIn(98,[mid(p) for p in self.choose(4220,1)])
         self.assertEqual(self.points(), 2000)
         self.assertNotIn(11685, [i['type'] for i in self.a.progression.snapshot()['items']])
+
+    def test_sanjie_exchange_rolls_back_for_full_equipment_bag(self):
+        from native946_daily_content import EXCHANGE
+
+        actor=self.characters.create('daily0','装备测试',113)
+        self.a=NativeGameplay(actor,self.characters,lambda:())
+        self.set_points(2000)
+        self.open_npc(2001,4101)
+        choice=next(i for i,a in enumerate(self.a.dialog_actions,1) if
+                    a['kind']=='sanjie_exchange' and EXCHANGE['goods'][str(a['item'])].get('equipment'))
+        item=self.a.dialog_actions[choice-1]['item']
+        with patch.object(self.a.progression,'free_bag_slot',side_effect=ValueError('背包已满')):
+            self.assertIn(98,[mid(p) for p in self.choose(4101,choice)])
+        self.assertEqual(self.points(),2000)
+        self.open_npc(2001,4101)
+        self.assertIn(786,[mid(p) for p in self.choose(4101,choice)])
+        self.assertEqual(self.points(),100)
+        with self.a.progression.transaction(write=False) as db:
+            self.assertEqual(db.execute('SELECT grade FROM native_equipment e JOIN inventory i ON i.id=e.item_id '
+                                        'WHERE e.character_id=? AND i.type=?',(self.a.progression.cid,item)).fetchone()[0],11)
+
+    def test_lotus_eight_rings_advance_and_charge_at_each_acceptance(self):
+        p=self.a.progression
+        self.buff(self.a)
+        self.set_points(80)
+        with p.transaction() as db:
+            db.execute('INSERT INTO cultivation_state(character_id,rebirth) VALUES(?,2) '
+                       'ON CONFLICT(character_id) DO UPDATE SET rebirth=2',(p.cid,))
+        expected=(4551,4561,4561,4581,4559,4552,4576,4564)
+        for ring,nid in enumerate(expected,1):
+            self.open_npc(2221,4544)
+            self.choose(4544,1)
+            task=Quests(self.a).active('lotus')
+            self.assertEqual((task['ring'],task['npc']),(ring,nid))
+            choice=self.open_npc(task['scene'],nid)[0]
+            self.assertEqual(choice,'把话带到（完成本环）' if ring<=4 else '挑战任务目标')
+            self.choose(nid,1)
+            if ring>4:
+                battle=self.a._wild_battle
+                for enemy in battle.enemies():enemy.update(hp=1,hpmax=1,initiative=-10)
+                self.fight(battle)
+            self.assertIsNone(Quests(self.a).active('lotus'))
+            self.assertEqual(self.points(),80-ring*10+(12 if ring==8 else 0))
+
+    def test_lotus_paid_help_requires_funds_and_keeps_the_original_task(self):
+        p=self.a.progression
+        self.buff(self.a)
+        self.set_points(10)
+        with p.transaction() as db:
+            db.execute('INSERT INTO cultivation_state(character_id,rebirth) VALUES(?,2) '
+                       'ON CONFLICT(character_id) DO UPDATE SET rebirth=2',(p.cid,))
+            db.execute('UPDATE characters SET gold=4999 WHERE id=?',(p.cid,))
+        self.open_npc(2221,4544)
+        self.choose(4544,1)
+        task=Quests(self.a).active('lotus')
+        self.assertEqual(self.open_npc(2221,4544)[1],'寻求帮助')
+        self.assertIn(98,[mid(reply) for reply in self.choose(4544,2)])
+        self.assertEqual(p.snapshot()['gold'],4999)
+        self.assertIsNone(Quests(self.a).active('lotus_help'))
+        with p.transaction() as db:
+            db.execute('UPDATE characters SET gold=5000 WHERE id=?',(p.cid,))
+        self.open_npc(2221,4544)
+        self.assertIn(1183,[mid(reply) for reply in self.choose(4544,2)])
+        self.assertEqual(p.snapshot()['gold'],0)
+        choices=self.open_npc(2018,3093)
+        self.assertIn('前往领取天劫',choices)
+        self.assertIn('寻求帮助',choices)
+        reply=next(packet for packet in self.choose(3093,choices.index('寻求帮助')+1) if mid(packet)==1025)
+        self.assertEqual(menu(reply)[1][0],'挑战任务目标')
+        self.choose(3093,1)
+        battle=self.a._wild_battle
+        for enemy in battle.enemies():enemy.update(hp=1,hpmax=1,initiative=-10)
+        self.fight(battle)
+        self.assertIsNone(Quests(self.a).active('lotus_help'))
+        self.assertEqual(Quests(self.a).active('lotus')['id'],task['id'])
+
+    def test_sanjie_scene_override_restores_original_npc(self):
+        from test_native946_npcs import read_npc
+
+        self.accept_sanjie(7)
+        task=Quests(self.a).active('sanjie')
+        self.position(self.a,task['scene'],task['x'],task['y'])
+        def find(replies):
+            return [npc for p in replies if mid(p)==1589 and
+                    (npc:=read_npc(p))['id']==6025][-1]
+        shown=find(self.a.sync_world_npcs(force=True))
+        self.assertEqual((shown['name'],shown['type']),('洞渊蛟',2030))
+        self.assertEqual(Quests(self.a).sanjie_scene_appearance(),())
+        Quests(self.a).cancel(task['id'])
+        restored=find(Quests(self.a).sanjie_scene_appearance())
+        self.assertEqual((restored['name'],restored['type']),('修罗木阵',4300))
+
+    def test_gm_refresh_is_per_character_and_retries_serialization(self):
+        from native946_gm_bridge import notify, poll
+
+        for game in self.games:notify(self.characters.database,game.progression.cid)
+        with patch.object(self.a,'sync_progression',side_effect=ValueError('fixture')):
+            self.assertEqual(poll(self.a,10),())
+        self.assertIn(98,[mid(p) for p in poll(self.b,10)])
+        self.assertIn(98,[mid(p) for p in poll(self.a,11)])
+        for game in self.games:self.assertEqual(poll(game,12),())
+
+    def prepare_trial_team(self,point):
+        LocalAccounts(self.characters.database).register(dict(username='daily2',password='fixture-only'))
+        actor=self.characters.create('daily2','日常测试2',702)
+        c=NativeGameplay(actor,self.characters,lambda:())
+        self.games.append(c)
+        for game in self.games:self.position(game,2001,*point)
+        self.team()
+        self.call(self.a,2039,actor['id'])
+        self.call(c,2038,self.a.character['id'])
+        for game in self.games:
+            self.buff(game)
+            with game.progression.transaction() as db:
+                db.execute('INSERT INTO cultivation_state(character_id,rebirth) VALUES(?,1) '
+                           'ON CONFLICT(character_id) DO UPDATE SET rebirth=1',(game.progression.cid,))
+
+    def test_relic_requires_three_eligible_members_and_settles_shared_battle(self):
+        from time import time
+        from native946_double_time import load, save
+        from native946_field_trials import _progress
+
+        self.open_npc(2001,6859)
+        self.choose(6859,1)
+        self.assertIn(98,[mid(p) for p in self.choose(6859,1)])
+        self.assertEqual(_progress(self.a)['runs'],{})
+        self.prepare_trial_team((627,31))
+        self.open_npc(2001,6859)
+        self.choose(6859,1)
+        replies=self.choose(6859,1)
+        self.assertEqual(self.a.character['map_id'],2384,
+                         [p.decode('gb18030','replace') for p in replies if mid(p)==98])
+        runs=[_progress(game)['runs']['relic'] for game in self.games]
+        self.assertEqual(len({run['id'] for run in runs}),1)
+        self.assertTrue(all(game.character['map_id']==2384 for game in self.games))
+        with self.a.progression.transaction() as db:
+            now=int(time())
+            double=load(db,self.a.progression.cid,now)
+            double['expires']=now+3600
+            save(db,self.a.progression.cid,double)
+        self.open_npc(2384,6809)
+        self.choose(6809,1)
+        battle=self.a._wild_battle
+        self.assertEqual(len(battle.games),3)
+        for enemy in battle.enemies():enemy.update(hp=1,hpmax=1,initiative=-10)
+        self.fight(battle)
+        for game in self.games:
+            self.assertEqual(_progress(game)['relic_stars'],1)
+            self.assertEqual(_progress(game)['relic_high'],29)
+        awards=battle.state['rewards']
+        xp=[awards[g.progression.cid]['experience'] for g in self.games]
+        self.assertEqual(xp[0],2*xp[1])
+        for game in self.games:
+            self.position(game,2001,627,31)
+            self.svc.drain(game)
+        self.assertEqual(self.open_npc(2001,6859)[2],'查看队员完成次数')
+        reply=next(p for p in self.choose(6859,3) if mid(p)==1025)
+        for game in self.games:self.assertIn(game.character['name'].encode('gb18030'),reply)
+
+    def test_visitor_team_clears_mobs_and_completes_all_three_scenes(self):
+        from native946_field_trials import VISITOR_STAGES, _mobs, _progress
+
+        self.prepare_trial_team((573,67))
+        self.open_npc(2001,7510)
+        self.choose(7510,1)
+        self.choose(7510,1)
+        for index,stage in enumerate(VISITOR_STAGES):
+            scene,nid=stage['scene'],stage['npc']
+            mobs=_mobs(self.a)[1]
+            self.assertEqual(len(mobs),5)
+            self.assertTrue(all(_mobs(game)[1]==mobs for game in self.games))
+            for mob in mobs:
+                for game in self.games:self.position(game,scene,mob['x'],mob['y'])
+                self.assertIn(1025,[mid(p) for p in self.call(self.a,1034,mob['id'])])
+                self.choose(mob['id'],1)
+                battle=self.a._wild_battle
+                for enemy in battle.enemies():enemy.update(hp=1,hpmax=1,initiative=-10)
+                self.fight(battle)
+            for game in self.games:
+                self.assertEqual(_mobs(game)[1],[])
+                self.position(game,scene,*stage['cell'])
+                self.svc.drain(game)
+            self.assertEqual(self.open_npc(scene,nid)[0],'迎战')
+            self.choose(nid,1)
+            battle=self.a._wild_battle
+            for enemy in battle.enemies():enemy.update(hp=1,hpmax=1,initiative=-10)
+            self.fight(battle)
+            expected=VISITOR_STAGES[min(index+1,len(VISITOR_STAGES)-1)]['scene']
+            for game in self.games:
+                self.assertEqual(game.character['map_id'],expected)
+                self.assertEqual(_progress(game)['runs']['visitor']['stage'],index+1)
+                self.assertEqual(_progress(game)['visitor_high'],9-index)
 
     def test_star_round_snapshot_and_global_single_settlement(self):
         now = 1_800_000_000

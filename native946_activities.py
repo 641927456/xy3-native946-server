@@ -30,7 +30,13 @@ MIJING_SHOP_EXCHANGE=3988
 MIJING_SHOP_OPEN=3989
 OPEN_BOSS_RECORDS=2412
 REQUESTS={1448,1987,1988,1989,OPEN_BOSS_RECORDS,3705,3707,3742,MIJING_SHOP_EXCHANGE,MIJING_SHOP_OPEN}
+LOTUS_ACTIVITY=11
 VISITOR_ACTIVITY=74
+FIELD_TRIAL_ACTIVITIES={
+    4:'请组队找长安罗炎领取神器试炼。前往狮驼岭收取散逸的阴阳之气。',
+    VISITOR_ACTIVITY:'至少3人组队，110级起找长安苍穹月领取。按任务指引清除巡守妖兵后迎战。',
+}
+RECORDS[LOTUS_ACTIVITY]=dict(RECORDS[LOTUS_ACTIVITY],implementation='npc_quest:lotus',reference_kind='lotus',missing=[])
 DEMON_CHALLENGE=82
 SUMMON_MIJING=98
 REINCARNATION_TOWER=111
@@ -38,7 +44,6 @@ ACTIVITY_TIMEZONE=timezone(timedelta(hours=8))
 DEMON_BOSSES=RULES['demon_bosses']
 DEMON_RECORD_IDS={str(row['record_id']):row['record_id'] for row in DEMON_BOSSES}
 VISITOR_MIN_TEAM=3
-VISITOR_MIN_LEVEL=RULES['visitor_matching']['minimum_level']
 NPC_RECORDS={}
 NPC_ENTRY_RECORDS={}
 for _row in RECORDS.values():
@@ -120,7 +125,16 @@ def navigation_targets(row):
         from native946_dungeons import BY_NAME, ENTRANCES
 
         return ENTRANCES[BY_NAME[row['name']]['Index']]
-    return [target for target in row['locations'] if target['reachable']]
+    targets=[target for target in row['locations'] if target['reachable']]
+    if row['id']==LOTUS_ACTIVITY:
+        from native946_npc_quests import LOTUS_RULES
+
+        giver=tuple(LOTUS_RULES['lotus']['giver'])
+    elif row['id']==VISITOR_ACTIVITY:
+        from native946_field_trials import VISITOR_GIVER as giver
+    else:
+        return targets
+    return [target for target in targets if (target['scene'],target['npc'])==giver]
 
 
 def reward_name(kind):
@@ -180,21 +194,14 @@ def rule_pages(row):
                    for item in goods[start:start+8]]
             pages.append('原版积分商店预览#r'+'#r'.join(lines))
     if name=='百年后的来客':
-        # Official notices 6355_832052, 6355_833156, 6355_965293 and
-        # 6355_1164509. The current group-finder rule is in INFO_TEAM_PLATFORM_3.
+        from native946_field_trials import VISITOR_DAILY_HIGH, VISITOR_STAGES
+
+        route='、'.join(stage['scene_name'] for stage in VISITOR_STAGES)
         pages.append(
-            f'找长安的苍穹月领取，至少{VISITOR_MIN_TEAM}人组队。简单档门槛{VISITOR_MIN_LEVEL}级，计入转生阶段。'
-            '原版提供简单、困难、挑战三种难度，跨服组队集结仅可选简单。'
-            '#r2024年7月原版公告将困难和挑战的入场等级分别调为封圣120级和封圣185级。'
-            '#r原版上线时每日有40次高额奖励。2021年8月11日起，领取冷却按难度区分，难度越低，冷却越短。'
-            '#r原版可在苍穹月处查询队员获得的高额奖励次数。'
-            '#r队伍中有自行丹效果时，队长可自动完成任务。队长每带队取得40次高额奖励，可额外获得一枚自行丹。'
-            '#r本机已开放队伍条件检查和奖励预览，任务领取、战斗和奖励结算待接通。')
-        items=RULES['item_metadata']
-        preview=[items[str(kind)]['name'] for kind,_ in RULES['visitor_matching']['reward_preview']]
-        pages.append('常规服组队集结奖励预览#r'+'、'.join(preview)+
-                     '。#r客户端配置提供展示物品。各难度实际发放的物品和概率仍待核实。'
-                     '#r2019年10月公告记录每完成一次任务增加1点活跃度，累计上限40点。')
+            f'由队长找长安的苍穹月领取，至少{VISITOR_MIN_TEAM}人组队。'
+            '#r简单需110级，困难需封圣120级，挑战需封圣185级。'
+            f'#r依次前往{route}。清完当前场景的巡守妖兵后，再向苍穹月迎战。'
+            f'#r每日有{VISITOR_DAILY_HIGH}次高额奖励。可向苍穹月查询队员获得的高额奖励次数。')
     return pages
 
 
@@ -342,14 +349,18 @@ class Activities:
         if section=='npc':
             ids=set(NPC_RECORDS.get((self.g.character['map_id'],nid),()))
             rows=[r for r in RECORDS.values() if r['id'] in ids]
-        elif section=='supported':rows=[r for r in RECORDS.values() if r['reference_kind'] or r['name']=='任务链' or r['id'] in (73,81)]
+        elif section=='supported':
+            added=(LOTUS_ACTIVITY,*FIELD_TRIAL_ACTIVITIES)
+            rows=[r for r in RECORDS.values() if r['id'] not in added and
+                  (r['reference_kind'] or r['name']=='任务链' or r['id'] in (73,81))]
+            rows.extend(RECORDS[rid] for rid in added)
         elif section=='daily':rows=[r for r in RECORDS.values() if r['weekday']==10]
         elif section=='weekly':rows=[r for r in RECORDS.values() if r['weekday']!=10]
         elif section=='all':rows=list(RECORDS.values())
         else:raise ValueError('活动目录分类无效。')
         if type(page) is not int or not 0<=page<max(1,(len(rows)+PAGE_SIZE-1)//PAGE_SIZE):
             raise ValueError('活动目录页码无效。')
-        choices=[(r['name']+('' if r['reference_kind'] or r['name']=='任务链' or r['id'] in (73,81) else '（待接通）'),dict(op='detail',id=r['id']))
+        choices=[(r['name']+('' if r['reference_kind'] or r['name']=='任务链' or r['id'] in (73,81,*FIELD_TRIAL_ACTIVITIES) else '（待接通）'),dict(op='detail',id=r['id']))
                  for r in rows[page*PAGE_SIZE:(page+1)*PAGE_SIZE]]
         if page:choices.append(('上一页',dict(op='list',section=section,page=page-1)))
         if (page+1)*PAGE_SIZE<len(rows):choices.append(('下一页',dict(op='list',section=section,page=page+1)))
@@ -381,6 +392,9 @@ class Activities:
         if row['name']=='任务链':
             from native946_growth_guide import pages
             text=pages()[2][1]
+        elif rid==LOTUS_ACTIVITY:
+            text=(row['name']+'#r二转100级后，可单人到莲花洞找精细鬼领取。'
+                  '#r每轮八环，领取每环交10枚三界令。'+self.progress(row))
         elif row['reference_kind']:
             text+='#r#r前往任务领取人处办理。'+self.progress(row)
         elif rid==73:
@@ -389,6 +403,8 @@ class Activities:
             text+='#r每整点刷新星宿，保留15分钟。可前往傲来国1级地劣星，或查阅各地图其他星宿。编队参考阿飞，属性及奖池为本机规则。'
         elif rid==39:
             text+='#r#r可由守洞老猴进入水帘洞，和各层传送人对话往返灵泉洞、云霄径及翠石峰。四层均可通过暗雷胜利提升师门法术熟练度，组队胜利可获得额外经验。'
+        elif rid in FIELD_TRIAL_ACTIVITIES:
+            text=row['name']+'#r'+FIELD_TRIAL_ACTIVITIES[rid]
         else:
             missing={'原版奖励与日次结算':'服务端奖励与日次结算处理',
                      '活动实例及战斗配置':'服务端活动实例与战斗处理'}
@@ -410,7 +426,9 @@ class Activities:
         if rid==VISITOR_ACTIVITY:choices.append(('检查当前队伍条件',dict(op='visitor_readiness')))
         if rid==DEMON_CHALLENGE:choices.append(('查看降魔首领指引',dict(op='demon_guide')))
         choices.extend(self.mijing_choices(rid))
-        if rule_pages(row):choices.append(('原版条件、规则与奖励说明',dict(op='rules',id=rid,page=0)))
+        if rule_pages(row):
+            label='查看参与条件与玩法' if rid==VISITOR_ACTIVITY else '原版条件、规则与奖励说明'
+            choices.append((label,dict(op='rules',id=rid,page=0)))
         if guide_pages(row):choices.append(('原版关卡与怪物图鉴',dict(op='guide',id=rid,page=0)))
         from native946_dungeon_dialogues import CATALOG as DUNGEON_DIALOGUES
         if row['name'] in DUNGEON_DIALOGUES:
@@ -530,7 +548,8 @@ class Activities:
         if page:choices.append(('上一页',dict(op=op,id=rid,page=page-1)))
         if page+1<len(pages):choices.append(('下一页',dict(op=op,id=rid,page=page+1)))
         choices.append(('返回活动详情',dict(op='detail',id=rid)))
-        return self._menu(row['name']+'：原版资料 '+str(page+1)+'/'+str(len(pages))+'#r'+pages[page],choices,nid)
+        title=row['name'] if rid==VISITOR_ACTIVITY else row['name']+'：原版资料 '+str(page+1)+'/'+str(len(pages))
+        return self._menu(title+'#r'+pages[page],choices,nid)
 
     def baoxiang_rewards(self):
         # No server participation flow exists yet, so no character has earned
@@ -543,7 +562,7 @@ class Activities:
             notice('原版宝象国降妖奖励预览。完整活动流程尚未接通，当前没有可领取的有效活动轮次。'))
 
     def visitor_readiness(self,nid):
-        from native946_training import grade_number, state as training_state
+        from native946_training import state as training_state
         party=self.g.party_service
         text='百年后的来客队伍检查'
         with self.p.transaction(write=False) as db:
@@ -560,20 +579,19 @@ class Activities:
                 if len(levels)<VISITOR_MIN_TEAM:
                     text+=f'#r至少需要{VISITOR_MIN_TEAM}名在线、在附近且未暂离的成员。'
                 for mode,minimum,requires_sanctification in (
-                    ('简单',VISITOR_MIN_LEVEL,False),('困难',120,True),('挑战',185,True)
+                    ('简单',110,False),('困难',120,True),('挑战',185,True)
                 ):
                     if requires_sanctification:
                         below=[row['name'] for row,stage in levels
                                if not stage['sanctification'] or row['level']<minimum]
                     else:
-                        # The native matcher compares HERO_D:get_fly_rei_grade() with MinGrade.
-                        below=[row['name'] for row,stage in levels if grade_number(row,stage)<minimum]
+                        below=[row['name'] for row,stage in levels if row['level']<minimum]
                     label=f'{"封圣" if requires_sanctification else ""}{minimum}级'
                     if below:status='未达标 '+'、'.join(name.replace('#','＃') for name in below)
                     elif len(levels)<VISITOR_MIN_TEAM:status='队伍人数不足'
                     else:status='当前参战成员等级达标'
                     text+=f'#r{mode}（{label}） {status}。'
-        text+='#r当前仅开放条件检查，活动领取和发奖待接通。'
+        text+='#r队伍到齐后请找长安的苍穹月领取。'
         return self._menu(text,[('返回活动详情',dict(op='detail',id=VISITOR_ACTIVITY))],nid)
 
     def execute(self,nid,action):

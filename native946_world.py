@@ -153,9 +153,9 @@ class World:
     def event_npc_is_open(self, sid, nid):
         return nid not in _EVENT_NPC_WINDOWS.get(sid, ()) or nid not in self.closed_event_npcs(sid)
 
-    def npc_packet(self,sid,nid):
+    def npc_packet(self,sid,nid,*,appearance=None):
         key=(sid,nid)
-        if key not in self._npc_packets:
+        if appearance is not None or key not in self._npc_packets:
             from native946_codec import packet
             row=self.npcs[sid][nid]
             # The 946 NPC renderer uses is_flying to enter the flight layer and attach the cloud.
@@ -166,6 +166,9 @@ class World:
                    'is_flying':row.get('is_aviate',0),
                    'weapon_idx':row.get('weapon_index',0),'weapon_color':row.get('weapon_color',0),
                    'color1':row.get('color1',0),'color2':row.get('color2',0),'color3':row.get('color3',0)}
+            if appearance is not None:
+                value.update(name=appearance['name'],type=appearance['shape'])
+                return packet(1589,['oci_npc'],[value])
             self._npc_packets[key]=packet(1589,['oci_npc'],[value])
         return self._npc_packets[key]
 

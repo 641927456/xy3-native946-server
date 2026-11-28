@@ -10,7 +10,7 @@ from time import time,monotonic
 import json
 from collections import deque
 
-REFERENCE_WIRE_VERSION=13
+REFERENCE_WIRE_VERSION=15
 
 from native946_codec import packet, screen_notice, text_notice
 from native946_equipment import DATA
@@ -25,6 +25,10 @@ from native946_school_daily import completion_packets, record_completion, reward
 GIVERS={tuple(v['giver']):k for k,v in DATA['activities'].items()}
 ACTIVITIES=dict(DATA['activities'],school=dict(name='师门任务',level=TASK_LEVEL,ascension=0,
     team=False,limit=TASK_LIMIT,pet_factor=1))
+LOTUS_RULES=json.loads(Path(__file__).with_name('native946_lotus_data.json').read_text('utf8'))
+ACTIVITIES.update(LOTUS_RULES)
+GIVERS[tuple(LOTUS_RULES['lotus']['giver'])]='lotus'
+LOTUS_HELP_TARGET=tuple(LOTUS_RULES['lotus_help']['targets'][0][key] for key in ('scene_id','npc_id'))
 from native946_daily_content import DATA as DAILY_CONTENT
 TREASURE=DAILY_CONTENT['treasure']
 ACTIVITIES['treasure']=dict(name='普通藏宝图',level=TREASURE['level'],ascension=0,team=False,
@@ -56,6 +60,14 @@ def sanjie_stage_target(tier, stage):
 def sanjie_kit_rows(db,cid,kind):
     return db.execute('SELECT id,amount FROM inventory WHERE character_id=? AND page=? AND type=? '
                       'AND amount>0 ORDER BY slot',(cid,QUEST_PAGE,kind)).fetchall()
+
+def lotus_target(kind,ring):
+    rule=LOTUS_RULES[kind]
+    node=rule['ring_targets'][ring-1] if kind=='lotus' else rule['targets'][0]
+    scene,nid=node['scene_id'],node['npc_id']
+    npc=world().npc(scene,nid)
+    x,y=load_map(scene).nearest_walkable(npc['x']//20,npc['y']//20)
+    return scene,x,y,nid,node['name'],node.get('shape',npc['shape'])
 
 
 def spawn_position(scene,rng):
@@ -164,6 +176,16 @@ def reward(kind,level,ring,rng,branch=0,*,rare_available=True):
         xp=level*level*(30+ring)//30
         return dict(experience=xp,gold=1+ring*3,guardian_experience=xp,points=0,drops={},
                     rare=False,policy='school-local-v1',victory=True)
+    elif kind in LOTUS_RULES:
+        if not 1<=ring<=meta['rings']:raise ValueError('莲花洞任务环次无效。')
+        target=meta['targets'][0];den=target['denominator']
+        xp=level*level*(den+ring)//den;cash=1+ring*10
+        if ring==meta['rings']:
+            xp*=2;cash*=2;points=target['points']
+        roll=rng.randint(1,1000)
+        drops[rng.choice(meta['pools'][0])]=1 if roll<=300 else rng.randint(1,3)
+        return dict(experience=xp,gold=cash,guardian_experience=xp,points=points,drops=drops,
+                    rare=False,policy='lotus-c350930-v1',victory=True)
     else:
         if branch in SANJIE_TIERS:
             tier=SANJIE_TIERS[branch]
@@ -200,7 +222,7 @@ def settle_reward(db, game, task, ring, receipt_id, value, *, complete_round=Tru
                 value['points'],json.dumps(value['drops']),value.get('policy',DATA['version'])))
     db.execute("UPDATE native_npc_quest_members SET state='completed' WHERE task_id=? AND character_id=?",
                (task['id'],cid))
-    next_ring = ring % 10 + 1
+    next_ring = ring % LOTUS_RULES.get(task['kind'],{}).get('rings',10) + 1
     if task['kind']=='school':
         day = day_key()
         rollover = db.execute("UPDATE native_npc_activity_progress SET day=?,accepted=1,completed=0 "
@@ -285,6 +307,8 @@ class Quests:
         if not kind:return None
         if kind=='sanjie':
             return self.sanjie_menu(npc['npc_id'])
+        if kind=='lotus':
+            return self.lotus_menu(npc['npc_id'])
         current=next((r for r in self.active() if r['npc']==npc['npc_id'] and r['scene']==npc['scene_id']),None)
         if current:
             choices=[('挑战任务目标',dict(kind='npc_quest',op='fight',task=current['id']))]
@@ -343,8 +367,31 @@ class Quests:
         self.g.dialog_actions=[action for label,action in choices]
         return self.g.menu(text,[label for label,action in choices],nid)
 
+    def lotus_menu(self,nid):
+        current=self.active('lotus')
+        help_task=self.active('lotus_help')
+        close=('算了，这就去办差事',dict(kind='npc_quest',op='close'))
+        if help_task:
+            return self._menu(nid,'先去兜率宫找太上老君。你也可以取消求助。',[
+                ('前往太上老君处',dict(kind='npc_quest',op='navigate',task=help_task['id'])),
+                ('取消求助',dict(kind='npc_quest',op='cancel',task=help_task['id'])),close])
+        if current:
+            details=task_details(current)
+            body=(f'大王的差事还没办完呢——第{current["ring"]}/8环。#r'+details['text']+
+                  '#r要是办不动，也可以花#Y5000两#W请太上老君帮个忙。')
+            return self._menu(nid,body,[
+                ('前往当前任务目标',dict(kind='npc_quest',op='navigate',task=current['id'])),
+                ('寻求帮助',dict(kind='npc_quest',op='lotus_help')),
+                ('取消当前任务',dict(kind='npc_quest',op='cancel',task=current['id'])),close])
+        label=LOTUS_RULES['lotus']['task_open']
+        text=('我是这莲花洞看炉子的小鬼。精细鬼替大王派下差事，按吩咐去办。'
+              '上交#Y10个三界令#W，我就把大王的差事交给你，共八环，环环有赏。')
+        return self._menu(nid,text,[(label,dict(kind='npc_quest',op='accept',activity='lotus',branch=0)),
+                                    ('了解如何做任务',dict(kind='npc_quest',op='lotus_rules')),close])
+
     def validate_giver(self,nid,kind):
         meta=ACTIVITIES.get(kind);c=self.g.character
+        if kind=='lotus_help':meta=LOTUS_RULES['lotus']
         if kind=='school':
             master=MASTERS.get((c['map_id'],nid))
             if not master or master!=base_school(self.p.snapshot()['school']):
@@ -362,6 +409,13 @@ class Quests:
         op=action['op']
         if op=='close':return self.g.close_npc_dialogue()
         if self.g.battle:raise ValueError('请先结束当前战斗。')
+        if op in ('lotus_rules','lotus_help'):
+            self.validate_giver(nid,'lotus')
+            if op=='lotus_help':return self.accept('lotus_help',giver=nid)
+            return self._menu(nid,'莲花洞差事一共#R八环#W，找人带话也好，降妖除怪也罢，按提示一环环去办就行。'
+                              '#r领取每环需上交#R10个三界令#W。#r遇到难处可花#R5000两#W请兜率宫太上老君出手。',[
+                ('好吧，我愿意接差事',dict(kind='npc_quest',op='accept',activity='lotus',branch=0)),
+                ('算了，这就去办差事',dict(kind='npc_quest',op='close'))])
         if op in ('sanjie_tiers','sanjie_rules','sanjie_team','sanjie_hire','sanjie_kit'):
             self.validate_giver(nid,'sanjie')
             if op=='sanjie_kit':return self.replenish_sanjie_kit()
@@ -402,6 +456,11 @@ class Quests:
             return Workshops.tip(ACTIVITIES[kind]['name'],text+'#r限时20分钟，每10环一轮。取消、超时不会退回当日领取次数。#r暂存奖励：'+pending)
         row=next((r for r in self.active() if r['id']==action['task']),None)
         if row is None:raise ValueError('任务已经完成、取消或超时。')
+        if op=='lotus_talk':
+            if row['kind']!='lotus' or row['npc']!=nid or LOTUS_RULES['lotus']['ring_targets'][row['ring']-1]['mode']!='talk':
+                raise ValueError('请与本环指定的联系人交谈。')
+            self.target(row)
+            return self.complete_lotus_talk(row)
         if op=='sanjie_other':
             if row['kind']!='sanjie' or nid!=row['npc']:raise ValueError('请与目标本人对话。')
             self.target(row)
@@ -424,6 +483,8 @@ class Quests:
             if nid!=row['npc']:raise ValueError('任务目标不匹配。')
             if row['school_objective'] is not None:
                 raise ValueError('请按师门任务所示方式完成。')
+            if row['kind']=='lotus' and LOTUS_RULES['lotus']['ring_targets'][row['ring']-1]['mode']!='fight':
+                raise ValueError('这一环需要与目标交谈。')
             self.target(row)
             return self.start(row)
         self.validate_giver(nid,row['kind'])
@@ -434,6 +495,22 @@ class Quests:
             self.cancel(row['id'])
             return self.g.defer_packets(lambda:(*self.p.task_packets(),*self.scene_packets(),notice('任务已取消，当日领取次数不返还。')))
         raise ValueError('任务选项无效。')
+
+    def complete_lotus_talk(self,row):
+        ring=row['ring']
+        with self.p.transaction() as db:
+            if not any(r['id']==row['id'] for r in active_records(db,self.p.cid)):
+                raise ValueError('这一环已经办完了。')
+            value=reward('lotus',self.p._snapshot(db)['level'],ring,Random(row['token']+':talk'))
+            settle_reward(db,self.g,row,ring,'lotus-talk:'+str(row['id']),value)
+            for ref,amount in value['drops'].items():
+                db.execute('INSERT INTO native_npc_pending_items(task_id,character_id,reference_type,amount) VALUES(?,?,?,?)',
+                           (row['id'],self.p.cid,ref,amount))
+            deliver(self.p,db)
+        self.p._cached_snapshot=None
+        text=LOTUS_RULES['lotus']['task_ends'][ring-1]
+        return self.g.defer_packets(lambda:(self.g.close_npc_dialogue(),*self.p.task_packets(),*self.p.item_packets(),
+                                             screen_notice(f'{text} 经验{value["experience"]}，现金{value["gold"]}。')))
 
     def replenish_sanjie_kit(self):
         from native946_inventory_features import give
@@ -470,6 +547,9 @@ class Quests:
             raise ValueError('任务分支无效。')
         if kind=='ghost' and getattr(self.g,'_auto_ghost_until',0) > monotonic():
             raise ValueError('请先停止自动抓鬼。')
+        if kind in LOTUS_RULES:
+            self.validate_giver(giver,kind)
+            if self.g.party_service.team(self.p.cid) is not None:raise ValueError('莲花洞差事请单人领取。')
         if kind=='treasure':
             self.validate_giver(giver,kind)
             if self.g.party_service.team(self.p.cid) is not None:
@@ -488,6 +568,8 @@ class Quests:
                     raise ValueError('请向自己门派的师父领取任务。')
                 if s['level']<(tier['level'] if tier else meta['level']) or s['ascension']<meta['ascension']:
                     raise ValueError(g.character['name']+'尚未满足此任务的客户端等级条件。')
+                if kind in LOTUS_RULES and s['level']+1000*s['rebirth']+10000*s['ascension']+100000*s['sanctification']<meta['min_grade']:
+                    raise ValueError('须达到二转100级才能办理莲花洞差事。')
                 if any(r['kind']==kind for r in active_records(db,g.character['id'],now)):raise ValueError(g.character['name']+'已经有此类任务。')
                 cid=g.character['id']
                 db.execute('INSERT OR IGNORE INTO native_npc_activity_progress(character_id,kind,day) VALUES(?,?,?)',(cid,kind,day))
@@ -534,6 +616,20 @@ class Quests:
                 shape=rng.choice(allowed)['type']
                 name='可疑行人' if objective=='patrol' else rng.choice(['子时','午时','戌时'])+('鬼王' if kind=='king' else '游魂')
                 nid,dynamic,selected=0,1,branch if kind=='school' else 0
+            elif kind in LOTUS_RULES:
+                ring=rings[self.p.cid]
+                if kind=='lotus_help':
+                    if not any(r['kind']=='lotus' for r in active_records(db,self.p.cid,now)):
+                        raise ValueError('先接莲花洞差事，再来寻求帮助。')
+                    if not db.execute('UPDATE characters SET gold=gold-? WHERE id=? AND gold>=?',
+                                      (meta['cost_gold'],self.p.cid,meta['cost_gold'])).rowcount:
+                        raise ValueError('现金不足5000两。')
+                else:
+                    if not db.execute('UPDATE native_npc_quest_wallet SET sanjie=sanjie-? WHERE character_id=? AND sanjie>=?',
+                                      (meta['cost_sanjie'],self.p.cid,meta['cost_sanjie'])).rowcount:
+                        raise ValueError('领取差事需要10枚三界令。')
+                scene,x,y,nid,name,shape=lotus_target(kind,ring)
+                dynamic,selected=0,0
             elif tier:
                 scene,x,y,nid,name,shape=sanjie_stage_target(tier,1)
                 dynamic,selected=0,branch
@@ -562,6 +658,10 @@ class Quests:
                 g.progression._cached_snapshot=None
                 task_type=' '+OBJECTIVE_NAMES[objective] if objective else ''
                 replies=(*g.progression.task_packets(),*Quests(g).scene_packets(),notice('已领取'+meta['name']+'第'+str(rings[g.character['id']])+'环'+task_type+'。'))
+                if kind in LOTUS_RULES:replies=(g.close_npc_dialogue(),*replies)
+                if kind=='lotus_help':
+                    g.character['gold']=g.progression.snapshot()['gold']
+                    replies=(*replies,numbers(695,34,g.character['gold']))
                 if kit:replies=(*replies,*g.progression.item_packets(pages={QUEST_PAGE}))
                 if g is self.g:result.extend(replies)
                 else:g.party_service.enqueue(g,*replies)
@@ -586,13 +686,33 @@ class Quests:
         return dict(row, scene=scene, x=x, y=y), (*removed,*self.p.task_packets(),*self.scene_packets())
 
     def scene_packets(self,force=False):
-        c=self.g.character;rows=[r for r in self.active() if r['dynamic'] and r['scene']==c['map_id'] and max(abs(r['x']-c['x']),abs(r['y']-c['y']))<=72]
+        c=self.g.character;active=self.active()
+        rows=[r for r in active if r['dynamic'] and r['scene']==c['map_id'] and max(abs(r['x']-c['x']),abs(r['y']-c['y']))<=72]
         now={r['npc'] for r in rows};before=set() if force else getattr(self.g,'_quest_visible',set());result=[numbers(1604,nid) for nid in before-now]
         for row in rows:
             if row['npc'] not in before:result.append(packet(1589,['oci_npc'],[dict(id=row['npc'],name=row['name'],title='巡逻区域' if row['school_objective']=='patrol' else '任务目标',type=row['shape'],
                    class_type=1,x=row['x']*20,y=row['y']*20,dir=4,layer=1,member_click=1)]))
         self.g._quest_visible=now
-        return tuple(result)
+        return (*result,*self.sanjie_scene_appearance(active,force=force))
+
+    def sanjie_scene_appearance(self,active=None,*,force=False):
+        g=self.g;sid=g.character['map_id'];catalog=world()
+        old_sid,old=getattr(g,'_sanjie_scene_appearance',(None,{}))
+        if force or old_sid!=sid:old={}
+        visible=getattr(g,'_world_visible',())
+        overrides={}
+        if sid==2256:
+            for task in self.active() if active is None else active:
+                if task['kind']!='sanjie' or task['scene']!=sid or task['npc'] not in visible:
+                    continue
+                native=catalog.npc(sid,task['npc'])
+                appearance={key:task[key] for key in ('name','shape')}
+                if native and any(native[key]!=value for key,value in appearance.items()):
+                    overrides[task['npc']]=appearance
+        changed={nid for nid in old.keys()|overrides.keys() if nid in visible and old.get(nid)!=overrides.get(nid)}
+        g._sanjie_scene_appearance=(sid,overrides)
+        return tuple(payload for nid in sorted(changed) for payload in
+                     (numbers(1604,nid),catalog.npc_packet(sid,nid,appearance=overrides.get(nid))))
 
     def look(self,nid):
         row=next((r for r in self.active() if r['school_objective'] not in ('supply','visit') and r['npc']==nid and r['scene']==self.g.character['map_id']),None)
@@ -600,6 +720,13 @@ class Quests:
         self.target(row)
         if row['school_objective']=='patrol':
             return self._menu(nid,'在这一带走动即可巡逻。',[])
+        if row['kind'] in LOTUS_RULES:
+            talk=row['kind']=='lotus' and LOTUS_RULES['lotus']['ring_targets'][row['ring']-1]['mode']=='talk'
+            rule=LOTUS_RULES[row['kind']]
+            text=(rule['task_ends'][row['ring']-1] if talk else
+                  f'这是{rule["name"]}第{row["ring"]}环任务目标。')
+            label='把话带到（完成本环）' if talk else '挑战任务目标'
+            return self._menu(nid,text,[(label,dict(kind='npc_quest',op='lotus_talk' if talk else 'fight',task=row['id']))])
         if row['kind']=='sanjie' and row['branch'] in SANJIE_TIERS:
             tier=SANJIE_TIERS[row['branch']]
             choice='任务： ['+tier['branch']+']'
@@ -644,8 +771,8 @@ class Quests:
         return True
 
     def start(self,row):
-        if row['kind']=='treasure' and self.g.party_service.team(self.p.cid) is not None:
-            raise ValueError('普通藏宝图任务请单人完成。')
+        if row['kind'] in ('treasure', *LOTUS_RULES) and self.g.party_service.team(self.p.cid) is not None:
+            raise ValueError('这个任务请单人完成。')
         if row.get('supply_item'):raise ValueError('请向领取任务的师父交付寻物。')
         games=self.g.party_service.participants(self.g)
         games=[g for g in games if any(r['id']==row['id'] for r in Quests(g).active())]
@@ -868,6 +995,10 @@ class QuestBattle(WildBattle):
             text=(ACTIVITIES[self.task['kind']]['name']+'完成：经验'+str(value.get('experience',0))+'，现金'+str(value.get('gold',0))+'。') if value.get('victory') else '已离开任务战斗，本次未结算奖励。'
             if value.get('victory') and self.task['kind']=='treasure':
                 text='击败强盗，获得普通藏宝图。背包满时可找陈小知领取暂存奖励。'
+            if value.get('victory') and self.task['kind'] in LOTUS_RULES:
+                rule=LOTUS_RULES[self.task['kind']]
+                dialog=rule['task_ends'][self.task['ring']-1] if self.task['kind']=='lotus' else rule['task_end']
+                text=dialog+f' 经验{value["experience"]}，现金{value["gold"]}。'
             if value.get('points'):text+='三界令积分+'+str(value['points'])+'。'
             self.service.refresh_battle_scene(g)
             if value.get('victory') and self.task['kind']=='school':
@@ -892,7 +1023,16 @@ class QuestBattle(WildBattle):
 def task_details(row):
     title=ACTIVITIES[row['kind']]['name']+' 第'+str(row['ring'])+'环'
     tier=SANJIE_TIERS.get(row['branch']) if row['kind']=='sanjie' else None
-    if tier:
+    if row['kind'] in LOTUS_RULES:
+        rule=LOTUS_RULES[row['kind']]
+        source=rule['task_texts'][row['ring']-1] if row['kind']=='lotus' else rule['task_text']
+        scene=world().scene(row['scene'])['scene_name']
+        title=f'【{rule["name"]}】第{row["ring"]}/{rule["rings"]}环'
+        text=source.replace('{目标}',row['name']).replace('{场景}',scene)
+        text+=f'（{scene} {row["x"]}，{row["y"]}）'
+        description=('按任务提示找到'+row['name']+
+                     ('，交谈或将其击败后回来领下一环。' if row['kind']=='lotus' else '，完成求助挑战。'))
+    elif tier:
         title='【三界令】'+tier['branch']
         total=len(tier['targets'])
         text=f'前往{world().scene(row["scene"])["scene_name"]}挑战{row["name"]}（{row["x"]}，{row["y"]}）。第{row["ring"]}/{total}场。'
